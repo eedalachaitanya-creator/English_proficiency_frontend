@@ -45,21 +45,33 @@ export interface WritingTopicPublic {
   category: string | null;
 }
 
+/** Which sections this candidate's exam includes. Drives candidate-flow
+ * routing: sections set to false are skipped entirely. */
+export interface SectionFlags {
+  reading: boolean;
+  writing: boolean;
+  speaking: boolean;
+}
+
 /** Full payload returned by GET /api/test-content. */
 export interface TestContent {
   candidate_name: string;
   difficulty: 'intermediate' | 'expert';
 
+  // Per-invitation section selection. Excluded sections come back as
+  // null/empty in the corresponding content fields below.
+  sections: SectionFlags;
+
   // Section 1 — Reading
-  passage: PassagePublic;
-  questions: QuestionPublic[]; // typically 15
+  passage: PassagePublic | null;
+  questions: QuestionPublic[]; // empty array when reading is excluded
 
   // Section 2 — Writing
-  writing_topic: WritingTopicPublic;
+  writing_topic: WritingTopicPublic | null;
   duration_writing_seconds: number;
 
   // Section 3 — Speaking
-  speaking_topics: SpeakingTopicPublic[]; // typically 3
+  speaking_topics: SpeakingTopicPublic[]; // empty array when speaking is excluded
   duration_speaking_seconds: number;
 
   // Timing

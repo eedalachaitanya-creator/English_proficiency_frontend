@@ -43,6 +43,12 @@ export interface InviteCreateRequest {
   // scheduled window in the candidate's invitation email. Allowed values
   // are gated server-side; see schemas.ALLOWED_TIMEZONES in the backend.
   timezone: string;
+  // Per-invitation section selection. HR picks any non-empty subset of
+  // the three sections. Backend validator rejects all-three-false; the
+  // form prevents that case via a disabled Generate Link button.
+  include_reading: boolean;
+  include_writing: boolean;
+  include_speaking: boolean;
 }
 
 export interface InviteCreateResponse {
@@ -116,6 +122,12 @@ export interface ResultRow {
   speaking_score: number | null;
   total_score: number | null;
   rating: 'recommended' | 'borderline' | 'not_recommended' | null;
+  // Which sections HR included in this invitation. Drives the small
+  // "R · W · S" chip near the candidate name. Defaults to all-true on
+  // the backend for legacy rows.
+  include_reading: boolean;
+  include_writing: boolean;
+  include_speaking: boolean;
 }
 
 /** A single audio recording — info HR needs to play it back. */

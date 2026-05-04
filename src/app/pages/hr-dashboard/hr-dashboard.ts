@@ -180,6 +180,12 @@ export class HrDashboard implements OnInit {
   // these in sync with backend schemas.ALLOWED_TIMEZONES — the backend
   // rejects any zone not in its allowlist with HTTP 422.
   invTimezone: string = 'Asia/Kolkata';
+  // Per-invitation section selection. All checked by default so the
+  // common case (full test) needs zero clicks. The Generate Link button
+  // is disabled when all three are unchecked — backend also rejects.
+  invIncludeReading = true;
+  invIncludeWriting = true;
+  invIncludeSpeaking = true;
   inviteSubmitting = signal(false);
   inviteError = signal('');
   inviteResult = signal<InviteCreateResponse | null>(null);
@@ -306,6 +312,25 @@ export class HrDashboard implements OnInit {
     this.router.navigate(['/dashboard/candidate', row.invitation_id]);
   }
 
+  // Compact chip showing which sections were included, e.g. "R · W · S"
+  // for a full test, "R · W" when speaking is excluded. Old rows that
+  // pre-date the section-selection feature show all three (default-true).
+  sectionsChip(row: ResultRow): string {
+    const parts: string[] = [];
+    if (row.include_reading) parts.push('R');
+    if (row.include_writing) parts.push('W');
+    if (row.include_speaking) parts.push('S');
+    return parts.join(' · ');
+  }
+
+  sectionsTooltip(row: ResultRow): string {
+    const parts: string[] = [];
+    if (row.include_reading) parts.push('Reading');
+    if (row.include_writing) parts.push('Writing');
+    if (row.include_speaking) parts.push('Speaking');
+    return `Sections included: ${parts.join(', ')}`;
+  }
+
   // -------- Invite modal --------
   openInvite(): void {
     this.invName = '';
@@ -316,6 +341,9 @@ export class HrDashboard implements OnInit {
     this.invStartTime = '';
     this.invEndTime = '';
     this.invTimezone = 'Asia/Kolkata';
+    this.invIncludeReading = true;
+    this.invIncludeWriting = true;
+    this.invIncludeSpeaking = true;
     this.inviteError.set('');
     this.inviteResult.set(null);
     this.inviteCopied.set(false);
@@ -392,6 +420,14 @@ export class HrDashboard implements OnInit {
       this.inviteError.set('Window must be at least 60 minutes (the test takes ~60 min).');
       return;
     }
+    // Defense in depth — the Generate Link button is also disabled in this
+    // case, but we re-check here so a non-browser client (or an IS_PRODUCTION
+    // bug) can't sneak past. The backend validator is the ultimate source
+    // of truth.
+    if (!this.invIncludeReading && !this.invIncludeWriting && !this.invIncludeSpeaking) {
+      this.inviteError.set('Select at least one section.');
+      return;
+    }
 
     const body: InviteCreateRequest = {
       candidate_name: name,
@@ -400,6 +436,9 @@ export class HrDashboard implements OnInit {
       valid_from: fromDate.toISOString(),
       valid_until: untilDate.toISOString(),
       timezone: this.invTimezone,
+      include_reading: this.invIncludeReading,
+      include_writing: this.invIncludeWriting,
+      include_speaking: this.invIncludeSpeaking,
     };
 
     this.inviteSubmitting.set(true);

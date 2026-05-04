@@ -15,6 +15,7 @@ import {
   QuestionPublic,
   ReadingAnswers,
 } from '../../core/models/test.models';
+import { nextSectionRoute } from '../../core/utils/section-routing';
 import { Topnav } from '../../shared/components/topnav/topnav';
 import { Footer } from '../../shared/components/footer/footer';
 
@@ -275,12 +276,18 @@ export class Reading implements OnInit, OnDestroy {
     const c = this.content();
     if (!c) return;
 
+    // Where will the candidate land next? Affects the confirmation copy
+    // when they have unanswered questions ("Continue to Writing" vs
+    // "Continue to Speaking" vs "Submit your test now").
+    const nextRoute = nextSectionRoute('reading', c.sections);
+    const nextLabel = this._labelForRoute(nextRoute);
+
     const stored = this.answers();
     const unanswered = c.questions.filter((q) => stored[q.id] === undefined);
     if (unanswered.length > 0) {
       const ok = await this.modal.confirm(
         `You have ${unanswered.length} unanswered ` +
-        `question${unanswered.length === 1 ? '' : 's'}. Continue to the Writing section?`,
+        `question${unanswered.length === 1 ? '' : 's'}. ${nextLabel}?`,
         { okText: 'Continue', cancelText: 'Keep Answering', dangerous: true }
       );
       if (!ok) return;
@@ -289,7 +296,13 @@ export class Reading implements OnInit, OnDestroy {
       this.countdown.stop();
       this.countdown = null;
     }
-    this.router.navigate(['/writing']);
+    this.router.navigate([nextRoute]);
+  }
+
+  private _labelForRoute(route: string): string {
+    if (route === '/writing') return 'Continue to the Writing section';
+    if (route === '/speaking') return 'Continue to the Speaking section';
+    return 'Submit your test now';
   }
 
   trackQuestion = (_: number, q: QuestionPublic) => q.id;

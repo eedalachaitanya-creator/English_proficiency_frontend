@@ -12,6 +12,7 @@ import { ModalService } from '../../core/services/modal.service';
 import { VisibilityTrackerService } from '../../core/services/visibility-tracker.service';
 import { ForceSubmitService } from '../../core/services/force-submit.service';
 import { TestContent } from '../../core/models/test.models';
+import { nextSectionRoute } from '../../core/utils/section-routing';
 import { Topnav } from '../../shared/components/topnav/topnav';
 import { Footer } from '../../shared/components/footer/footer';
 
@@ -278,6 +279,13 @@ export class Writing implements OnInit, OnDestroy {
     const count = this.wordCount();
     const min = this.minWords();
     const max = this.maxWords();
+    const c = this.content();
+
+    // Where will the candidate land next? Affects the confirmation copy.
+    const nextRoute = c ? nextSectionRoute('writing', c.sections) : '/speaking';
+    const nextLabel = nextRoute === '/speaking'
+      ? 'Continue to the Speaking section'
+      : 'Submit your test now';
 
     // HARD floor: backend's routes/submit.py:HARD_FLOOR_WORDS=50 will reject
     // any essay under 50 words at final submission. We block here too so the
@@ -295,14 +303,14 @@ export class Writing implements OnInit, OnDestroy {
     if (count < min) {
       const ok = await this.modal.confirm(
         `Your essay is ${count} words. The recommended minimum is ${min}. ` +
-        `Continue to the Speaking section anyway?`,
+        `${nextLabel} anyway?`,
         { okText: 'Continue', cancelText: 'Keep Writing', dangerous: true }
       );
       if (!ok) return;
     } else if (count > max) {
       const ok = await this.modal.confirm(
         `Your essay is ${count} words, which is over the recommended ${max}-word maximum. ` +
-        `Continue to the Speaking section?`,
+        `${nextLabel}?`,
         { okText: 'Continue', cancelText: 'Trim Essay' }
       );
       if (!ok) return;
@@ -312,6 +320,6 @@ export class Writing implements OnInit, OnDestroy {
       this.countdown.stop();
       this.countdown = null;
     }
-    this.router.navigate(['/speaking']);
+    this.router.navigate([nextRoute]);
   }
 }

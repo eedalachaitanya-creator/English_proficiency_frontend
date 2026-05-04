@@ -118,7 +118,14 @@
       } @else {
         @for (r of pagedResults(); track r.invitation_id) {
           <tr (click)="onRowClick(r)" style="cursor: pointer;">
-            <td><strong>{{ r.candidate_name }}</strong></td>
+            <td>
+              <strong>{{ r.candidate_name }}</strong>
+              <span
+                [title]="sectionsTooltip(r)"
+                style="display:inline-block; margin-left:8px; padding:2px 6px; font-size:10px; font-weight:600; letter-spacing:1px; color:#475569; background:#f1f5f9; border:1px solid #cbd5e1; border-radius:10px; vertical-align:middle;">
+                {{ sectionsChip(r) }}
+              </span>
+            </td>
             <td class="text-muted">{{ r.candidate_email }}</td>
             <td>{{ r.difficulty }}</td>
             <td>{{ formatSubmittedDate(r.submitted_at) }}</td>
@@ -250,6 +257,39 @@
         </div>
 
         <div class="field">
+          <label>Sections to include *</label>
+          <div style="display:flex; gap:24px; align-items:center; flex-wrap:wrap;">
+            <label style="display:inline-flex; gap:8px; align-items:center; margin:0;">
+              <input
+                type="checkbox"
+                name="incReading"
+                [(ngModel)]="invIncludeReading"
+                [disabled]="inviteSubmitting()">
+              <span>Reading</span>
+            </label>
+            <label style="display:inline-flex; gap:8px; align-items:center; margin:0;">
+              <input
+                type="checkbox"
+                name="incWriting"
+                [(ngModel)]="invIncludeWriting"
+                [disabled]="inviteSubmitting()">
+              <span>Writing</span>
+            </label>
+            <label style="display:inline-flex; gap:8px; align-items:center; margin:0;">
+              <input
+                type="checkbox"
+                name="incSpeaking"
+                [(ngModel)]="invIncludeSpeaking"
+                [disabled]="inviteSubmitting()">
+              <span>Speaking</span>
+            </label>
+          </div>
+          <p class="text-muted" style="font-size:12px; margin:6px 0 0 0;">
+            Final score is normalized over the chosen sections only.
+          </p>
+        </div>
+
+        <div class="field">
           <label for="invTimezone">Timezone *</label>
           <select
             id="invTimezone"
@@ -321,7 +361,7 @@
           <button
             type="button"
             class="btn btn-primary"
-            [disabled]="inviteSubmitting()"
+            [disabled]="inviteSubmitting() || (!invIncludeReading && !invIncludeWriting && !invIncludeSpeaking)"
             (click)="submitInvite()">
             @if (inviteSubmitting()) { Generating… } @else { GENERATE LINK  → }
           </button>
