@@ -326,6 +326,22 @@ export class Writing implements OnInit, OnDestroy {
       this.countdown.stop();
       this.countdown = null;
     }
+    // If this is the last section (no speaking), /submitted is just a
+    // thank-you page — it does NOT call /api/submit. Use submitFinal() so
+    // the essay actually reaches the server. See reading.ts:onContinue
+    // for the same pattern.
+    if (nextRoute === '/submitted') {
+      try {
+        await this.forceSubmit.submitFinal();
+      } catch (err) {
+        const msg = (err as ApiError)?.message ?? 'Unknown error';
+        await this.modal.alert(
+          `Could not submit your test: ${msg}\n\nPlease check your connection and try again.`,
+          { title: 'Submission failed' }
+        );
+      }
+      return;
+    }
     this.router.navigate([nextRoute]);
   }
 }

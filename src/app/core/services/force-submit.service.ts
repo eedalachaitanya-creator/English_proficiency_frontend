@@ -59,28 +59,13 @@ export class ForceSubmitService {
 
     this.showOverlay(submissionReason);
 
-    const fd = new FormData();
-    fd.append('answers', JSON.stringify(this.store.getReadingAnswers()));
-    fd.append('topic_ids', JSON.stringify([]));
-    fd.append('essay_text', this.store.getWritingEssay());
-
-    const stats = this.tracker.getStats();
-    fd.append('tab_switches_count', String(stats.count));
-    fd.append('tab_switches_total_seconds', String(stats.totalSeconds));
-    fd.append('submission_reason', submissionReason);
-
     try {
-      const res = await firstValueFrom(
-        this.api.post<SubmitResponse>('/api/submit', fd)
-      );
-
+      const res = await this._postSubmit(submissionReason);
       if (res?.ref_id) {
         this.store.setRefId(res.ref_id);
       }
-
       this.store.clearTestSession();
       this.tracker.reset();
-
       this.router.navigate(['/submitted']);
     } catch (err) {
       console.error('[force-submit] submission failed:', err);
@@ -90,6 +75,52 @@ export class ForceSubmitService {
       // Deliberately do NOT navigate — leave the candidate on the overlay
       // so they don't think they submitted successfully. The error is final.
     }
+  }
+
+  /**
+   * Normal end-of-test submission — used by reading.ts and writing.ts when
+   * the candidate hits Continue on what is the LAST included section
+   * (e.g., HR created a Reading-only or Reading+Writing test). Submits
+   * answers + essay (no audio, since speaking is excluded), clears the
+   * session, and navigates to /submitted.
+   *
+   * Distinct from terminateAndSubmit: no full-screen overlay, error
+   * propagates to the caller so it can show the same retry UX speaking.ts
+   * uses for the candidate-finished path (modal alert + retry).
+   */
+  async submitFinal(): Promise<void> {
+    if (this.inFlight) return;
+    this.inFlight = true;
+    try {
+      const res = await this._postSubmit('candidate_finished');
+      if (res?.ref_id) {
+        this.store.setRefId(res.ref_id);
+      }
+      this.store.clearTestSession();
+      this.tracker.reset();
+      this.router.navigate(['/submitted']);
+    } catch (err) {
+      // Release the in-flight guard so the candidate can retry.
+      this.inFlight = false;
+      throw err;
+    }
+  }
+
+  private async _postSubmit(reason: SubmissionReason): Promise<SubmitResponse> {
+    const fd = new FormData();
+    fd.append('answers', JSON.stringify(this.store.getReadingAnswers()));
+    // No audio in this code path — speaking.ts has its own submit that
+    // handles recordings. submitFinal() / terminateAndSubmit() submit
+    // text-only data (answers + essay) with empty topic_ids.
+    fd.append('topic_ids', JSON.stringify([]));
+    fd.append('essay_text', this.store.getWritingEssay());
+
+    const stats = this.tracker.getStats();
+    fd.append('tab_switches_count', String(stats.count));
+    fd.append('tab_switches_total_seconds', String(stats.totalSeconds));
+    fd.append('submission_reason', reason);
+
+    return firstValueFrom(this.api.post<SubmitResponse>('/api/submit', fd));
   }
 
   private showOverlay(submissionReason: SubmissionReason): void {
