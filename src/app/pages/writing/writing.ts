@@ -66,8 +66,8 @@ export class Writing implements OnInit, OnDestroy {
     return text.split(/\s+/).filter(Boolean).length;
   });
 
-  minWords = computed(() => this.content()?.writing_topic.min_words ?? 200);
-  maxWords = computed(() => this.content()?.writing_topic.max_words ?? 300);
+  minWords = computed(() => this.content()?.writing_topic?.min_words ?? 200);
+  maxWords = computed(() => this.content()?.writing_topic?.max_words ?? 300);
 
   wordCountStatus = computed<'under' | 'over' | 'ok'>(() => {
     const count = this.wordCount();
@@ -97,6 +97,12 @@ export class Writing implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.testContentSvc.load().subscribe({
       next: (c) => {
+        // Redirect away if HR excluded the writing section. See reading.ts
+        // ngOnInit for the full rationale.
+        if (!c.sections.writing) {
+          this.router.navigate([nextSectionRoute('instructions', c.sections)]);
+          return;
+        }
         this.content.set(c);
         this.essay.set(this.store.getWritingEssay());
         this.startTimer(c);

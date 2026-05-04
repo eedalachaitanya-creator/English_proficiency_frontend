@@ -171,6 +171,13 @@ export interface ResultDetail {
   rating: string | null;
   ai_feedback: string | null;
 
+  // Per-invitation section selection. Legacy rows default to true on the
+  // backend so the candidate-detail page can render the right empty-state
+  // copy ("Not included in this test" vs "Not yet submitted").
+  include_reading: boolean;
+  include_writing: boolean;
+  include_speaking: boolean;
+
   // Tab-switching telemetry. count = number of times the candidate switched
   // away (after the 2-second threshold); total_seconds = cumulative time away.
   // Old rows submitted before the columns existed default to 0 server-side.

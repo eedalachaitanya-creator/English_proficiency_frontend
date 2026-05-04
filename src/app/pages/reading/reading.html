@@ -1,4 +1,4 @@
-<app-topnav title="English Proficiency Test  •  Section 1 of 3" [meta]="candidateMeta()">
+<app-topnav title="English Proficiency Test  •  Reading" [meta]="candidateMeta()">
   <span
     class="timer-chip"
     [class.warning]="timerState() === 'warning'"
@@ -38,7 +38,7 @@
     <div class="reading-grid">
       <!-- Passage column -->
       <aside class="passage" id="passage">
-        <h2>{{ content()!.passage.title }}</h2>
+        <h2>{{ content()!.passage?.title }}</h2>
         @for (para of passageParagraphs(); track $index) {
           <p>{{ para }}</p>
         }

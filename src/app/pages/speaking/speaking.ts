@@ -14,6 +14,7 @@ import { ModalService } from '../../core/services/modal.service';
 import { VisibilityTrackerService } from '../../core/services/visibility-tracker.service';
 import type { SubmissionReason } from '../../core/services/force-submit.service';
 import { TestContent, SpeakingTopicPublic } from '../../core/models/test.models';
+import { nextSectionRoute } from '../../core/utils/section-routing';
 import { Topnav } from '../../shared/components/topnav/topnav';
 import { Footer } from '../../shared/components/footer/footer';
 
@@ -165,6 +166,14 @@ export class Speaking implements OnInit, OnDestroy, AfterViewInit {
   ngOnInit(): void {
     this.testContentSvc.load().subscribe({
       next: (c) => {
+        // Redirect away if HR excluded the speaking section. See reading.ts
+        // ngOnInit for the full rationale. Done BEFORE the topics-empty
+        // alert below so a legitimate exclusion isn't reported as a setup
+        // error.
+        if (!c.sections.speaking) {
+          this.router.navigate([nextSectionRoute('instructions', c.sections)]);
+          return;
+        }
         this.content.set(c);
         const topics = c.speaking_topics ?? [];
         if (topics.length === 0) {

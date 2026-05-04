@@ -1,4 +1,4 @@
-<app-topnav title="English Proficiency Test  •  Section 2 of 3" [meta]="candidateMeta()">
+<app-topnav title="English Proficiency Test  •  Writing" [meta]="candidateMeta()">
   <span
     class="timer-chip"
     [class.warning]="timerState() === 'warning'"
@@ -36,7 +36,7 @@
 
     <div class="prompt-card">
       <div class="prompt-label">Topic</div>
-      <p class="prompt-text">{{ content()!.writing_topic.prompt_text }}</p>
+      <p class="prompt-text">{{ content()!.writing_topic?.prompt_text }}</p>
     </div>
 
     <textarea

@@ -72,7 +72,7 @@ export class Reading implements OnInit, OnDestroy {
   });
 
   passageParagraphs = computed<string[]>(() => {
-    const body = this.content()?.passage.body ?? '';
+    const body = this.content()?.passage?.body ?? '';
     return body.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
   });
 
@@ -89,6 +89,16 @@ export class Reading implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.testContentSvc.load().subscribe({
       next: (c) => {
+        // If HR excluded reading from this invitation, the candidate
+        // shouldn't be on this page (e.g., they typed /reading directly,
+        // or refreshed after the URL got into a weird state). Redirect to
+        // the next included section without setting content — that keeps
+        // the template stuck on its "Loading…" branch until navigation
+        // completes, avoiding any null-derefs on c.passage.
+        if (!c.sections.reading) {
+          this.router.navigate([nextSectionRoute('instructions', c.sections)]);
+          return;
+        }
         this.content.set(c);
         this.answers.set(this.store.getReadingAnswers());
         this.startTimer(c);

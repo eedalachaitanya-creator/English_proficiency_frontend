@@ -158,7 +158,9 @@
       <div class="card">
         <div class="card-header">READING BREAKDOWN</div>
         <div class="text-mono">
-          @if (detail()!.reading_score === null || detail()!.reading_score === undefined) {
+          @if (!detail()!.include_reading) {
+            <em class="text-muted">Not included in this test.</em>
+          } @else if (detail()!.reading_score === null || detail()!.reading_score === undefined) {
             Not yet submitted.
           } @else {
             Score: <strong>{{ detail()!.reading_score }} / 100</strong><br>
@@ -172,7 +174,9 @@
       <div class="card">
         <div class="card-header">SPEAKING (LLM SCORED)</div>
         <div class="text-mono">
-          @if (detail()!.speaking_breakdown) {
+          @if (!detail()!.include_speaking) {
+            <em class="text-muted">Not included in this test.</em>
+          } @else if (detail()!.speaking_breakdown) {
             @for (entry of breakdownEntries(detail()!.speaking_breakdown); track entry.key) {
               <div style="display: flex; justify-content: space-between; max-width: 240px;">
                 <span>{{ entry.key }}</span>
@@ -218,7 +222,9 @@
     <div class="card mt-6">
       <div class="card-header">WRITING (LLM SCORED) — ESSAY + RUBRIC</div>
       <div>
-        @if (!detail()!.submitted_at) {
+        @if (!detail()!.include_writing) {
+          <em class="text-muted">Not included in this test.</em>
+        } @else if (!detail()!.submitted_at) {
           Not yet submitted.
         } @else {
           @if (detail()!.writing_breakdown) {
