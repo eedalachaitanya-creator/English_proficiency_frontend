@@ -1,28 +1,64 @@
-<app-topnav
-  title="HR Portal  —  English Proficiency Results"
-  [meta]="hrEmail()"
-  variant="hr"
-  [showLogout]="true"
-  (logout)="onLogout()">
-</app-topnav>
+<aside class="sidebar">
  
-<div class="layout">
- 
-  <!-- LEFT SIDEBAR -->
-  <app-sidebar
-  [showManageQuestions]="true"
-  [showInviteCandidate]="true"
-  (inviteClicked)="openInvite()">
-</app-sidebar>
- 
-  <!-- MAIN CONTENT -->
-  <div class="content"> 
- 
-<main class="page">
- 
-  <!-- Toast: brief success notification, auto-dismiss after 4s.
-       Shown after a successful invite send. The invite modal closes
-       and this slides in to confirm what just happened. -->
+  <!-- Dashboard Menu -->
+  @if (showDashboard) {
+    <div class="menu-item">
+      <button class="invite-btn"  routerLink="/dashboard" 
+        routerLinkActive="active" >
+        <span class="menu-text">DASHBOARD</span>
+      </button>
+    </div>
+  }
+
+  <!-- Manage Questions -->
+  @if (showManageQuestions) {
+    <div class="menu-item">
+      <div class="menu-parent" (click)="toggleMenu('questions')">
+        <span class="menu-icon">⚙</span>
+        <span class="menu-text">MANAGE QUESTIONS</span>
+        <span class="menu-arrow">
+          <i class="fas" [class.fa-chevron-up]="openMenu === 'questions'" [class.fa-chevron-down]="openMenu !== 'questions'"></i>
+        </span>
+      </div>
+
+      @if (openMenu === 'questions') {
+        <div class="submenu">
+          <a 
+            routerLink="/dashboard/content/passages" 
+            routerLinkActive="active">
+            Reading Passages
+          </a>
+          <a 
+            routerLink="/dashboard/content/questions" 
+            routerLinkActive="active">
+            MCQ Questions
+          </a>
+          <a 
+            routerLink="/dashboard/content/writing-topics" 
+            routerLinkActive="active">
+            Summary & Essay
+          </a>
+          <a 
+            routerLink="/dashboard/content/speaking-topics" 
+            routerLinkActive="active">
+            Speaking Topics
+          </a>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Invite Candidate -->
+  @if (showInviteCandidate) {
+    <div class="menu-item">
+      <button class="invite-btn" (click)="openInvite()">
+        + INVITE NEW CANDIDATE
+      </button>
+    </div>
+  }
+
+</aside>
+
   @if (toastVisible()) {
     <div class="toast" role="status" aria-live="polite">
       <span class="toast-icon">✓</span>
@@ -30,204 +66,21 @@
     </div>
   }
  
-  @if (loadError()) {
-    <div class="notice">
-      <strong>Could not load results.</strong>
-      {{ loadError() }}
-    </div>
-  }
- 
-  <!-- KPI cards -->
-  <div class="kpi-grid">
-    <div class="kpi">
-      <div class="label">Total Invitations</div>
-      <div class="value">
-        @if (loading()) { — } @else { {{ kpiTotal() }} }
-      </div>
-    </div>
- 
-    <div class="kpi accent">
-      <div class="label">Avg Score</div>
-      <div class="value">
-        @if (loading() || kpiAvg() === null) { — }
-        @else { {{ kpiAvg() }} / 100 }
-      </div>
-    </div>
- 
-    <div class="kpi alert">
-      <div class="label">Pending</div>
-      <div class="value">
-        @if (loading()) { — } @else { {{ kpiPending() }} }
-      </div>
-    </div>
- 
-    <div class="kpi success">
-      <div class="label">Submitted</div>
-      <div class="value">
-        @if (loading()) { — } @else { {{ kpiSubmitted() }} }
-      </div>
-    </div>
-  </div>
- 
-  <!-- Filters + invite button -->
-  <div class="flex-row mb-4">
-    <input
-      type="text"
-      placeholder="🔍  Search candidate…"
-      style="padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--radius); width: 260px;"
-      [(ngModel)]="searchQuery"
-      (input)="applyFilters()">
- 
-    <select
-      style="padding: 10px; border-radius: var(--radius); border: 1px solid var(--border);"
-      [(ngModel)]="statusFilter"
-      (change)="applyFilters()">
-      <option value="">All statuses</option>
-      <option value="submitted">Submitted</option>
-      <option value="pending">Pending</option>
-    </select>
- 
-    <span class="spacer"></span>
- 
-     <a routerLink="/dashboard/content" class="btn btn-secondary" style="text-decoration: none;">
-      ⚙ MANAGE QUESTIONS
-    </a>
-    <button class="btn btn-primary" (click)="openInvite()">+ INVITE NEW CANDIDATE</button>  
-  </div>
- 
-  <!-- Results table -->
-  <table class="results">
-    <thead>
-      <tr>
-        <th>Candidate</th>
-        <th>Email</th>
-        <th>Difficulty</th>
-        <th>Submitted</th>
-        <th>Reading</th>
-        <th>Writing</th>
-        <th>Speaking</th>
-        <th>Total</th>
-        <th>Rating</th>
-      </tr>
-    </thead>
-    <tbody>
-      @if (loading()) {
-        <tr>
-          <td colspan="9" class="text-muted text-center" style="padding: 24px;">
-            Loading…
-          </td>
-        </tr>
-      } @else if (filteredResults().length === 0) {
-        <tr>
-          <td colspan="9" class="text-muted text-center" style="padding: 24px;">
-            @if (allResults().length === 0) {
-              No invitations yet. Click "+ INVITE NEW CANDIDATE" to send the first one.
-            } @else {
-              No candidates match your filters.
-            }
-          </td>
-        </tr>
-      } @else {
-        @for (r of pagedResults(); track r.invitation_id) {
-          <tr (click)="onRowClick(r)" style="cursor: pointer;">
-            <td>
-              <strong>{{ r.candidate_name }}</strong>
-              <span
-                [title]="sectionsTooltip(r)"
-                style="display:inline-block; margin-left:8px; padding:2px 6px; font-size:10px; font-weight:600; letter-spacing:1px; color:#475569; background:#f1f5f9; border:1px solid #cbd5e1; border-radius:10px; vertical-align:middle;">
-                {{ sectionsChip(r) }}
-              </span>
-            </td>
-            <td class="text-muted">{{ r.candidate_email }}</td>
-            <td>{{ r.difficulty }}</td>
-            <td>{{ formatSubmittedDate(r.submitted_at) }}</td>
-            <td class="text-mono">
-              @if (r.reading_score !== null) { {{ r.reading_score }} } @else { — }
-            </td>
-            <td class="text-mono">
-              @if (r.writing_score !== null) { {{ r.writing_score }} } @else { — }
-            </td>
-            <td class="text-mono">
-              @if (r.speaking_score !== null) { {{ r.speaking_score }} } @else { — }
-            </td>
-            <td>
-              @if (r.total_score !== null) { <strong>{{ r.total_score }}</strong> } @else { — }
-            </td>
-            <td>
-              @if (r.rating) {
-                <span class="badge {{ ratingClass(r.rating) }}">{{ ratingLabel(r.rating) }}</span>
-              } @else {
-                <span class="text-muted">pending</span>
-              }
-            </td>
-          </tr>
-        }
-      }
-    </tbody>
-  </table>
- 
-  <!-- Pagination controls -->
-  @if (!loading() && filteredResults().length > 0 && totalPages() > 1) {
-    <div class="flex-row mt-4" style="align-items: center; justify-content: center;">
-      <button
-        type="button"
-        class="btn btn-secondary"
-        [disabled]="currentPage() === 1"
-        (click)="prevPage()">
-        ← Previous
-      </button>
- 
-      <div style="display: flex; gap: 4px; margin: 0 12px;">
-        @for (p of pageNumbers(); track $index) {
-          @if (p === '…') {
-            <span class="text-muted" style="padding: 8px 4px;">…</span>
-          } @else {
-            <button
-              type="button"
-              class="btn"
-              [class.btn-primary]="p === currentPage()"
-              [class.btn-secondary]="p !== currentPage()"
-              style="min-width: 40px; padding: 6px 10px;"
-              (click)="goToPage(+p)">
-              {{ p }}
-            </button>
-          }
-        }
-      </div>
- 
-      <button
-        type="button"
-        class="btn btn-secondary"
-        [disabled]="currentPage() === totalPages()"
-        (click)="nextPage()">
-        Next →
-      </button>
-    </div>
- 
-    <div class="text-muted text-center mt-4" style="font-size: 13px;">
-      Page {{ currentPage() }} of {{ totalPages() }}
-      &nbsp;•&nbsp;
-      Showing {{ pagedResults().length }} of {{ filteredResults().length }}
-      @if (filteredResults().length !== allResults().length) {
-        (filtered from {{ allResults().length }} total)
-      }
-    </div>
-  }
- 
-</main>
- </div>
-</div>
- 
-<app-footer text="© Company HR  •  Scores written by Claude (LLM rubric scoring)"></app-footer>
- 
+  
+
 <!-- Invite modal -->
 @if (inviteOpen()) {
   <div class="modal-backdrop show" (click)="closeInvite()">
     <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
       <h2>Invite a Candidate</h2>
       <p class="subtitle">Generates a one-time URL active during your scheduled window.</p>
- 
+       <a class="close-btn" (click)="closeInvite()" aria-label="Close">
+          ✕
+       </a>
+        </div>
       @if (!inviteResult()) {
+       <div class="modal-body">
         <div class="field">
           <label for="candName">Candidate Name</label>
           <input
@@ -309,23 +162,16 @@
             id="invTimezone"
             required
             [(ngModel)]="invTimezone"
-            [disabled]="inviteSubmitting() || timezonesLoading() || availableTimezones().length === 0"
+            [disabled]="inviteSubmitting()"
             style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius: var(--radius); background:#fff;">
-            @if (timezonesLoading()) {
-              <option [value]="invTimezone">Loading…</option>
-            } @else if (availableTimezones().length === 0) {
-              <option [value]="invTimezone">No timezones available</option>
-            } @else {
-              @for (tz of availableTimezones(); track tz.iana_name) {
-                <option [value]="tz.iana_name">{{ tz.display_label }}</option>
-              }
-            }
+            <option value="Asia/Kolkata">India Standard Time (IST)</option>
+            <option value="America/New_York">US Eastern Time (ET)</option>
+            <option value="America/Chicago">US Central Time (CT)</option>
+            <option value="America/Denver">US Mountain Time (MT)</option>
+            <option value="America/Los_Angeles">US Pacific Time (PT)</option>
+            <option value="America/Anchorage">US Alaska Time (AKT)</option>
+            <option value="Pacific/Honolulu">US Hawaii Time (HT)</option>
           </select>
-          @if (timezonesError()) {
-            <small class="text-muted" style="display:block; margin-top:4px; font-size:12px; color:#b91c1c;">
-              {{ timezonesError() }}
-            </small>
-          }
         </div>
  
         <div class="field">
@@ -387,6 +233,7 @@
             @if (inviteSubmitting()) { Generating… } @else { GENERATE LINK  → }
           </button>
         </div>
+        </div>
       } @else {
         <div class="invite-result">
           <!-- Email-failed banner. Shown ONLY when the modal stayed open
@@ -446,3 +293,4 @@
     </div>
   </div>
 }
+

@@ -13,6 +13,7 @@ import {
 import { Topnav } from '../../shared/components/topnav/topnav';
 import { Footer } from '../../shared/components/footer/footer';
 import { AccountMenu } from '../../shared/components/account-menu/account-menu';
+import { Sidebar } from '../../shared/components/sidebar/sidebar';
 
 /**
  * Speaking topics management — list, create, edit, delete.
@@ -25,7 +26,7 @@ import { AccountMenu } from '../../shared/components/account-menu/account-menu';
 @Component({
   selector: 'app-content-speaking-topics',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, Topnav, Footer, AccountMenu],
+  imports: [CommonModule, FormsModule, RouterLink, Topnav, Footer, AccountMenu, Sidebar],
   templateUrl: './content-speaking-topics.html',
   styleUrl: './content-speaking-topics.css',
 })

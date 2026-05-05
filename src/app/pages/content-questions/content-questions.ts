@@ -16,6 +16,7 @@ import {
 import { Topnav } from '../../shared/components/topnav/topnav';
 import { Footer } from '../../shared/components/footer/footer';
 import { AccountMenu } from '../../shared/components/account-menu/account-menu';
+import { Sidebar } from '../../shared/components/sidebar/sidebar';
 
 /**
  * MCQ Questions management — list, create, edit, delete, bulk-import.
@@ -27,7 +28,7 @@ import { AccountMenu } from '../../shared/components/account-menu/account-menu';
 @Component({
   selector: 'app-content-questions',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, Topnav, Footer, AccountMenu],
+  imports: [CommonModule, FormsModule, RouterLink, Topnav, Footer, AccountMenu, Sidebar],
   templateUrl: './content-questions.html',
   styleUrl: './content-questions.css',
 })

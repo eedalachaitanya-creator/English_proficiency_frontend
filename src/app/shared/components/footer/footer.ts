@@ -28,5 +28,5 @@ import { Component, Input } from '@angular/core';
   styleUrl: './footer.css',
 })
 export class Footer {
-  @Input() text = '© Company HR  •  Privacy  •  Support';
+  @Input() text = 'Powered by Stixis AI Solutions, &copy; Copyright 2026-2027';
 }

@@ -16,6 +16,7 @@ import { Topnav } from '../../shared/components/topnav/topnav';
 import { Footer } from '../../shared/components/footer/footer';
 import { RadarBreakdown } from '../../shared/components/radar-breakdown/radar-breakdown';
 import { AccountMenu } from '../../shared/components/account-menu/account-menu';
+import { Sidebar } from '../../shared/components/sidebar/sidebar';
 
 /**
  * Candidate detail page — shows full breakdown for one candidate.
@@ -38,7 +39,7 @@ import { AccountMenu } from '../../shared/components/account-menu/account-menu';
 @Component({
   selector: 'app-candidate-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink, Topnav, Footer, RadarBreakdown, AccountMenu],
+  imports: [CommonModule, RouterLink, Topnav, Footer, RadarBreakdown, AccountMenu, Sidebar],
   templateUrl: './candidate-detail.html',
   styleUrl: './candidate-detail.css',
 })

@@ -43,8 +43,9 @@ import { CommonModule } from '@angular/common';
   styleUrl: './topnav.css',
 })
 export class Topnav {
+ 
   /** Brand text on the left side. */
-  @Input() title = 'English Proficiency Test';
+  @Input() title = '';
 
   /** Meta text on the right side (candidate name, HR email, or status). */
   @Input() meta = '';

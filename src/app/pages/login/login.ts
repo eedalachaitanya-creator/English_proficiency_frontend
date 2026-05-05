@@ -32,6 +32,8 @@ import { ForgotPasswordModal } from '../../shared/components/forgot-password-mod
   styleUrl: './login.css',
 })
 export class Login implements OnInit {
+
+  activeTab: 'admin' | 'hr' = 'admin'; // Default to admin tab
   private auth = inject(AuthService);
   private router = inject(Router);
 
@@ -56,6 +58,16 @@ export class Login implements OnInit {
 
   closeForgot(): void {
     this.forgotOpen.set(false);
+  }
+
+   setActiveTab(tab: 'admin' | 'hr'): void {
+    this.activeTab = tab;
+    // Clear errors when switching tabs
+    if (tab === 'admin') {
+      this.hrError.set('');
+    } else {
+      this.adminError.set('');
+    }
   }
 
   ngOnInit(): void {
