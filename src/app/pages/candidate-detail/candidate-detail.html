@@ -1,9 +1,11 @@
 <app-topnav
   title="HR Portal  —  Candidate Detail"
-  [meta]="hrEmail()"
-  variant="hr"
-  [showLogout]="true"
-  (logout)="onLogout()">
+  variant="hr">
+  <app-account-menu
+    [name]="hrName()"
+    [email]="hrEmail()"
+    (logout)="onLogout()">
+  </app-account-menu>
 </app-topnav>
 
 <main class="page">

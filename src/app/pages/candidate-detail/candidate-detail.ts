@@ -15,6 +15,7 @@ import {
 import { Topnav } from '../../shared/components/topnav/topnav';
 import { Footer } from '../../shared/components/footer/footer';
 import { RadarBreakdown } from '../../shared/components/radar-breakdown/radar-breakdown';
+import { AccountMenu } from '../../shared/components/account-menu/account-menu';
 
 /**
  * Candidate detail page — shows full breakdown for one candidate.
@@ -37,7 +38,7 @@ import { RadarBreakdown } from '../../shared/components/radar-breakdown/radar-br
 @Component({
   selector: 'app-candidate-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink, Topnav, Footer, RadarBreakdown],
+  imports: [CommonModule, RouterLink, Topnav, Footer, RadarBreakdown, AccountMenu],
   templateUrl: './candidate-detail.html',
   styleUrl: './candidate-detail.css',
 })
@@ -81,6 +82,7 @@ export class CandidateDetail implements OnInit {
 
   // Convenience for template.
   hrEmail = computed(() => this.auth.currentUser()?.email ?? 'Loading…');
+  hrName = computed(() => this.auth.currentUser()?.name ?? '');
 
   /**
    * Show INVITATION DETAILS card only when the candidate hasn't submitted.

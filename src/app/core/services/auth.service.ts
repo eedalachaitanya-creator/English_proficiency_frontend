@@ -116,6 +116,22 @@ export class AuthService {
     );
   }
 
+  /**
+   * Change the logged-in HR's password. Backend requires the current
+   * password as a defense against session hijack / drive-by changes
+   * (someone walking up to an unattended browser).
+   *
+   * On success: backend keeps the session valid (no re-login needed).
+   * On 401 (wrong current password): error propagates so the modal can
+   * surface the message.
+   */
+  changePassword(current: string, next: string): Observable<void> {
+    return this.api.post<void>('/api/hr/change-password', {
+      current_password: current,
+      new_password: next,
+    });
+  }
+
   // -------------------------------------------------------------------
   // Admin authentication — mirrors the HR methods above.
   // -------------------------------------------------------------------

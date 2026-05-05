@@ -1,4 +1,6 @@
-<app-topnav title="English Proficiency Test  •  Content Authoring" [showLogout]="true"></app-topnav>
+<app-topnav title="English Proficiency Test  •  Content Authoring" variant="hr">
+  <app-account-menu [name]="hrName()" [email]="hrEmail()" (logout)="onLogout()"></app-account-menu>
+</app-topnav>
 
 <main class="content-hub-page">
 

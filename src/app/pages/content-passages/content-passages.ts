@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
 
 import { ApiError } from '../../core/services/api.service';
+import { AuthService } from '../../core/services/auth.service';
 import { ModalService } from '../../core/services/modal.service';
 import {
   HrContentService,
@@ -12,6 +13,7 @@ import {
 } from '../../core/services/hr-content.service';
 import { Topnav } from '../../shared/components/topnav/topnav';
 import { Footer } from '../../shared/components/footer/footer';
+import { AccountMenu } from '../../shared/components/account-menu/account-menu';
 
 /**
  * Reading passages management — list, create, edit, delete, bulk-import.
@@ -21,7 +23,7 @@ import { Footer } from '../../shared/components/footer/footer';
 @Component({
   selector: 'app-content-passages',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, Topnav, Footer],
+  imports: [CommonModule, FormsModule, RouterLink, Topnav, Footer, AccountMenu],
   templateUrl: './content-passages.html',
   styleUrl: './content-passages.css',
 })
@@ -29,6 +31,13 @@ export class ContentPassages implements OnInit {
   private contentSvc = inject(HrContentService);
   private modal = inject(ModalService);
   private router = inject(Router);
+  private auth = inject(AuthService);
+
+  hrEmail = computed(() => this.auth.currentUser()?.email ?? 'Loading…');
+  hrName = computed(() => this.auth.currentUser()?.name ?? '');
+  onLogout(): void {
+    this.auth.logout().subscribe(() => this.router.navigate(['/login']));
+  }
 
   passages = signal<PassageOut[]>([]);
   loading = signal(true);

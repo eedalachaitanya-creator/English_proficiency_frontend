@@ -12,6 +12,7 @@ import {
 } from '../../core/models/hr.models';
 import { Topnav } from '../../shared/components/topnav/topnav';
 import { Footer } from '../../shared/components/footer/footer';
+import { AccountMenu } from '../../shared/components/account-menu/account-menu';
 
 /**
  * HR Dashboard — list view only.
@@ -110,7 +111,7 @@ function getPartsInTimezone(d: Date, tz: string): {
 @Component({
   selector: 'app-hr-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, Topnav, Footer],
+  imports: [CommonModule, FormsModule, RouterLink, Topnav, Footer, AccountMenu],
   templateUrl: './hr-dashboard.html',
   styleUrl: './hr-dashboard.css',
 })
@@ -163,6 +164,7 @@ export class HrDashboard implements OnInit {
   });
 
   hrEmail = computed(() => this.auth.currentUser()?.email ?? 'Loading…');
+  hrName = computed(() => this.auth.currentUser()?.name ?? '');
 
   // -------- Invite modal state --------
   inviteOpen = signal(false);

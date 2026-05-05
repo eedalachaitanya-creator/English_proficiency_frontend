@@ -1,4 +1,6 @@
-<app-topnav title="Manage Questions" [showLogout]="true"></app-topnav>
+<app-topnav title="Manage Questions" variant="hr">
+  <app-account-menu [name]="hrName()" [email]="hrEmail()" (logout)="onLogout()"></app-account-menu>
+</app-topnav>
 
 <main class="cq-page">
 

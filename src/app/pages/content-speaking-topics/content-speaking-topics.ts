@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
 
 import { ApiError } from '../../core/services/api.service';
+import { AuthService } from '../../core/services/auth.service';
 import { ModalService } from '../../core/services/modal.service';
 import {
   HrContentService,
@@ -11,6 +12,7 @@ import {
 } from '../../core/services/hr-content.service';
 import { Topnav } from '../../shared/components/topnav/topnav';
 import { Footer } from '../../shared/components/footer/footer';
+import { AccountMenu } from '../../shared/components/account-menu/account-menu';
 
 /**
  * Speaking topics management — list, create, edit, delete.
@@ -23,7 +25,7 @@ import { Footer } from '../../shared/components/footer/footer';
 @Component({
   selector: 'app-content-speaking-topics',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, Topnav, Footer],
+  imports: [CommonModule, FormsModule, RouterLink, Topnav, Footer, AccountMenu],
   templateUrl: './content-speaking-topics.html',
   styleUrl: './content-speaking-topics.css',
 })
@@ -31,6 +33,13 @@ export class ContentSpeakingTopics implements OnInit {
   private contentSvc = inject(HrContentService);
   private modal = inject(ModalService);
   private router = inject(Router);
+  private auth = inject(AuthService);
+
+  hrEmail = computed(() => this.auth.currentUser()?.email ?? 'Loading…');
+  hrName = computed(() => this.auth.currentUser()?.name ?? '');
+  onLogout(): void {
+    this.auth.logout().subscribe(() => this.router.navigate(['/login']));
+  }
 
   topics = signal<SpeakingTopicOut[]>([]);
   loading = signal(true);

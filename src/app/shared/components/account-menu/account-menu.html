@@ -1,0 +1,57 @@
+<div class="account-menu-wrap">
+
+  <!-- Avatar trigger -->
+  <button
+    type="button"
+    class="account-avatar"
+    [class.open]="open()"
+    [attr.aria-expanded]="open()"
+    aria-haspopup="menu"
+    [attr.aria-label]="'Account menu for ' + displayName()"
+    (click)="toggle()">
+    {{ initial() }}
+  </button>
+
+  <!-- Dropdown -->
+  @if (open()) {
+    <div class="account-menu" role="menu">
+
+      <!-- Header: name + email -->
+      <div class="account-menu-header">
+        <div class="account-menu-name">{{ displayName() }}</div>
+        @if (email) {
+          <div class="account-menu-email">{{ email }}</div>
+        }
+      </div>
+
+      <div class="account-menu-divider"></div>
+
+      <!-- Items -->
+      @if (showChangePassword) {
+        <button
+          type="button"
+          class="account-menu-item"
+          role="menuitem"
+          (click)="onChangePassword()">
+          Change password
+        </button>
+      }
+
+      <button
+        type="button"
+        class="account-menu-item account-menu-item-danger"
+        role="menuitem"
+        (click)="onLogout()">
+        Logout
+      </button>
+
+    </div>
+  }
+</div>
+
+<!-- Change-password modal lives here so every parent page gets it for
+     free by just dropping in <app-account-menu>. -->
+@if (modalOpen()) {
+  <app-change-password-modal (closed)="onModalClosed()"></app-change-password-modal>
+}
+

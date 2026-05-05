@@ -1,9 +1,11 @@
-import { Component } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
+import { AuthService } from '../../core/services/auth.service';
 import { Topnav } from '../../shared/components/topnav/topnav';
 import { Footer } from '../../shared/components/footer/footer';
+import { AccountMenu } from '../../shared/components/account-menu/account-menu';
 
 /**
  * Landing page for HR content authoring (/dashboard/content).
@@ -15,10 +17,18 @@ import { Footer } from '../../shared/components/footer/footer';
 @Component({
   selector: 'app-content-hub',
   standalone: true,
-  imports: [CommonModule, RouterLink, Topnav, Footer],
+  imports: [CommonModule, RouterLink, Topnav, Footer, AccountMenu],
   templateUrl: './content-hub.html',
   styleUrl: './content-hub.css',
 })
 export class ContentHub {
-  // No state yet — just a navigation page.
+  private auth = inject(AuthService);
+  private router = inject(Router);
+
+  hrEmail = computed(() => this.auth.currentUser()?.email ?? 'Loading…');
+  hrName = computed(() => this.auth.currentUser()?.name ?? '');
+
+  onLogout(): void {
+    this.auth.logout().subscribe(() => this.router.navigate(['/login']));
+  }
 }
