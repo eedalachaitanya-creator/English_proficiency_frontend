@@ -47,17 +47,26 @@ export class Login implements OnInit {
   adminSubmitting = signal(false);
 
   ngOnInit(): void {
-    // Two parallel session probes. Whichever reports logged_in first wins
-    // and we redirect. Both endpoints always return 200 (no console 401s).
-    this.auth.checkSession().subscribe({
-      next: (user) => {
-        if (user) this.router.navigate(['/dashboard']);
-      },
-      error: () => {},
-    });
+    // Sequential probes — admin first, then HR if admin returns null.
+    // Done sequentially (not in parallel) because parallel probes can
+    // leave both currentUser and currentAdmin set in the AuthService
+    // signals if both somehow report logged_in (theoretically impossible
+    // since the backend session-status endpoints filter by role, but
+    // belt-and-suspenders against a stale-state edge). Sequential keeps
+    // exactly one slot populated.
     this.auth.checkAdminSession().subscribe({
       next: (admin) => {
-        if (admin) this.router.navigate(['/admin/dashboard']);
+        if (admin) {
+          this.router.navigate(['/admin/dashboard']);
+          return;
+        }
+        // No admin session — try HR.
+        this.auth.checkSession().subscribe({
+          next: (user) => {
+            if (user) this.router.navigate(['/dashboard']);
+          },
+          error: () => {},
+        });
       },
       error: () => {},
     });
