@@ -51,16 +51,29 @@ export class ForceSubmitService {
   private store = inject(StoreService);
   private tracker = inject(VisibilityTrackerService);
 
+  // Two-state guard:
+  //   inFlight: a POST is in progress right now — protects against double-
+  //             submit from rapid clicks or section-timer firing during
+  //             modal-confirm await.
+  //   submitted: the test has already been submitted successfully —
+  //              protects against re-entry after navigation completes
+  //              (e.g., timer fires + modal accept race; or the candidate
+  //              somehow lands back on /reading after /submitted).
+  // Without `submitted`, releasing inFlight in `finally` would let a
+  // racing second submit through and the backend would return 410 — the
+  // candidate would see an error modal floating over the success page.
   private inFlight = false;
+  private submitted = false;
 
   async terminateAndSubmit(submissionReason: SubmissionReason): Promise<void> {
-    if (this.inFlight) return;
+    if (this.inFlight || this.submitted) return;
     this.inFlight = true;
 
     this.showOverlay(submissionReason);
 
     try {
       const res = await this._postSubmit(submissionReason);
+      this.submitted = true;
       if (res?.ref_id) {
         this.store.setRefId(res.ref_id);
       }
@@ -74,6 +87,8 @@ export class ForceSubmitService {
       );
       // Deliberately do NOT navigate — leave the candidate on the overlay
       // so they don't think they submitted successfully. The error is final.
+    } finally {
+      this.inFlight = false;
     }
   }
 
@@ -89,20 +104,19 @@ export class ForceSubmitService {
    * uses for the candidate-finished path (modal alert + retry).
    */
   async submitFinal(): Promise<void> {
-    if (this.inFlight) return;
+    if (this.inFlight || this.submitted) return;
     this.inFlight = true;
     try {
       const res = await this._postSubmit('candidate_finished');
+      this.submitted = true;
       if (res?.ref_id) {
         this.store.setRefId(res.ref_id);
       }
       this.store.clearTestSession();
       this.tracker.reset();
       this.router.navigate(['/submitted']);
-    } catch (err) {
-      // Release the in-flight guard so the candidate can retry.
+    } finally {
       this.inFlight = false;
-      throw err;
     }
   }
 
