@@ -1,6 +1,7 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { Observable, map, tap, catchError, of } from 'rxjs';
 import { ApiService, ApiError } from './api.service';
+import { JwtService } from './jwt.service';
 import {
   HRUser,
   HRLoginRequest,
@@ -41,7 +42,7 @@ interface AdminSessionStatusResponse {
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private api = inject(ApiService);
-
+  private jwt = inject(JwtService);
   readonly currentUser = signal<HRUser | null>(null);
   readonly isLoggedIn = computed(() => this.currentUser() !== null);
 
@@ -94,7 +95,16 @@ export class AuthService {
    */
   login(credentials: HRLoginRequest): Observable<HRUser> {
     return this.api.post<HRUser>('/api/hr/login', credentials).pipe(
-      tap((user) => this.currentUser.set(user))
+      tap((user) => {
+        // Persist JWT tokens BEFORE setting currentUser. Order matters:
+        // anything that reacts to currentUser being non-null (e.g.,
+        // route guards triggering API calls) needs the token in
+        // localStorage so the HTTP interceptor can attach it.
+        if (user.access_token && user.refresh_token) {
+          this.jwt.setTokens(user.access_token, user.refresh_token);
+        }
+        this.currentUser.set(user);
+      })
     );
   }
 
@@ -108,8 +118,16 @@ export class AuthService {
    */
   logout(): Observable<void> {
     return this.api.post<void>('/api/hr/logout').pipe(
-      tap(() => this.currentUser.set(null)),
+      tap(() => {
+        this.jwt.clear();
+        this.currentUser.set(null);
+      }),
       catchError(() => {
+        // Even if the server call fails, clear local state so the UI
+        // reflects logged-out. Tokens are wiped regardless — keeping a
+        // token after a "logout intent" is the kind of subtle bug that
+        // bites later.
+        this.jwt.clear();
         this.currentUser.set(null);
         return of(undefined as void);
       })
@@ -175,15 +193,25 @@ export class AuthService {
   /** POST /api/admin/login. 401 propagates so the form can show "Invalid…". */
   adminLogin(credentials: AdminLoginRequest): Observable<AdminUser> {
     return this.api.post<AdminUser>('/api/admin/login', credentials).pipe(
-      tap((admin) => this.currentAdmin.set(admin))
+      tap((admin) => {
+        // Same token-then-state ordering as HR login above.
+        if (admin.access_token && admin.refresh_token) {
+          this.jwt.setTokens(admin.access_token, admin.refresh_token);
+        }
+        this.currentAdmin.set(admin);
+      })
     );
   }
 
   /** Clears admin session both server-side and locally. Always succeeds. */
   adminLogout(): Observable<void> {
     return this.api.post<void>('/api/admin/logout').pipe(
-      tap(() => this.currentAdmin.set(null)),
+      tap(() => {
+        this.jwt.clear();
+        this.currentAdmin.set(null);
+      }),
       catchError(() => {
+        this.jwt.clear();
         this.currentAdmin.set(null);
         return of(undefined as void);
       })

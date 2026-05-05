@@ -23,6 +23,12 @@ export interface HRUser {
   id: number;
   name: string;
   email: string;
+  // JWT tokens — present on login response, absent on /me / session-status.
+  // The frontend only stores them on login; downstream callers can ignore them.
+  access_token?: string;
+  refresh_token?: string;
+  token_type?: string;
+  expires_in?: number;
 }
 
 // ===========================================================================
@@ -40,6 +46,16 @@ export interface AdminUser {
   name: string;
   email: string;
   role: 'admin'; // backend always returns 'admin' here
+  // JWT tokens — present on login response, absent on /me / session-status.
+  access_token?: string;
+  refresh_token?: string;
+  token_type?: string;
+  expires_in?: number;
+}
+export interface RefreshTokenResponse {
+  access_token: string;
+  token_type: string;
+  expires_in: number;
 }
 
 /** POST /api/admin/hrs body — admin types the new HR's password directly. */
