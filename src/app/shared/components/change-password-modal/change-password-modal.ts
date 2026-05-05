@@ -1,4 +1,12 @@
-import { Component, EventEmitter, Output, inject, signal } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  HostListener,
+  OnDestroy,
+  Output,
+  inject,
+  signal,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -31,7 +39,7 @@ import { ApiError } from '../../../core/services/api.service';
   templateUrl: './change-password-modal.html',
   styleUrl: './change-password-modal.css',
 })
-export class ChangePasswordModal {
+export class ChangePasswordModal implements OnDestroy {
   private auth = inject(AuthService);
 
   @Output() closed = new EventEmitter<void>();
@@ -44,9 +52,33 @@ export class ChangePasswordModal {
   successMessage = signal('');
   submitting = signal(false);
 
+  // Handle for the post-success auto-close timer. Tracked so it can be
+  // cleared on early cancel / component destroy — prevents the timer
+  // from firing onto a teardown lifecycle and emitting `closed` after
+  // the parent has already moved on.
+  private autoCloseTimer: ReturnType<typeof setTimeout> | null = null;
+
+  ngOnDestroy(): void {
+    this._clearAutoCloseTimer();
+  }
+
+  /** Close on Escape — keyboard accessibility. Same guard as onCancel. */
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    this.onCancel();
+  }
+
   onCancel(): void {
     if (this.submitting()) return; // can't cancel mid-flight
+    this._clearAutoCloseTimer();
     this.closed.emit();
+  }
+
+  private _clearAutoCloseTimer(): void {
+    if (this.autoCloseTimer !== null) {
+      clearTimeout(this.autoCloseTimer);
+      this.autoCloseTimer = null;
+    }
   }
 
   onSubmit(): void {
@@ -75,7 +107,12 @@ export class ChangePasswordModal {
         this.submitting.set(false);
         this.successMessage.set('Password changed successfully.');
         // Close after a short delay so the user sees the success state.
-        setTimeout(() => this.closed.emit(), 1200);
+        // Stored so onCancel / ngOnDestroy can cancel — prevents the
+        // timer from firing on a torn-down component.
+        this.autoCloseTimer = setTimeout(() => {
+          this.autoCloseTimer = null;
+          this.closed.emit();
+        }, 1200);
       },
       error: (err: ApiError) => {
         this.submitting.set(false);

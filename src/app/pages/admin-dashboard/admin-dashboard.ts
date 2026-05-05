@@ -12,6 +12,7 @@ import {
 } from '../../core/models/hr.models';
 import { Topnav } from '../../shared/components/topnav/topnav';
 import { Footer } from '../../shared/components/footer/footer';
+import { AccountMenu } from '../../shared/components/account-menu/account-menu';
 
 /**
  * Admin portal — manage HR accounts.
@@ -27,7 +28,7 @@ import { Footer } from '../../shared/components/footer/footer';
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, Topnav, Footer],
+  imports: [CommonModule, FormsModule, Topnav, Footer, AccountMenu],
   templateUrl: './admin-dashboard.html',
   styleUrl: './admin-dashboard.css',
 })
@@ -36,13 +37,12 @@ export class AdminDashboard implements OnInit {
   private auth = inject(AuthService);
   private router = inject(Router);
 
-  // Admin profile (loaded from /api/admin/me) — drives the topnav.
-  // adminMeta is what the topnav displays after the title, e.g.
-  // "Alice  |  admin@stixis.com".
-  adminMeta = computed(() => {
-    const a = this.auth.currentAdmin();
-    return a ? `${a.name}  |  ${a.email}` : '';
-  });
+  // Admin profile (loaded from /api/admin/me) — drives the topnav
+  // AccountMenu. The dropdown header shows name + email; AccountMenu
+  // also embeds the change-password modal which auto-routes to the
+  // admin endpoint via AuthService.changePassword.
+  adminName = computed(() => this.auth.currentAdmin()?.name ?? '');
+  adminEmail = computed(() => this.auth.currentAdmin()?.email ?? 'Loading…');
 
   // Table state
   loading = signal(false);

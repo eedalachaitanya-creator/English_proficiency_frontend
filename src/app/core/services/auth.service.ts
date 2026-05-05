@@ -117,16 +117,21 @@ export class AuthService {
   }
 
   /**
-   * Change the logged-in HR's password. Backend requires the current
-   * password as a defense against session hijack / drive-by changes
-   * (someone walking up to an unattended browser).
+   * Change the logged-in user's password. Auto-routes to the admin or
+   * HR endpoint based on which signal is populated — same shared
+   * AccountMenu/ChangePasswordModal works for both roles without
+   * needing to know which one is logged in.
    *
-   * On success: backend keeps the session valid (no re-login needed).
-   * On 401 (wrong current password): error propagates so the modal can
-   * surface the message.
+   * Backend requires the current password as a defense against session
+   * hijack / drive-by changes (someone walking up to an unattended
+   * browser). On success: session stays valid (no re-login needed).
+   * On 401 (wrong current): error propagates so the modal surfaces it.
    */
   changePassword(current: string, next: string): Observable<void> {
-    return this.api.post<void>('/api/hr/change-password', {
+    const path = this.currentAdmin()
+      ? '/api/admin/change-password'
+      : '/api/hr/change-password';
+    return this.api.post<void>(path, {
       current_password: current,
       new_password: next,
     });
