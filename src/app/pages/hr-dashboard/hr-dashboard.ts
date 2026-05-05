@@ -9,6 +9,7 @@ import {
   ResultRow,
   InviteCreateRequest,
   InviteCreateResponse,
+  SupportedTimezone,
 } from '../../core/models/hr.models';
 import { Topnav } from '../../shared/components/topnav/topnav';
 import { Footer } from '../../shared/components/footer/footer';
@@ -194,6 +195,16 @@ export class HrDashboard implements OnInit {
   inviteResult = signal<InviteCreateResponse | null>(null);
   inviteCopied = signal(false);
 
+  // -------- Timezone dropdown options --------
+  // Fetched from GET /api/hr/timezones every time the invite modal opens.
+  // No caching: instant freshness is the requirement — any zone added or
+  // disabled in the DB is reflected on the next modal open. At our scale
+  // (5–10 HRs) the per-request DB query is invisible; if traffic grows
+  // we can add a 30-second TTL cache without changing this contract.
+  availableTimezones = signal<SupportedTimezone[]>([]);
+  timezonesLoading = signal(false);
+  timezonesError = signal('');
+
   // -------- Toast state --------
   // Small notification banner shown briefly at the top of the page after
   // a successful invitation (the modal closes immediately on success).
@@ -352,6 +363,50 @@ export class HrDashboard implements OnInit {
     this.inviteCopied.set(false);
     this.inviteSubmitting.set(false);
     this.inviteOpen.set(true);
+
+    // Fetch the timezone dropdown options. Fresh on every modal open so
+    // any DB changes (new zone added, zone disabled, label edited) appear
+    // immediately. Errors don't block the modal — HR sees a fallback
+    // message and can retry by closing and re-opening.
+    this.loadTimezones();
+  }
+
+  /**
+   * Fetch the active timezone list from the backend. Called every time the
+   * invite modal opens — there is intentionally no caching, so an
+   * administrator can add/edit/disable a zone in the supported_timezones
+   * table and the next modal open shows the updated list.
+   *
+   * On failure (network down, backend errored), the dropdown shows the
+   * stale list if any was previously loaded, or empty if not. timezonesError
+   * holds the error message so the template can show it inline.
+   */
+  private loadTimezones(): void {
+    this.timezonesLoading.set(true);
+    this.timezonesError.set('');
+    this.api.get<SupportedTimezone[]>('/api/hr/timezones').subscribe({
+      next: (rows) => {
+        this.availableTimezones.set(rows);
+        this.timezonesLoading.set(false);
+        // If the previously-selected timezone is no longer in the active
+        // list (someone disabled it), fall back to the first available zone
+        // so the dropdown isn't showing a value that doesn't appear in its
+        // options.
+        if (rows.length > 0 && !rows.some(tz => tz.iana_name === this.invTimezone)) {
+          this.invTimezone = rows[0].iana_name;
+        }
+      },
+      error: (err: ApiError) => {
+        this.timezonesLoading.set(false);
+        if (err.status === 401) {
+          this.router.navigate(['/login']);
+          return;
+        }
+        this.timezonesError.set(
+          err.message || 'Could not load timezone list. Try closing and reopening the form.'
+        );
+      },
+    });
   }
 
   closeInvite(): void {

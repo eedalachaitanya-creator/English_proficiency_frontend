@@ -72,6 +72,17 @@ export interface HRSummary {
 //  Invitations
 // ===========================================================================
 
+/**
+ * One row from GET /api/hr/timezones — populates the timezone dropdown in
+ * the invite-modal. Backend returns active rows from the supported_timezones
+ * table sorted by sort_order.
+ */
+export interface SupportedTimezone {
+  iana_name: string;       // "Asia/Kolkata" — sent back as the `timezone` field
+  display_label: string;   // "India Standard Time (IST)" — what HR sees in the dropdown
+  short_label: string;     // "IST" — what the candidate sees in emails / error messages
+}
+
 export interface InviteCreateRequest {
   candidate_name: string;
   candidate_email: string;
