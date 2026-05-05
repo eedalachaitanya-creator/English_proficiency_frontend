@@ -26,6 +26,49 @@ export interface HRUser {
 }
 
 // ===========================================================================
+//  Admin auth — separate role, separate portal
+//  See backend docs/superpowers/specs/2026-05-04-admin-portal-design.md
+// ===========================================================================
+
+export interface AdminLoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface AdminUser {
+  id: number;
+  name: string;
+  email: string;
+  role: 'admin'; // backend always returns 'admin' here
+}
+
+/** POST /api/admin/hrs body — admin types the new HR's password directly. */
+export interface HRCreateByAdminRequest {
+  name: string;
+  email: string;
+  password: string;
+}
+
+/** POST /api/admin/hrs response — includes email_status so the admin UI can
+ * tell HR creation succeeded but welcome email failed (similar pattern to
+ * candidate invitations). */
+export interface HRCreateByAdminResponse {
+  id: number;
+  name: string;
+  email: string;
+  email_status: 'sent' | 'failed' | 'pending';
+  email_error: string | null;
+}
+
+/** One row in GET /api/admin/hrs — the table rendered on the admin dashboard. */
+export interface HRSummary {
+  id: number;
+  name: string;
+  email: string;
+  created_at: string;
+}
+
+// ===========================================================================
 //  Invitations
 // ===========================================================================
 

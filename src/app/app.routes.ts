@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { hrAuthGuard } from './core/guards/hr-auth.guard';
+import { adminAuthGuard } from './core/guards/admin-auth.guard';
 
 /**
  * COMPLETE — all routes wired:
@@ -71,6 +72,12 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./pages/content-speaking-topics/content-speaking-topics').then(m => m.ContentSpeakingTopics),
     canActivate: [hrAuthGuard],
+  },
+  {
+    path: 'admin/dashboard',
+    loadComponent: () =>
+      import('./pages/admin-dashboard/admin-dashboard').then(m => m.AdminDashboard),
+    canActivate: [adminAuthGuard],
   },
   {
     path: 'exam/:token',

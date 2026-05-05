@@ -1,0 +1,181 @@
+<app-topnav title="Admin Portal  —  HR Management" [meta]="adminMeta()">
+  <button type="button" class="link-button" (click)="onLogout()" style="color:#fff;">
+    Logout
+  </button>
+</app-topnav>
+
+<main class="page" style="max-width: 1100px; margin: 24px auto; padding: 0 16px;">
+
+  <div class="flex-row" style="align-items:center; justify-content:space-between; margin-bottom: 16px;">
+    <div>
+      <h1 style="margin:0;">HR Accounts</h1>
+      <p class="subtitle" style="margin:4px 0 0 0;">
+        Total: <strong>{{ totalHrs() }}</strong>
+      </p>
+    </div>
+    <button type="button" class="btn btn-primary" (click)="openCreate()">
+      + CREATE NEW HR
+    </button>
+  </div>
+
+  @if (loadError()) {
+    <div class="notice">
+      <strong>Could not load HR accounts.</strong>
+      {{ loadError() }}
+    </div>
+  } @else {
+    <table class="results">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Created</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (loading()) {
+          <tr><td colspan="3" class="text-muted text-center" style="padding: 24px;">Loading…</td></tr>
+        } @else if (hrs().length === 0) {
+          <tr>
+            <td colspan="3" class="text-muted text-center" style="padding: 24px;">
+              No HR accounts yet. Click "+ CREATE NEW HR" to add the first one.
+            </td>
+          </tr>
+        } @else {
+          @for (hr of hrs(); track hr.id) {
+            <tr>
+              <td><strong>{{ hr.name }}</strong></td>
+              <td class="text-muted">{{ hr.email }}</td>
+              <td>{{ formatDate(hr.created_at) }}</td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  }
+</main>
+
+<app-footer></app-footer>
+
+<!-- ─────────────────────────  Create-HR modal  ───────────────────────── -->
+@if (modalOpen()) {
+  <div
+    style="position:fixed; inset:0; background:rgba(11,37,69,0.55); display:flex; align-items:center; justify-content:center; z-index:1000; padding:16px;"
+    (click)="closeCreate()">
+    <div
+      class="card"
+      style="width:480px; max-width:100%; max-height:90vh; overflow:auto;"
+      (click)="$event.stopPropagation()">
+
+      <h2 style="margin:0 0 6px 0;">Create HR account</h2>
+      <p class="subtitle" style="margin:0 0 16px 0;">
+        The new HR will receive a welcome email with their credentials.
+      </p>
+
+      @if (lastCreated()) {
+        <!-- Success state — show outcome + close button. Don't reset
+             the form so the admin can review what they just created. -->
+        <div class="notice" style="background: var(--green-soft, #e7f6e7); border-left:3px solid var(--green, #2f8d3a);">
+          <p style="margin:0 0 6px 0;"><strong>HR account created.</strong></p>
+          <p class="text-muted" style="margin:0; font-size:13px;">
+            {{ lastCreated()!.name }} &lt;{{ lastCreated()!.email }}&gt;
+          </p>
+          @if (lastCreated()!.email_status === 'sent') {
+            <p style="margin:12px 0 0 0; font-size:13px;">
+              ✓ Welcome email sent.
+            </p>
+          } @else {
+            <p style="margin:12px 0 0 0; font-size:13px; color: var(--red, #c93030);">
+              ✗ Welcome email failed: {{ lastCreated()!.email_error }}.<br>
+              Share the credentials manually.
+            </p>
+          }
+        </div>
+
+        <div class="flex-row mt-6" style="justify-content:flex-end;">
+          <button type="button" class="btn btn-secondary" (click)="closeCreate()">
+            Done
+          </button>
+        </div>
+      } @else {
+        <!-- Form state -->
+        <form (ngSubmit)="submitCreate()" novalidate>
+
+          <div class="field">
+            <label for="newName">Name</label>
+            <input
+              type="text"
+              id="newName"
+              name="newName"
+              required
+              autofocus
+              [(ngModel)]="newName"
+              [disabled]="createSubmitting()">
+          </div>
+
+          <div class="field">
+            <label for="newEmail">Email</label>
+            <input
+              type="email"
+              id="newEmail"
+              name="newEmail"
+              placeholder="hr@company.com"
+              required
+              [(ngModel)]="newEmail"
+              [disabled]="createSubmitting()">
+          </div>
+
+          <div class="field">
+            <label for="newPassword">Password</label>
+            <input
+              type="password"
+              id="newPassword"
+              name="newPassword"
+              placeholder="minimum 6 characters"
+              required
+              [(ngModel)]="newPassword"
+              [disabled]="createSubmitting()">
+          </div>
+
+          <div class="field">
+            <label for="newPasswordConfirm">Confirm password</label>
+            <input
+              type="password"
+              id="newPasswordConfirm"
+              name="newPasswordConfirm"
+              required
+              [(ngModel)]="newPasswordConfirm"
+              [disabled]="createSubmitting()">
+          </div>
+
+          <div class="field-error">
+            @if (createError()) {
+              {{ createError() }}
+            }
+          </div>
+
+          <div class="flex-row mt-4" style="justify-content:flex-end; gap:12px;">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              (click)="closeCreate()"
+              [disabled]="createSubmitting()">
+              Cancel
+            </button>
+            <button
+              type="submit"
+              class="btn btn-primary"
+              [disabled]="createSubmitting()">
+              @if (createSubmitting()) {
+                Creating…
+              } @else {
+                CREATE HR  →
+              }
+            </button>
+          </div>
+
+        </form>
+      }
+    </div>
+  </div>
+}

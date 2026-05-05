@@ -3,60 +3,121 @@
   meta="Internal use only">
 </app-topnav>
 
-<main class="page-narrow">
-  <div class="card">
-    <h1>HR Sign In</h1>
-    <p class="subtitle">Log in to invite candidates and view results.</p>
+<main class="page" style="max-width: 980px; margin: 32px auto; padding: 0 16px;">
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 24px;">
 
-    <form (ngSubmit)="onSubmit()" novalidate>
+    <!-- ─────────────────────────────  HR card  ───────────────────────────── -->
+    <div class="card">
+      <h1>HR Sign In</h1>
+      <p class="subtitle">Log in to invite candidates and view results.</p>
 
-      <div class="field">
-        <label for="email">Email</label>
-        <input
-          type="email"
-          id="email"
-          name="email"
-          placeholder="you@company.com"
-          required
-          autofocus
-          [(ngModel)]="email"
-          [disabled]="submitting()">
-      </div>
+      <form (ngSubmit)="onHrSubmit()" novalidate>
 
-      <div class="field">
-        <label for="password">Password</label>
-        <input
-          type="password"
-          id="password"
-          name="password"
-          placeholder="••••••••"
-          required
-          [(ngModel)]="password"
-          [disabled]="submitting()">
-      </div>
+        <div class="field">
+          <label for="hrEmail">Email</label>
+          <input
+            type="email"
+            id="hrEmail"
+            name="hrEmail"
+            placeholder="you@company.com"
+            required
+            autofocus
+            [(ngModel)]="hrEmail"
+            [disabled]="hrSubmitting()">
+        </div>
 
-      <div class="field-error">
-        @if (errorMessage()) {
-          {{ errorMessage() }}
-        }
-      </div>
+        <div class="field">
+          <label for="hrPassword">Password</label>
+          <input
+            type="password"
+            id="hrPassword"
+            name="hrPassword"
+            placeholder="••••••••"
+            required
+            [(ngModel)]="hrPassword"
+            [disabled]="hrSubmitting()">
+        </div>
 
-      <button
-        type="submit"
-        class="btn btn-primary btn-block"
-        [disabled]="submitting()">
-        @if (submitting()) {
-          Signing in…
-        } @else {
-          SIGN IN  →
-        }
-      </button>
+        <div class="field-error">
+          @if (hrError()) {
+            {{ hrError() }}
+          }
+        </div>
 
-    </form>
+        <button
+          type="submit"
+          class="btn btn-primary btn-block"
+          [disabled]="hrSubmitting()">
+          @if (hrSubmitting()) {
+            Signing in…
+          } @else {
+            SIGN IN  →
+          }
+        </button>
 
-    <p class="text-muted text-center mt-6" style="font-size: 12px;">
-      New HR account? Ask an admin to create one via the CLI script.
-    </p>
+      </form>
+
+      <p class="text-muted text-center mt-6" style="font-size: 12px;">
+        New HR account? Ask an admin to create one from the Admin portal.
+      </p>
+    </div>
+
+    <!-- ─────────────────────────────  Admin card  ────────────────────────── -->
+    <div class="card">
+      <h1>Admin Sign In</h1>
+      <p class="subtitle">Manage HR accounts.</p>
+
+      <form (ngSubmit)="onAdminSubmit()" novalidate>
+
+        <div class="field">
+          <label for="adminEmail">Email</label>
+          <input
+            type="email"
+            id="adminEmail"
+            name="adminEmail"
+            placeholder="admin@company.com"
+            required
+            [(ngModel)]="adminEmail"
+            [disabled]="adminSubmitting()">
+        </div>
+
+        <div class="field">
+          <label for="adminPassword">Password</label>
+          <input
+            type="password"
+            id="adminPassword"
+            name="adminPassword"
+            placeholder="••••••••"
+            required
+            [(ngModel)]="adminPassword"
+            [disabled]="adminSubmitting()">
+        </div>
+
+        <div class="field-error">
+          @if (adminError()) {
+            {{ adminError() }}
+          }
+        </div>
+
+        <button
+          type="submit"
+          class="btn btn-primary btn-block"
+          [disabled]="adminSubmitting()">
+          @if (adminSubmitting()) {
+            Signing in…
+          } @else {
+            SIGN IN  →
+          }
+        </button>
+
+      </form>
+
+      <p class="text-muted text-center mt-6" style="font-size: 12px;">
+        Admin credentials are seeded by the backend CLI
+        (<code>create_admin.py</code>) — there is no in-product signup.
+      </p>
+    </div>
+
   </div>
 </main>
 

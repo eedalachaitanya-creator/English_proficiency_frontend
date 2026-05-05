@@ -9,25 +9,19 @@ import { Topnav } from '../../shared/components/topnav/topnav';
 import { Footer } from '../../shared/components/footer/footer';
 
 /**
- * HR Sign-in page. Replaces the old index.html + login.js exactly.
+ * Combined login page — two side-by-side cards:
+ *   - HR Sign In  → POST /api/hr/login → /dashboard
+ *   - Admin Sign In → POST /api/admin/login → /admin/dashboard
  *
- * Behavior (matching the old login.js):
+ * On mount, probes BOTH /api/hr/session-status and /api/admin/session-status
+ * and redirects automatically if either has a live session. The two probes
+ * are independent (different role checks server-side), so an HR session
+ * never surfaces on the admin probe and vice versa.
  *
- *   1. On mount, check if there's an active HR session via /api/hr/me.
- *      If yes, skip the form and redirect to /dashboard immediately.
- *      (Avoids forcing an already-logged-in HR to re-enter credentials.)
- *
- *   2. Validate email format and password presence client-side before
- *      hitting the server. Same regex as login.js.
- *
- *   3. POST /api/hr/login with {email, password}. On 200, the session
- *      cookie is set automatically and we redirect to /dashboard.
- *
- *   4. On error, display the server's "detail" message under the form.
- *      The button reverts from "Signing in…" back to "SIGN IN →".
- *
- * Note: this component is lazy-loaded by the router (see app.routes.ts),
- * so its code only ships to the browser when the user actually visits /login.
+ * State is duplicated per card (hrEmail/adminEmail, hrSubmitting/adminSubmitting,
+ * etc.) so the two forms can be filled and submitted independently — useful
+ * when an admin who's also got an HR account on the side wants to switch
+ * which one they're logging in as without retyping.
  */
 @Component({
   selector: 'app-login',
@@ -40,64 +34,75 @@ export class Login implements OnInit {
   private auth = inject(AuthService);
   private router = inject(Router);
 
-  // Form state — bound to <input> via [(ngModel)] in the template.
-  email = '';
-  password = '';
+  // HR card state
+  hrEmail = '';
+  hrPassword = '';
+  hrError = signal('');
+  hrSubmitting = signal(false);
 
-  // UI state — Signals so the template auto-re-renders on change.
-  errorMessage = signal('');
-  submitting = signal(false);
+  // Admin card state
+  adminEmail = '';
+  adminPassword = '';
+  adminError = signal('');
+  adminSubmitting = signal(false);
 
   ngOnInit(): void {
-    // If there's already an active HR session (e.g., user came back to /login
-    // with a valid cookie), skip the form and go straight to the dashboard.
-    // checkSession() in AuthService handles 401 silently and emits null.
+    // Two parallel session probes. Whichever reports logged_in first wins
+    // and we redirect. Both endpoints always return 200 (no console 401s).
     this.auth.checkSession().subscribe({
       next: (user) => {
-        if (user) {
-          this.router.navigate(['/dashboard']);
-        }
+        if (user) this.router.navigate(['/dashboard']);
       },
-      // checkSession only re-throws non-401 errors (network down, etc.).
-      // We swallow them here — the user can just see the empty form and
-      // try to log in normally. If the server is genuinely unreachable
-      // they'll find out when they hit Submit.
+      error: () => {},
+    });
+    this.auth.checkAdminSession().subscribe({
+      next: (admin) => {
+        if (admin) this.router.navigate(['/admin/dashboard']);
+      },
       error: () => {},
     });
   }
 
-  /**
-   * Form submit handler. Triggered by (ngSubmit) on the <form>.
-   * Validates locally first, then calls the auth service.
-   */
-  onSubmit(): void {
-    this.errorMessage.set('');
-
-    // Same validation regex as the old login.js — accepts most reasonable
-    // email shapes without being draconian. The server validates again
-    // anyway (Pydantic EmailStr).
-    const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.email.trim());
-    if (!emailValid) {
-      this.errorMessage.set('Enter a valid email address.');
+  onHrSubmit(): void {
+    this.hrError.set('');
+    const email = this.hrEmail.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      this.hrError.set('Enter a valid email address.');
       return;
     }
-    if (!this.password) {
-      this.errorMessage.set('Password is required.');
+    if (!this.hrPassword) {
+      this.hrError.set('Password is required.');
       return;
     }
 
-    this.submitting.set(true);
-    this.auth.login({ email: this.email.trim(), password: this.password }).subscribe({
-      next: () => {
-        // AuthService caches the user on success — dashboard reads from cache.
-        this.router.navigate(['/dashboard']);
-      },
+    this.hrSubmitting.set(true);
+    this.auth.login({ email, password: this.hrPassword }).subscribe({
+      next: () => this.router.navigate(['/dashboard']),
       error: (err: ApiError) => {
-        this.submitting.set(false);
-        // Server returns 401 with detail "Invalid email or password" for
-        // bad creds; 422 with field-validation array for malformed input
-        // (handled by ApiService, joined into a readable string).
-        this.errorMessage.set(err.message || 'Login failed.');
+        this.hrSubmitting.set(false);
+        this.hrError.set(err.message || 'Login failed.');
+      },
+    });
+  }
+
+  onAdminSubmit(): void {
+    this.adminError.set('');
+    const email = this.adminEmail.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      this.adminError.set('Enter a valid email address.');
+      return;
+    }
+    if (!this.adminPassword) {
+      this.adminError.set('Password is required.');
+      return;
+    }
+
+    this.adminSubmitting.set(true);
+    this.auth.adminLogin({ email, password: this.adminPassword }).subscribe({
+      next: () => this.router.navigate(['/admin/dashboard']),
+      error: (err: ApiError) => {
+        this.adminSubmitting.set(false);
+        this.adminError.set(err.message || 'Login failed.');
       },
     });
   }
