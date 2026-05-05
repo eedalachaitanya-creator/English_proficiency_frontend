@@ -1,137 +1,150 @@
-<app-topnav
-  title="English Proficiency Test  —  HR Portal"
-  meta="Internal use only">
-</app-topnav>
+<app-topnav></app-topnav>
 
-<main class="page" style="max-width: 980px; margin: 32px auto; padding: 0 16px;">
-  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 24px;">
-
-    <!-- ─────────────────────────────  Admin card (left)  ─────────────────── -->
-    <div class="card">
-      <h1>Admin Sign In</h1>
-      <p class="subtitle">Manage HR accounts.</p>
-
-      <form (ngSubmit)="onAdminSubmit()" novalidate>
-
-        <div class="field">
-          <label for="adminEmail">Email</label>
-          <input
-            type="email"
-            id="adminEmail"
-            name="adminEmail"
-            placeholder="admin@company.com"
-            required
-            autofocus
-            [(ngModel)]="adminEmail"
-            [disabled]="adminSubmitting()">
-        </div>
-
-        <div class="field">
-          <label for="adminPassword">Password</label>
-          <input
-            type="password"
-            id="adminPassword"
-            name="adminPassword"
-            placeholder="••••••••"
-            required
-            [(ngModel)]="adminPassword"
-            [disabled]="adminSubmitting()">
-        </div>
-
-        <div class="field-error">
-          @if (adminError()) {
-            {{ adminError() }}
-          }
-        </div>
-
-        <button
-          type="submit"
-          class="btn btn-primary btn-block"
-          [disabled]="adminSubmitting()">
-          @if (adminSubmitting()) {
-            Signing in…
-          } @else {
-            SIGN IN  →
-          }
-        </button>
-
-      </form>
-
-      <p class="text-muted text-center mt-6" style="font-size: 12px;">
-        Don't have an admin account? Contact your IT team for access.
-      </p>
+<main class="page" style="max-width: 680px; margin: 32px auto; padding: 0 16px; min-height: 76vh;">
+  <div class="card">
+    
+    <!-- Custom Tabs (no Bootstrap) -->
+    <div class="custom-tabs">
+      <button 
+        class="tab-btn" 
+        [class.active]="activeTab === 'admin'" 
+        (click)="setActiveTab('admin')"
+        type="button">
+        Admin Sign In
+      </button>
+      <button 
+        class="tab-btn" 
+        [class.active]="activeTab === 'hr'" 
+        (click)="setActiveTab('hr')"
+        type="button">
+        HR Sign In
+      </button>
     </div>
 
-    <!-- ─────────────────────────────  HR card (right)  ───────────────────── -->
-    <div class="card">
-      <h1>HR Sign In</h1>
-      <p class="subtitle">Log in to invite candidates and view results.</p>
+    <!-- Tab Content -->
+    <div class="tab-content">
+      
+      <!-- Admin Tab -->
+      <div class="tab-pane" [class.active]="activeTab === 'admin'">
+        <form (ngSubmit)="onAdminSubmit()" novalidate>
 
-      <form (ngSubmit)="onHrSubmit()" novalidate>
+          <div class="field">
+            <label for="adminEmail">Email</label>
+            <input
+              type="email"
+              id="adminEmail"
+              name="adminEmail"
+              placeholder="admin@company.com"
+              required
+              autofocus
+              [(ngModel)]="adminEmail"
+              [disabled]="adminSubmitting()">
+          </div>
 
-        <div class="field">
-          <label for="hrEmail">Email</label>
-          <input
-            type="email"
-            id="hrEmail"
-            name="hrEmail"
-            placeholder="you@company.com"
-            required
-            [(ngModel)]="hrEmail"
-            [disabled]="hrSubmitting()">
-        </div>
+          <div class="field">
+            <label for="adminPassword">Password</label>
+            <input
+              type="password"
+              id="adminPassword"
+              name="adminPassword"
+              placeholder="••••••••"
+              required
+              [(ngModel)]="adminPassword"
+              [disabled]="adminSubmitting()">
+          </div>
 
-        <div class="field">
-          <label for="hrPassword">Password</label>
-          <input
-            type="password"
-            id="hrPassword"
-            name="hrPassword"
-            placeholder="••••••••"
-            required
-            [(ngModel)]="hrPassword"
-            [disabled]="hrSubmitting()">
-        </div>
+          <div class="field-error">
+            @if (adminError()) {
+              {{ adminError() }}
+            }
+          </div>
 
-        <div class="field-error">
-          @if (hrError()) {
-            {{ hrError() }}
-          }
-        </div>
+          <button
+            type="submit"
+            class="btn btn-primary btn-block"
+            [disabled]="adminSubmitting()">
+            @if (adminSubmitting()) {
+              Signing in…
+            } @else {
+              SIGN IN  →
+            }
+          </button>
 
-        <button
-          type="submit"
-          class="btn btn-primary btn-block"
-          [disabled]="hrSubmitting()">
-          @if (hrSubmitting()) {
-            Signing in…
-          } @else {
-            SIGN IN  →
-          }
-        </button>
+        </form>
 
-        <p class="text-center" style="margin: 12px 0 0 0; font-size: 13px;">
-          <a href="#"
-             (click)="$event.preventDefault(); openForgot()"
-             style="color: var(--orange, #ec6608); text-decoration: none; font-weight: 500;">
-            Forgot password?
-          </a>
+        <p class="text-muted text-center mt-6" style="font-size: 12px;">
+          Admin credentials are seeded by the backend CLI
+          (<code>create_admin.py</code>) — there is no in-product signup.
         </p>
+      </div>
 
-      </form>
+      <!-- HR Tab -->
+      <div class="tab-pane" [class.active]="activeTab === 'hr'">
+        <form (ngSubmit)="onHrSubmit()" novalidate>
 
-      <p class="text-muted text-center mt-6" style="font-size: 12px;">
-        New HR account? Ask an admin to create one from the Admin portal.
-      </p>
+          <div class="field">
+            <label for="hrEmail">Email</label>
+            <input
+              type="email"
+              id="hrEmail"
+              name="hrEmail"
+              placeholder="you@company.com"
+              required
+              [(ngModel)]="hrEmail"
+              [disabled]="hrSubmitting()">
+          </div>
+
+          <div class="field">
+            <label for="hrPassword">Password</label>
+            <input
+              type="password"
+              id="hrPassword"
+              name="hrPassword"
+              placeholder="••••••••"
+              required
+              [(ngModel)]="hrPassword"
+              [disabled]="hrSubmitting()">
+          </div>
+
+          <div class="field-error">
+            @if (hrError()) {
+              {{ hrError() }}
+            }
+          </div>
+
+          <button
+            type="submit"
+            class="btn btn-primary btn-block"
+            [disabled]="hrSubmitting()">
+            @if (hrSubmitting()) {
+              Signing in…
+            } @else {
+              SIGN IN  →
+            }
+          </button>
+
+          <p class="text-center" style="margin: 12px 0 0 0; font-size: 13px;">
+            <a href="#"
+               (click)="$event.preventDefault(); openForgot()"
+               style="color: var(--orange, #ec6608); text-decoration: none; font-weight: 500;">
+              Forgot password?
+            </a>
+          </p>
+
+        </form>
+
+        <p class="text-muted text-center mt-6" style="font-size: 12px;">
+          New HR account? Ask an admin to create one from the Admin portal.
+        </p>
+      </div>
+
     </div>
-
   </div>
 </main>
 
 <app-footer></app-footer>
 
-<!-- Forgot-password modal — anonymous endpoint, no role check needed.
-     The link only appears on the HR card; admins reset via CLI. -->
+<!-- Forgot-password modal -->
 @if (forgotOpen()) {
   <app-forgot-password-modal (closed)="closeForgot()"></app-forgot-password-modal>
 }

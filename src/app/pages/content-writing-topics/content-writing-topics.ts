@@ -14,6 +14,7 @@ import {
 import { Topnav } from '../../shared/components/topnav/topnav';
 import { Footer } from '../../shared/components/footer/footer';
 import { AccountMenu } from '../../shared/components/account-menu/account-menu';
+import { Sidebar } from '../../shared/components/sidebar/sidebar';
 
 /**
  * Writing topics management — list, create, edit, delete, bulk-import.
@@ -22,7 +23,7 @@ import { AccountMenu } from '../../shared/components/account-menu/account-menu';
 @Component({
   selector: 'app-content-writing-topics',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, Topnav, Footer, AccountMenu],
+  imports: [CommonModule, FormsModule, RouterLink, Topnav, Footer, AccountMenu, Sidebar],
   templateUrl: './content-writing-topics.html',
   styleUrl: './content-writing-topics.css',
 })

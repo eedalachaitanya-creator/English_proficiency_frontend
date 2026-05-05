@@ -1,15 +1,25 @@
 <app-topnav
   title="HR Portal  —  English Proficiency Results"
-  variant="hr">
-  <app-account-menu
-    [name]="hrName()"
-    [email]="hrEmail()"
-    (logout)="onLogout()">
-  </app-account-menu>
+  [meta]="hrEmail()"
+  variant="hr"
+  [showLogout]="true"
+  (logout)="onLogout()">
 </app-topnav>
-
+ 
+<div class="layout">
+ 
+  <!-- LEFT SIDEBAR -->
+  <app-sidebar
+  [showManageQuestions]="true"
+  [showInviteCandidate]="true"
+  (inviteClicked)="openInvite()">
+</app-sidebar>
+ 
+  <!-- MAIN CONTENT -->
+  <div class="content"> 
+ 
 <main class="page">
-
+ 
   <!-- Toast: brief success notification, auto-dismiss after 4s.
        Shown after a successful invite send. The invite modal closes
        and this slides in to confirm what just happened. -->
@@ -19,14 +29,14 @@
       <span>{{ toastMessage() }}</span>
     </div>
   }
-
+ 
   @if (loadError()) {
     <div class="notice">
       <strong>Could not load results.</strong>
       {{ loadError() }}
     </div>
   }
-
+ 
   <!-- KPI cards -->
   <div class="kpi-grid">
     <div class="kpi">
@@ -35,7 +45,7 @@
         @if (loading()) { — } @else { {{ kpiTotal() }} }
       </div>
     </div>
-
+ 
     <div class="kpi accent">
       <div class="label">Avg Score</div>
       <div class="value">
@@ -43,14 +53,14 @@
         @else { {{ kpiAvg() }} / 100 }
       </div>
     </div>
-
+ 
     <div class="kpi alert">
       <div class="label">Pending</div>
       <div class="value">
         @if (loading()) { — } @else { {{ kpiPending() }} }
       </div>
     </div>
-
+ 
     <div class="kpi success">
       <div class="label">Submitted</div>
       <div class="value">
@@ -58,7 +68,7 @@
       </div>
     </div>
   </div>
-
+ 
   <!-- Filters + invite button -->
   <div class="flex-row mb-4">
     <input
@@ -67,7 +77,7 @@
       style="padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--radius); width: 260px;"
       [(ngModel)]="searchQuery"
       (input)="applyFilters()">
-
+ 
     <select
       style="padding: 10px; border-radius: var(--radius); border: 1px solid var(--border);"
       [(ngModel)]="statusFilter"
@@ -76,15 +86,15 @@
       <option value="submitted">Submitted</option>
       <option value="pending">Pending</option>
     </select>
-
+ 
     <span class="spacer"></span>
-
-    <a routerLink="/dashboard/content" class="btn btn-secondary" style="text-decoration: none;">
+ 
+     <a routerLink="/dashboard/content" class="btn btn-secondary" style="text-decoration: none;">
       ⚙ MANAGE QUESTIONS
     </a>
-    <button class="btn btn-primary" (click)="openInvite()">+ INVITE NEW CANDIDATE</button>
+    <button class="btn btn-primary" (click)="openInvite()">+ INVITE NEW CANDIDATE</button>  
   </div>
-
+ 
   <!-- Results table -->
   <table class="results">
     <thead>
@@ -155,7 +165,7 @@
       }
     </tbody>
   </table>
-
+ 
   <!-- Pagination controls -->
   @if (!loading() && filteredResults().length > 0 && totalPages() > 1) {
     <div class="flex-row mt-4" style="align-items: center; justify-content: center;">
@@ -166,7 +176,7 @@
         (click)="prevPage()">
         ← Previous
       </button>
-
+ 
       <div style="display: flex; gap: 4px; margin: 0 12px;">
         @for (p of pageNumbers(); track $index) {
           @if (p === '…') {
@@ -184,7 +194,7 @@
           }
         }
       </div>
-
+ 
       <button
         type="button"
         class="btn btn-secondary"
@@ -193,7 +203,7 @@
         Next →
       </button>
     </div>
-
+ 
     <div class="text-muted text-center mt-4" style="font-size: 13px;">
       Page {{ currentPage() }} of {{ totalPages() }}
       &nbsp;•&nbsp;
@@ -203,18 +213,20 @@
       }
     </div>
   }
-
+ 
 </main>
-
+ </div>
+</div>
+ 
 <app-footer text="© Company HR  •  Scores written by Claude (LLM rubric scoring)"></app-footer>
-
+ 
 <!-- Invite modal -->
 @if (inviteOpen()) {
   <div class="modal-backdrop show" (click)="closeInvite()">
     <div class="modal" (click)="$event.stopPropagation()">
       <h2>Invite a Candidate</h2>
       <p class="subtitle">Generates a one-time URL active during your scheduled window.</p>
-
+ 
       @if (!inviteResult()) {
         <div class="field">
           <label for="candName">Candidate Name</label>
@@ -225,7 +237,7 @@
             [(ngModel)]="invName"
             [disabled]="inviteSubmitting()">
         </div>
-
+ 
         <div class="field">
           <label for="candEmail">Candidate Email</label>
           <input
@@ -235,7 +247,7 @@
             [(ngModel)]="invEmail"
             [disabled]="inviteSubmitting()">
         </div>
-
+ 
         <div class="field">
           <label>Difficulty</label>
           <div class="difficulty-radios" style="display:flex; gap:24px; align-items:center;">
@@ -257,7 +269,7 @@
             </label>
           </div>
         </div>
-
+ 
         <div class="field">
           <label>Sections to include *</label>
           <div style="display:flex; gap:24px; align-items:center; flex-wrap:wrap;">
@@ -290,7 +302,7 @@
             Final score is normalized over the chosen sections only.
           </p>
         </div>
-
+ 
         <div class="field">
           <label for="invTimezone">Timezone *</label>
           <select
@@ -308,7 +320,7 @@
             <option value="Pacific/Honolulu">US Hawaii Time (HT)</option>
           </select>
         </div>
-
+ 
         <div class="field">
           <label for="invDate">Test Date *</label>
           <input
@@ -320,7 +332,7 @@
             (click)="openPicker($event)"
             style="width:100%; box-sizing:border-box; padding:10px 12px; border:1px solid var(--border); border-radius:var(--radius); font-size:14px; font-family:inherit; background:#fff; color:var(--text); line-height:1.4; cursor:pointer;">
         </div>
-
+ 
         <div class="field" style="display:flex; gap:12px;">
           <div style="flex:1; min-width:0;">
             <label for="invStartTime">Start Time *</label>
@@ -348,11 +360,11 @@
         <small class="text-muted" style="display:block; margin-top:4px; font-size:12px;">
           Window must be at least 60 minutes (the test takes ~60 min).
         </small>
-
+ 
         @if (inviteError()) {
           <div class="field-error">{{ inviteError() }}</div>
         }
-
+ 
         <div class="flex-row">
           <button
             type="button"
@@ -384,12 +396,12 @@
               </div>
             </div>
           }
-
+ 
           <strong>Invitation created.</strong><br>
           <span style="color: var(--text-muted); font-size: 13px;">
             Send BOTH the URL and the access code to <em>{{ inviteResult()!.candidate_email }}</em>:
           </span>
-
+ 
           <div style="margin-top: 12px;">
             <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">
               Test URL
@@ -398,7 +410,7 @@
               {{ inviteResult()!.exam_url }}
             </span>
           </div>
-
+ 
           <div style="margin-top: 16px;">
             <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">
               6-digit access code
@@ -407,18 +419,18 @@
               {{ inviteResult()!.access_code }}
             </span>
           </div>
-
+ 
           <small style="display: block; margin-top: 16px;">
             Expires: {{ formatSubmittedDateTime(inviteResult()!.expires_at) }}
           </small>
-
+ 
           <div class="flex-row" style="margin-top: 12px; gap: 8px;">
             <button type="button" class="btn btn-secondary" (click)="copyInviteUrl()">
               @if (inviteCopied()) { Copied URL ✓ } @else { Copy URL }
             </button>
           </div>
         </div>
-
+ 
         <div class="flex-row mt-4">
           <span class="spacer"></span>
           <button type="button" class="btn btn-primary" (click)="closeInvite()">Close</button>

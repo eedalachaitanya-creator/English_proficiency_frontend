@@ -76,3 +76,7 @@
   margin-bottom: 16px;
   color: #991b1b;            /* red-800 */
 }
+
+.content {
+    flex: auto;
+}
