@@ -59,7 +59,13 @@ a:hover { color: var(--orange); }
 }
 .topnav .meta {
   font-size: 12px;
-  opacity: 0.85;
+  /* Was opacity: 0.85 — switched to rgba color so this slot doesn't
+   * create a stacking context. With opacity, anything position:fixed
+   * inside .meta (e.g. the change-password modal projected via the
+   * AccountMenu) inherits the opacity and renders translucent. The
+   * rgba color gives the same dimmed-white text visually but only
+   * affects color inheritance, not stacking. */
+  color: rgba(255, 255, 255, 0.85);
 }
 .topnav.hr { background: linear-gradient(90deg, var(--navy) 0%, var(--navy-light) 100%); }
 
