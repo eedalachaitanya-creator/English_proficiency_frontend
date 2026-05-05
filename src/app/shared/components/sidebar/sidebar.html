@@ -1,0 +1,296 @@
+<aside class="sidebar">
+ 
+  <!-- Dashboard Menu -->
+  @if (showDashboard) {
+    <div class="menu-item">
+      <button class="invite-btn"  routerLink="/dashboard" 
+        routerLinkActive="active" >
+        <span class="menu-text">DASHBOARD</span>
+      </button>
+    </div>
+  }
+
+  <!-- Manage Questions -->
+  @if (showManageQuestions) {
+    <div class="menu-item">
+      <div class="menu-parent" (click)="toggleMenu('questions')">
+        <span class="menu-icon">⚙</span>
+        <span class="menu-text">MANAGE QUESTIONS</span>
+        <span class="menu-arrow">
+          <i class="fas" [class.fa-chevron-up]="openMenu === 'questions'" [class.fa-chevron-down]="openMenu !== 'questions'"></i>
+        </span>
+      </div>
+
+      @if (openMenu === 'questions') {
+        <div class="submenu">
+          <a 
+            routerLink="/dashboard/content/passages" 
+            routerLinkActive="active">
+            Reading Passages
+          </a>
+          <a 
+            routerLink="/dashboard/content/questions" 
+            routerLinkActive="active">
+            MCQ Questions
+          </a>
+          <a 
+            routerLink="/dashboard/content/writing-topics" 
+            routerLinkActive="active">
+            Summary & Essay
+          </a>
+          <a 
+            routerLink="/dashboard/content/speaking-topics" 
+            routerLinkActive="active">
+            Speaking Topics
+          </a>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Invite Candidate -->
+  @if (showInviteCandidate) {
+    <div class="menu-item">
+      <button class="invite-btn" (click)="openInvite()">
+        + INVITE NEW CANDIDATE
+      </button>
+    </div>
+  }
+
+</aside>
+
+  @if (toastVisible()) {
+    <div class="toast" role="status" aria-live="polite">
+      <span class="toast-icon">✓</span>
+      <span>{{ toastMessage() }}</span>
+    </div>
+  }
+ 
+  
+
+<!-- Invite modal -->
+@if (inviteOpen()) {
+  <div class="modal-backdrop show" (click)="closeInvite()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+      <h2>Invite a Candidate</h2>
+      <p class="subtitle">Generates a one-time URL active during your scheduled window.</p>
+       <a class="close-btn" (click)="closeInvite()" aria-label="Close">
+          ✕
+       </a>
+        </div>
+      @if (!inviteResult()) {
+       <div class="modal-body">
+        <div class="field">
+          <label for="candName">Candidate Name</label>
+          <input
+            type="text"
+            id="candName"
+            required
+            [(ngModel)]="invName"
+            [disabled]="inviteSubmitting()">
+        </div>
+ 
+        <div class="field">
+          <label for="candEmail">Candidate Email</label>
+          <input
+            type="email"
+            id="candEmail"
+            required
+            [(ngModel)]="invEmail"
+            [disabled]="inviteSubmitting()">
+        </div>
+ 
+        <div class="field">
+          <label>Difficulty</label>
+          <div class="difficulty-radios" style="display:flex; gap:24px; align-items:center;">
+            <label style="display:inline-flex; gap:8px; align-items:center; margin:0;">
+              <input
+                type="radio"
+                name="difficulty"
+                value="intermediate"
+                [(ngModel)]="invDifficulty">
+              <span>Intermediate</span>
+            </label>
+            <label style="display:inline-flex; gap:8px; align-items:center; margin:0;">
+              <input
+                type="radio"
+                name="difficulty"
+                value="expert"
+                [(ngModel)]="invDifficulty">
+              <span>Expert</span>
+            </label>
+          </div>
+        </div>
+ 
+        <div class="field">
+          <label>Sections to include *</label>
+          <div style="display:flex; gap:24px; align-items:center; flex-wrap:wrap;">
+            <label style="display:inline-flex; gap:8px; align-items:center; margin:0;">
+              <input
+                type="checkbox"
+                name="incReading"
+                [(ngModel)]="invIncludeReading"
+                [disabled]="inviteSubmitting()">
+              <span>Reading</span>
+            </label>
+            <label style="display:inline-flex; gap:8px; align-items:center; margin:0;">
+              <input
+                type="checkbox"
+                name="incWriting"
+                [(ngModel)]="invIncludeWriting"
+                [disabled]="inviteSubmitting()">
+              <span>Writing</span>
+            </label>
+            <label style="display:inline-flex; gap:8px; align-items:center; margin:0;">
+              <input
+                type="checkbox"
+                name="incSpeaking"
+                [(ngModel)]="invIncludeSpeaking"
+                [disabled]="inviteSubmitting()">
+              <span>Speaking</span>
+            </label>
+          </div>
+          <p class="text-muted" style="font-size:12px; margin:6px 0 0 0;">
+            Final score is normalized over the chosen sections only.
+          </p>
+        </div>
+ 
+        <div class="field">
+          <label for="invTimezone">Timezone *</label>
+          <select
+            id="invTimezone"
+            required
+            [(ngModel)]="invTimezone"
+            [disabled]="inviteSubmitting()"
+            style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius: var(--radius); background:#fff;">
+            <option value="Asia/Kolkata">India Standard Time (IST)</option>
+            <option value="America/New_York">US Eastern Time (ET)</option>
+            <option value="America/Chicago">US Central Time (CT)</option>
+            <option value="America/Denver">US Mountain Time (MT)</option>
+            <option value="America/Los_Angeles">US Pacific Time (PT)</option>
+            <option value="America/Anchorage">US Alaska Time (AKT)</option>
+            <option value="Pacific/Honolulu">US Hawaii Time (HT)</option>
+          </select>
+        </div>
+ 
+        <div class="field">
+          <label for="invDate">Test Date *</label>
+          <input
+            type="date"
+            id="invDate"
+            required
+            [(ngModel)]="invDate"
+            [disabled]="inviteSubmitting()"
+            (click)="openPicker($event)"
+            style="width:100%; box-sizing:border-box; padding:10px 12px; border:1px solid var(--border); border-radius:var(--radius); font-size:14px; font-family:inherit; background:#fff; color:var(--text); line-height:1.4; cursor:pointer;">
+        </div>
+ 
+        <div class="field" style="display:flex; gap:12px;">
+          <div style="flex:1; min-width:0;">
+            <label for="invStartTime">Start Time *</label>
+            <input
+              type="time"
+              id="invStartTime"
+              required
+              [(ngModel)]="invStartTime"
+              [disabled]="inviteSubmitting()"
+              (click)="openPicker($event)"
+              style="width:100%; box-sizing:border-box; padding:10px 12px; border:1px solid var(--border); border-radius:var(--radius); font-size:14px; font-family:inherit; background:#fff; color:var(--text); line-height:1.4; cursor:pointer;">
+          </div>
+          <div style="flex:1; min-width:0;">
+            <label for="invEndTime">End Time *</label>
+            <input
+              type="time"
+              id="invEndTime"
+              required
+              [(ngModel)]="invEndTime"
+              [disabled]="inviteSubmitting()"
+              (click)="openPicker($event)"
+              style="width:100%; box-sizing:border-box; padding:10px 12px; border:1px solid var(--border); border-radius:var(--radius); font-size:14px; font-family:inherit; background:#fff; color:var(--text); line-height:1.4; cursor:pointer;">
+          </div>
+        </div>
+        <small class="text-muted" style="display:block; margin-top:4px; font-size:12px;">
+          Window must be at least 60 minutes (the test takes ~60 min).
+        </small>
+ 
+        @if (inviteError()) {
+          <div class="field-error">{{ inviteError() }}</div>
+        }
+ 
+        <div class="flex-row">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            [disabled]="inviteSubmitting()"
+            (click)="closeInvite()">Cancel</button>
+          <span class="spacer"></span>
+          <button
+            type="button"
+            class="btn btn-primary"
+            [disabled]="inviteSubmitting() || (!invIncludeReading && !invIncludeWriting && !invIncludeSpeaking)"
+            (click)="submitInvite()">
+            @if (inviteSubmitting()) { Generating… } @else { GENERATE LINK  → }
+          </button>
+        </div>
+        </div>
+      } @else {
+        <div class="invite-result">
+          <!-- Email-failed banner. Shown ONLY when the modal stayed open
+               because email send failed (success closes the modal entirely).
+               The error message is set by submitInvite() when email_status
+               is not "sent" — gives HR the SMTP reason + copy-paste fallback. -->
+          @if (inviteError()) {
+            <div class="invite-failed-banner">
+              <strong>⚠ Email could not be sent.</strong>
+              <div style="margin-top: 4px; font-size: 13px;">{{ inviteError() }}</div>
+              <div style="margin-top: 6px; font-size: 12px; color: var(--text-muted);">
+                The invitation is saved — copy the URL and access code below to
+                send the candidate manually (e.g. via Slack, WhatsApp, or another email).
+              </div>
+            </div>
+          }
+ 
+          <strong>Invitation created.</strong><br>
+          <span style="color: var(--text-muted); font-size: 13px;">
+            Send BOTH the URL and the access code to <em>{{ inviteResult()!.candidate_email }}</em>:
+          </span>
+ 
+          <div style="margin-top: 12px;">
+            <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">
+              Test URL
+            </div>
+            <span style="user-select: all; word-break: break-all; font-family: var(--font-mono); font-size: 13px;">
+              {{ inviteResult()!.exam_url }}
+            </span>
+          </div>
+ 
+          <div style="margin-top: 16px;">
+            <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">
+              6-digit access code
+            </div>
+            <span style="user-select: all; font-family: var(--font-mono); font-size: 24px; font-weight: 600; letter-spacing: 6px; color: var(--orange);">
+              {{ inviteResult()!.access_code }}
+            </span>
+          </div>
+ 
+          <small style="display: block; margin-top: 16px;">
+            Expires: {{ formatSubmittedDateTime(inviteResult()!.expires_at) }}
+          </small>
+ 
+          <div class="flex-row" style="margin-top: 12px; gap: 8px;">
+            <button type="button" class="btn btn-secondary" (click)="copyInviteUrl()">
+              @if (inviteCopied()) { Copied URL ✓ } @else { Copy URL }
+            </button>
+          </div>
+        </div>
+ 
+        <div class="flex-row mt-4">
+          <span class="spacer"></span>
+          <button type="button" class="btn btn-primary" (click)="closeInvite()">Close</button>
+        </div>
+      }
+    </div>
+  </div>
+}
+
