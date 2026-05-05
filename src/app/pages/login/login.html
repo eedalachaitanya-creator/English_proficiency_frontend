@@ -111,6 +111,14 @@
           }
         </button>
 
+        <p class="text-center" style="margin: 12px 0 0 0; font-size: 13px;">
+          <a href="#"
+             (click)="$event.preventDefault(); openForgot()"
+             style="color: var(--orange, #ec6608); text-decoration: none; font-weight: 500;">
+            Forgot password?
+          </a>
+        </p>
+
       </form>
 
       <p class="text-muted text-center mt-6" style="font-size: 12px;">
@@ -122,3 +130,9 @@
 </main>
 
 <app-footer></app-footer>
+
+<!-- Forgot-password modal — anonymous endpoint, no role check needed.
+     The link only appears on the HR card; admins reset via CLI. -->
+@if (forgotOpen()) {
+  <app-forgot-password-modal (closed)="closeForgot()"></app-forgot-password-modal>
+}

@@ -7,6 +7,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { ApiError } from '../../core/services/api.service';
 import { Topnav } from '../../shared/components/topnav/topnav';
 import { Footer } from '../../shared/components/footer/footer';
+import { ForgotPasswordModal } from '../../shared/components/forgot-password-modal/forgot-password-modal';
 
 /**
  * Combined login page — two side-by-side cards:
@@ -26,7 +27,7 @@ import { Footer } from '../../shared/components/footer/footer';
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule, Topnav, Footer],
+  imports: [CommonModule, FormsModule, Topnav, Footer, ForgotPasswordModal],
   templateUrl: './login.html',
   styleUrl: './login.css',
 })
@@ -45,6 +46,17 @@ export class Login implements OnInit {
   adminPassword = '';
   adminError = signal('');
   adminSubmitting = signal(false);
+
+  // Forgot-password modal — only on the HR card. Admins reset via CLI.
+  forgotOpen = signal(false);
+
+  openForgot(): void {
+    this.forgotOpen.set(true);
+  }
+
+  closeForgot(): void {
+    this.forgotOpen.set(false);
+  }
 
   ngOnInit(): void {
     // Sequential probes — admin first, then HR if admin returns null.

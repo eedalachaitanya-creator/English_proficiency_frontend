@@ -137,6 +137,19 @@ export class AuthService {
     });
   }
 
+  /**
+   * Anonymous endpoint — sends a reset email if the address belongs to
+   * an HR account. Always resolves successfully regardless of the
+   * outcome (the backend deliberately returns the same generic message
+   * even for unknown emails / SMTP failures, to prevent enumeration).
+   */
+  forgotPassword(email: string): Observable<{ status: string; message: string }> {
+    return this.api.post<{ status: string; message: string }>(
+      '/api/hr/forgot-password',
+      { email },
+    );
+  }
+
   // -------------------------------------------------------------------
   // Admin authentication — mirrors the HR methods above.
   // -------------------------------------------------------------------
