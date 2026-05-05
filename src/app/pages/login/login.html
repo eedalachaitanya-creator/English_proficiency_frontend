@@ -6,63 +6,7 @@
 <main class="page" style="max-width: 980px; margin: 32px auto; padding: 0 16px;">
   <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 24px;">
 
-    <!-- ─────────────────────────────  HR card  ───────────────────────────── -->
-    <div class="card">
-      <h1>HR Sign In</h1>
-      <p class="subtitle">Log in to invite candidates and view results.</p>
-
-      <form (ngSubmit)="onHrSubmit()" novalidate>
-
-        <div class="field">
-          <label for="hrEmail">Email</label>
-          <input
-            type="email"
-            id="hrEmail"
-            name="hrEmail"
-            placeholder="you@company.com"
-            required
-            autofocus
-            [(ngModel)]="hrEmail"
-            [disabled]="hrSubmitting()">
-        </div>
-
-        <div class="field">
-          <label for="hrPassword">Password</label>
-          <input
-            type="password"
-            id="hrPassword"
-            name="hrPassword"
-            placeholder="••••••••"
-            required
-            [(ngModel)]="hrPassword"
-            [disabled]="hrSubmitting()">
-        </div>
-
-        <div class="field-error">
-          @if (hrError()) {
-            {{ hrError() }}
-          }
-        </div>
-
-        <button
-          type="submit"
-          class="btn btn-primary btn-block"
-          [disabled]="hrSubmitting()">
-          @if (hrSubmitting()) {
-            Signing in…
-          } @else {
-            SIGN IN  →
-          }
-        </button>
-
-      </form>
-
-      <p class="text-muted text-center mt-6" style="font-size: 12px;">
-        New HR account? Ask an admin to create one from the Admin portal.
-      </p>
-    </div>
-
-    <!-- ─────────────────────────────  Admin card  ────────────────────────── -->
+    <!-- ─────────────────────────────  Admin card (left)  ─────────────────── -->
     <div class="card">
       <h1>Admin Sign In</h1>
       <p class="subtitle">Manage HR accounts.</p>
@@ -77,6 +21,7 @@
             name="adminEmail"
             placeholder="admin@company.com"
             required
+            autofocus
             [(ngModel)]="adminEmail"
             [disabled]="adminSubmitting()">
         </div>
@@ -115,6 +60,61 @@
       <p class="text-muted text-center mt-6" style="font-size: 12px;">
         Admin credentials are seeded by the backend CLI
         (<code>create_admin.py</code>) — there is no in-product signup.
+      </p>
+    </div>
+
+    <!-- ─────────────────────────────  HR card (right)  ───────────────────── -->
+    <div class="card">
+      <h1>HR Sign In</h1>
+      <p class="subtitle">Log in to invite candidates and view results.</p>
+
+      <form (ngSubmit)="onHrSubmit()" novalidate>
+
+        <div class="field">
+          <label for="hrEmail">Email</label>
+          <input
+            type="email"
+            id="hrEmail"
+            name="hrEmail"
+            placeholder="you@company.com"
+            required
+            [(ngModel)]="hrEmail"
+            [disabled]="hrSubmitting()">
+        </div>
+
+        <div class="field">
+          <label for="hrPassword">Password</label>
+          <input
+            type="password"
+            id="hrPassword"
+            name="hrPassword"
+            placeholder="••••••••"
+            required
+            [(ngModel)]="hrPassword"
+            [disabled]="hrSubmitting()">
+        </div>
+
+        <div class="field-error">
+          @if (hrError()) {
+            {{ hrError() }}
+          }
+        </div>
+
+        <button
+          type="submit"
+          class="btn btn-primary btn-block"
+          [disabled]="hrSubmitting()">
+          @if (hrSubmitting()) {
+            Signing in…
+          } @else {
+            SIGN IN  →
+          }
+        </button>
+
+      </form>
+
+      <p class="text-muted text-center mt-6" style="font-size: 12px;">
+        New HR account? Ask an admin to create one from the Admin portal.
       </p>
     </div>
 
