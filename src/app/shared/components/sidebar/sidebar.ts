@@ -5,59 +5,8 @@ import { FormsModule } from '@angular/forms';
 import { ApiError, ApiService } from '../../../core/services/api.service';
 import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { formatBackendDate, formatBackendDateTime } from '../../../core/utils/date';  
-
-function wallClockToUtc(dateStr: string, timeStr: string, tz: string): Date | null {
-  if (!dateStr || !timeStr) return null;
-  const [yStr, mStr, dStr] = dateStr.split('-');
-  const [hStr, minStr] = timeStr.split(':');
-  const y = +yStr, m = +mStr, d = +dStr, h = +hStr, min = +minStr;
-  if ([y, m, d, h, min].some(n => Number.isNaN(n))) return null;
-
-  // First guess: pretend the wall clock IS UTC. We'll measure how wrong
-  // this is in the target timezone and correct.
-  const guess = Date.UTC(y, m - 1, d, h, min, 0);
-
-  // Iterate twice — once to correct, once to handle DST edge cases where
-  // the first correction crosses a transition.
-  let utcMs = guess;
-  for (let i = 0; i < 2; i++) {
-    const partsInTz = getPartsInTimezone(new Date(utcMs), tz);
-    const tzAsUtcMs = Date.UTC(
-      partsInTz.year, partsInTz.month - 1, partsInTz.day,
-      partsInTz.hour, partsInTz.minute, 0
-    );
-    // Difference = how many ms ahead the timezone is of UTC at this instant.
-    const offsetMs = tzAsUtcMs - utcMs;
-    // To make the wall clock in tz read (y, m, d, h, min), the actual UTC
-    // moment must be the guess MINUS the timezone's offset.
-    utcMs = guess - offsetMs;
-  }
-  return new Date(utcMs);
-}
-
-function getPartsInTimezone(d: Date, tz: string): {
-  year: number; month: number; day: number; hour: number; minute: number;
-} {
-  const fmt = new Intl.DateTimeFormat('en-US', {
-    timeZone: tz,
-    year: 'numeric', month: '2-digit', day: '2-digit',
-    hour: '2-digit', minute: '2-digit', hour12: false,
-  });
-  const parts: Record<string, string> = {};
-  for (const p of fmt.formatToParts(d)) {
-    if (p.type !== 'literal') parts[p.type] = p.value;
-  }
-  // Intl can return "24" for hour at midnight in some locales — normalize.
-  const hour = parts['hour'] === '24' ? 0 : +parts['hour'];
-  return {
-    year: +parts['year'],
-    month: +parts['month'],
-    day: +parts['day'],
-    hour,
-    minute: +parts['minute'],
-  };
-}
+import { formatBackendDate, formatBackendDateTime } from '../../../core/utils/date';
+import { wallClockToUtc } from '../../../core/utils/timezone';
   
 @Component({
   selector: 'app-sidebar',

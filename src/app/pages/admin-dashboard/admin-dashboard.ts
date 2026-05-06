@@ -15,6 +15,7 @@ import {
 import { Topnav } from '../../shared/components/topnav/topnav';
 import { Footer } from '../../shared/components/footer/footer';
 import { AccountMenu } from '../../shared/components/account-menu/account-menu';
+import { formatBackendDate } from '../../core/utils/date';
 
 /**
  * Admin portal — manage HR + admin accounts.
@@ -244,24 +245,15 @@ export class AdminDashboard implements OnInit {
   // ============================================================
 
   formatDate(iso: string): string {
-    const d = new Date(iso);
-    if (isNaN(d.getTime())) return iso;
-    return d.toLocaleDateString(undefined, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
+    // Routes through formatBackendDate so naive-UTC strings from the
+    // backend (no Z suffix) are correctly parsed as UTC and converted
+    // to the browser's local zone — without this, the Created column
+    // displays times off by the local timezone offset.
+    return formatBackendDate(iso);
   }
 
   formatSubmittedDate(iso: string | null): string {
-    if (!iso) return '—';
-    const d = new Date(iso);
-    if (isNaN(d.getTime())) return iso;
-    return d.toLocaleDateString(undefined, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
+    return formatBackendDate(iso);
   }
 
   /** Short chip rendered next to the candidate's name showing which
