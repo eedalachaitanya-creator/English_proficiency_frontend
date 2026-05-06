@@ -46,7 +46,8 @@
     <div class="kpi">
       <div class="label">Total Invitations</div>
       <div class="value">
-        @if (loading()) { — } @else { {{ kpiTotal() }} }
+        <!-- @if (loading()) { — } @else { {{ kpiTotal() }} } -->
+         {{ resultsCount() }}
       </div>
     </div>
  

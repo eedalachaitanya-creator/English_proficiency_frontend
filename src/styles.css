@@ -125,5 +125,7 @@ table.results tbody tr:last-child td { border-bottom: none; }
 .layout {display: flex; min-height: calc(100vh - 135px);  }
 .admin-dashboard {min-height: calc(100vh - 135px);}
  .logo{background: url(assets/images/fluentiq.png); display: inline-block ; height: 30px; width:120px; background-size: contain;}
+ .logo_black{background: url(assets/images/fluentiq_black.png); display: inline-block ;     height: 57px;    width: 295px;}
 
  .left-section { width: 50%; background: url('assets/images/login-left.jpg') no-repeat center; background-size: cover; position: relative; color: white; filter: brightness(0.5); }
+ .right-section{background: url('assets/images/bg-graybg.png') no-repeat center !important;  }

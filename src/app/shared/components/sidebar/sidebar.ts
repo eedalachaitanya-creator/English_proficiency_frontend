@@ -4,8 +4,7 @@ import { InviteCreateRequest, InviteCreateResponse, ResultRow, SupportedTimezone
 import { FormsModule } from '@angular/forms';
 import { ApiError, ApiService } from '../../../core/services/api.service'; 
 import { Router, RouterLink } from '@angular/router';
-import { CommonModule } from '@angular/common';
-import { AuthService } from '../../../core/services/auth.service';
+import { CommonModule } from '@angular/common';  
 
 function wallClockToUtc(dateStr: string, timeStr: string, tz: string): Date | null {
   if (!dateStr || !timeStr) return null;
@@ -69,8 +68,7 @@ export class Sidebar implements OnInit{
    @Input() showDashboard: boolean = true;  // Add this
   private api = inject(ApiService); 
   private router = inject(Router);
-   private auth = inject(AuthService);
-
+ 
   @Input() showManageQuestions: boolean = true;
   @Input() showInviteCandidate: boolean = true;
   
@@ -139,16 +137,7 @@ export class Sidebar implements OnInit{
     timezonesError = signal('');
 
   ngOnInit(): void {
-   this.auth.checkSession().subscribe({
-      next: (user) => {
-        if (!user) {
-          this.router.navigate(['/login']);
-          return;
-        }
-        this.loadResults();
-      },
-      error: () => this.router.navigate(['/login']),
-    });
+    this.loadResults(); 
   }
     private loadResults(): void {
         this.loading.set(true);
@@ -157,6 +146,7 @@ export class Sidebar implements OnInit{
           next: (rows) => {
             this.allResults.set(rows);
             this.filteredResults.set(rows);
+            this.api.setResults(rows);
             this.loading.set(false);
             // Reset to page 1 in case the previous filter state left us on a
             // page that no longer exists with the new data.

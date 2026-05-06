@@ -50,7 +50,7 @@
 .overlay { position: absolute; top: 30%; left: 10%; }
 .overlay h1 { font-size: 36px; margin-bottom: 10px;  }
 .overlay p { font-size: 14px; }
-.right-section { width: 50%; display: flex; justify-content: center; align-items: center; background: #fff; }
+.right-section { width: 50%; display: flex; justify-content: center; align-items: center; background: #fff; flex-direction: column; position: relative; }
 .login-box { width: 320px; }
 .login-box h2 { color: #0b2545; margin-bottom: 10px; font-size: 40px; text-align: center; }
 .login-box p { color: #0b2545; margin-bottom: 20px; text-align: center; } 
@@ -62,3 +62,4 @@
 .btn { width: 100%; padding: 10px; background: #0b2545; color: white; border: none; border-radius: 5px; }
 .error { color: red; font-size: 12px; margin-bottom: 10px; }
 .forgot { text-align: right !important; font-size: 14px; margin-top: 10px; }
+.powered-text{position: fixed;    bottom: 20px;}

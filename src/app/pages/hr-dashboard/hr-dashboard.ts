@@ -122,6 +122,10 @@ export class HrDashboard implements OnInit {
   private auth = inject(AuthService);
   private router = inject(Router);
 
+ 
+
+resultsCount = this.api.resultsCount;
+
   // -------- List/filter state --------
   loading = signal(true);
   loadError = signal('');
@@ -229,28 +233,29 @@ export class HrDashboard implements OnInit {
     });
   }
 
-  private loadResults(): void {
-    this.loading.set(true);
-    this.loadError.set('');
-    this.api.get<ResultRow[]>('/api/hr/results').subscribe({
-      next: (rows) => {
-        this.allResults.set(rows);
-        this.filteredResults.set(rows);
-        this.loading.set(false);
-        // Reset to page 1 in case the previous filter state left us on a
-        // page that no longer exists with the new data.
-        this.currentPage.set(1);
-      },
-      error: (err: ApiError) => {
-        if (err.status === 401) {
-          this.router.navigate(['/login']);
-          return;
-        }
-        this.loadError.set(err.message || 'Could not load results.');
-        this.loading.set(false);
-      },
-    });
-  }
+    private loadResults(): void {
+        this.loading.set(true);
+        this.loadError.set('');
+        this.api.get<ResultRow[]>('/api/hr/results').subscribe({
+          next: (rows) => {
+            this.allResults.set(rows);
+            this.filteredResults.set(rows);
+            this.api.setResults(rows);
+            this.loading.set(false);
+            // Reset to page 1 in case the previous filter state left us on a
+            // page that no longer exists with the new data.
+            this.currentPage.set(1);
+          },
+          error: (err: ApiError) => {
+            if (err.status === 401) {
+              this.router.navigate(['/login']);
+              return;
+            }
+            this.loadError.set(err.message || 'Could not load results.');
+            this.loading.set(false);
+          },
+        });
+      }
 
   // -------- Filter handler --------
   applyFilters(): void {

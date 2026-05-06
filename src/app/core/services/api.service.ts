@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal  } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Observable, catchError, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
@@ -47,6 +47,12 @@ export class ApiError extends Error {
 @Injectable({ providedIn: 'root' })
 export class ApiService {
   private http = inject(HttpClient);
+
+  resultsCount = signal(0);
+
+setResults(rows: any[]) {
+  this.resultsCount.set(rows.length);
+}
 
   /**
    * Where to send API requests.
