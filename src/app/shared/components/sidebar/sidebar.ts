@@ -2,9 +2,10 @@ import { Component, Input, Output, signal, EventEmitter, OnInit, inject } from '
 import { RouterModule } from '@angular/router';
 import { InviteCreateRequest, InviteCreateResponse, ResultRow, SupportedTimezone } from '../../../core/models/hr.models';
 import { FormsModule } from '@angular/forms';
-import { ApiError, ApiService } from '../../../core/services/api.service'; 
+import { ApiError, ApiService } from '../../../core/services/api.service';
 import { Router, RouterLink } from '@angular/router';
-import { CommonModule } from '@angular/common';  
+import { CommonModule } from '@angular/common';
+import { formatBackendDate, formatBackendDateTime } from '../../../core/utils/date';  
 
 function wallClockToUtc(dateStr: string, timeStr: string, tz: string): Date | null {
   if (!dateStr || !timeStr) return null;
@@ -363,11 +364,11 @@ export class Sidebar implements OnInit{
   }
 
     formatSubmittedDate(submitted_at: string | null): string {
-    return submitted_at ? new Date(submitted_at).toLocaleDateString() : '—';
+    return formatBackendDate(submitted_at);
   }
 
   formatSubmittedDateTime(submitted_at: string | null): string {
-    return submitted_at ? new Date(submitted_at).toLocaleString() : '—';
+    return formatBackendDateTime(submitted_at);
   }
  
 }

@@ -17,6 +17,7 @@ import {
   SupportedTimezone,
 } from '../../core/models/hr.models';
 import { wallClockToUtc } from '../../core/utils/timezone';
+import { formatBackendDateTime } from '../../core/utils/date';
 import { Topnav } from '../../shared/components/topnav/topnav';
 import { Footer } from '../../shared/components/footer/footer';
 import { RadarBreakdown } from '../../shared/components/radar-breakdown/radar-breakdown';
@@ -414,7 +415,11 @@ export class CandidateDetail implements OnInit {
   // ----- Template helpers (same as the old dashboard) -----
 
   formatSubmittedDateTime(submitted_at: string | null): string {
-    return submitted_at ? new Date(submitted_at).toLocaleString() : '—';
+    // Backend stores naive UTC. formatBackendDateTime stamps a 'Z'
+    // before parsing so the browser's local-zone conversion is correct
+    // — without this, a 22:12 UTC moment displayed as 22:12 in IST
+    // (off by 5h30m).
+    return formatBackendDateTime(submitted_at);
   }
 
   audioQuestionLabel(question_index: number): string {

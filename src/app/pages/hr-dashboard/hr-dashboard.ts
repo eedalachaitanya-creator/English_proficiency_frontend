@@ -15,6 +15,7 @@ import { Topnav } from '../../shared/components/topnav/topnav';
 import { Footer } from '../../shared/components/footer/footer';
 import { AccountMenu } from '../../shared/components/account-menu/account-menu';
 import { wallClockToUtc } from '../../core/utils/timezone';
+import { formatBackendDate, formatBackendDateTime } from '../../core/utils/date';
 import { Sidebar } from '../../shared/components/sidebar/sidebar';
 
 /**
@@ -533,10 +534,10 @@ resultsCount = this.api.resultsCount;
   }
 
   formatSubmittedDate(submitted_at: string | null): string {
-    return submitted_at ? new Date(submitted_at).toLocaleDateString() : '—';
+    return formatBackendDate(submitted_at);
   }
 
   formatSubmittedDateTime(submitted_at: string | null): string {
-    return submitted_at ? new Date(submitted_at).toLocaleString() : '—';
+    return formatBackendDateTime(submitted_at);
   }
 }
