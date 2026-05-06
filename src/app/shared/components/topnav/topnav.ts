@@ -1,45 +1,11 @@
 import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
-
-/**
- * Top navigation bar — appears on every page.
- *
- * Supports three variants by toggling inputs:
- *
- *   1. CANDIDATE-FACING (default)
- *      - title       = "English Proficiency Test"
- *      - meta        = "{candidate_name} | {difficulty}" (or "Loading…")
- *      - variant     = '' (default — flat navy background)
- *
- *   2. HR DASHBOARD
- *      - title       = "HR Portal — English Proficiency Results"
- *      - meta        = "{hrEmail}"
- *      - variant     = 'hr' (gradient navy → navy-light)
- *      - showLogout  = true (renders the Logout link)
- *
- *   3. PUBLIC (login, submitted)
- *      - title       = "English Proficiency Test"
- *      - meta        = "Internal use only" or "Submission complete"
- *      - variant     = '' or 'hr' depending on the page
- *
- * The HR dashboard listens for the (logout) event and calls AuthService
- * to clear the session, then navigates to /login.
- *
- * Usage in a template:
- *
- *   <app-topnav
- *     [title]="'HR Portal — English Proficiency Results'"
- *     [meta]="auth.currentUser()?.email || 'Loading…'"
- *     variant="hr"
- *     [showLogout]="true"
- *     (logout)="onLogout()">
- *   </app-topnav>
- */
+import { Router, RouterModule  } from '@angular/router';
+ 
 @Component({
   selector: 'app-topnav',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterModule],
   templateUrl: './topnav.html',
   styleUrl: './topnav.css',
 })
