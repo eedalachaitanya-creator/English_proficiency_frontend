@@ -287,16 +287,23 @@ export class AdminDashboard implements OnInit {
     switch (rating) {
       case 'recommended': return 'Recommended';
       case 'borderline': return 'Borderline';
-      case 'not_recommended': return 'Not recommended';
-      default: return '';
+      case 'not_recommended': return 'Not Recommended';
+      default: return 'pending';
     }
   }
 
+  /**
+   * Rating-badge color modifier. Matches the HR dashboard's mapping
+   * exactly — uses the semantic class names ('reviewed', 'new',
+   * 'flagged') that are defined in src/styles.css; the previous
+   * 'badge-green' etc. names didn't exist anywhere and rendered as
+   * white-on-transparent (invisible).
+   */
   ratingClass(rating: ResultRow['rating']): string {
     switch (rating) {
-      case 'recommended': return 'badge-green';
-      case 'borderline': return 'badge-amber';
-      case 'not_recommended': return 'badge-red';
+      case 'recommended': return 'reviewed';
+      case 'borderline': return 'new';
+      case 'not_recommended': return 'flagged';
       default: return '';
     }
   }
