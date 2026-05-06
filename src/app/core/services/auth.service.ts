@@ -55,6 +55,18 @@ export class AuthService {
   readonly isAdminLoggedIn = computed(() => this.currentAdmin() !== null);
 
   /**
+   * TRUE while the logged-in user (HR or admin) is on a temp password
+   * from /forgot-password. The route guard reads this and locks every
+   * authenticated route to /change-password-required until the user
+   * clears it via /change-password.
+   *
+   * Populated from login + adminLogin responses, refreshed by checkSession
+   * + checkAdminSession on app boot, cleared on logout / adminLogout /
+   * successful changePassword.
+   */
+  readonly mustChangePassword = signal<boolean>(false);
+
+  /**
    * Silent session probe. Calls /api/hr/session-status which ALWAYS returns
    * 200 (never 401), so this method never triggers the red "401 Unauthorized"
    * error in the browser DevTools console.
@@ -73,12 +85,17 @@ export class AuthService {
       map((res) => {
         const user = res.logged_in ? res.user : null;
         this.currentUser.set(user);
+        // Refresh the must-change flag from the probe so a page reload
+        // mid-flow doesn't bypass the route guard. Logged-out path
+        // resets to false (no user, no flag).
+        this.mustChangePassword.set(user?.must_change_password === true);
         return user;
       }),
       catchError((err: ApiError) => {
         // Network/CORS/server errors land here. session-status itself never
         // returns 401, but we still defensively handle it for completeness.
         this.currentUser.set(null);
+        this.mustChangePassword.set(false);
         if (err.status === 401) {
           return of(null);
         }
@@ -104,6 +121,9 @@ export class AuthService {
           this.jwt.setTokens(user.access_token, user.refresh_token);
         }
         this.currentUser.set(user);
+        // Set the flag BEFORE the route guard can run on navigation —
+        // if true, the guard will redirect to /change-password-required.
+        this.mustChangePassword.set(user.must_change_password === true);
       })
     );
   }
@@ -121,6 +141,7 @@ export class AuthService {
       tap(() => {
         this.jwt.clear();
         this.currentUser.set(null);
+        this.mustChangePassword.set(false);
       }),
       catchError(() => {
         // Even if the server call fails, clear local state so the UI
@@ -129,6 +150,7 @@ export class AuthService {
         // bites later.
         this.jwt.clear();
         this.currentUser.set(null);
+        this.mustChangePassword.set(false);
         return of(undefined as void);
       })
     );
@@ -152,7 +174,14 @@ export class AuthService {
     return this.api.post<void>(path, {
       current_password: current,
       new_password: next,
-    });
+    }).pipe(
+      tap(() => {
+        // Backend cleared must_change_password on success — mirror it
+        // locally so the route guard immediately stops redirecting to
+        // /change-password-required.
+        this.mustChangePassword.set(false);
+      }),
+    );
   }
 
   /**
@@ -178,10 +207,15 @@ export class AuthService {
       map((res) => {
         const admin = res.logged_in ? res.user : null;
         this.currentAdmin.set(admin);
+        // Same rationale as checkSession — refresh the must-change flag
+        // on app boot. Note: HR + admin share this signal because a
+        // tab is logged in as one role at a time.
+        this.mustChangePassword.set(admin?.must_change_password === true);
         return admin;
       }),
       catchError((err: ApiError) => {
         this.currentAdmin.set(null);
+        this.mustChangePassword.set(false);
         if (err.status === 401) {
           return of(null);
         }
@@ -199,6 +233,7 @@ export class AuthService {
           this.jwt.setTokens(admin.access_token, admin.refresh_token);
         }
         this.currentAdmin.set(admin);
+        this.mustChangePassword.set(admin.must_change_password === true);
       })
     );
   }
@@ -209,10 +244,12 @@ export class AuthService {
       tap(() => {
         this.jwt.clear();
         this.currentAdmin.set(null);
+        this.mustChangePassword.set(false);
       }),
       catchError(() => {
         this.jwt.clear();
         this.currentAdmin.set(null);
+        this.mustChangePassword.set(false);
         return of(undefined as void);
       })
     );

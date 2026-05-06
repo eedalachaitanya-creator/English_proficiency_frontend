@@ -29,6 +29,11 @@ export interface HRUser {
   refresh_token?: string;
   token_type?: string;
   expires_in?: number;
+  // TRUE while the user is on a temp password from /forgot-password.
+  // Backend sets this on reset, clears on /change-password. Optional
+  // here so older response shapes (without the field) are interpreted
+  // as "no action needed" rather than crashing the type check.
+  must_change_password?: boolean;
 }
 
 // ===========================================================================
@@ -51,6 +56,8 @@ export interface AdminUser {
   refresh_token?: string;
   token_type?: string;
   expires_in?: number;
+  // See HRUser.must_change_password.
+  must_change_password?: boolean;
 }
 export interface RefreshTokenResponse {
   access_token: string;
