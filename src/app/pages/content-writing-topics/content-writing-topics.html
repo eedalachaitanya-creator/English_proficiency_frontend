@@ -50,7 +50,7 @@
         <th style="width: 100px;">Difficulty</th>
         <th style="width: 130px;">Word Range</th>
         <th style="width: 130px;">Category</th>
-        <th style="width: 140px;">Actions</th>
+        <th style="width: 220px;">Actions</th>
       </tr>
     </thead>
     <tbody>
@@ -70,14 +70,33 @@
         </tr>
       } @else {
         @for (t of filteredTopics(); track trackById($index, t)) {
-          <tr>
-            <td>{{ truncate(t.prompt_text, 120) }}</td>
+          <tr [class.row-disabled]="t.disabled_at">
+            <td>
+              {{ truncate(t.prompt_text, 120) }}
+              @if (t.disabled_at) {
+                <span class="badge-disabled">DISABLED</span>
+              }
+            </td>
             <td>{{ t.difficulty }}</td>
             <td class="text-mono" style="font-size: 13px;">{{ t.min_words }}–{{ t.max_words }}</td>
             <td class="text-muted" style="font-size: 13px;">{{ t.category ?? '—' }}</td>
             <td>
+              <button class="btn-link" (click)="onView(t)">View</button>
+              <span class="action-sep">|</span>
               <button class="btn-link" (click)="openEditForm(t)">Edit</button>
-              <span style="color: var(--border); margin: 0 6px;">|</span>
+              <span class="action-sep">|</span>
+              <button
+                type="button"
+                class="toggle-pill"
+                [class.toggle-on]="!t.disabled_at"
+                [attr.aria-label]="t.disabled_at ? 'Enable' : 'Disable'"
+                [attr.aria-checked]="!t.disabled_at"
+                role="switch"
+                title="{{ t.disabled_at ? 'Click to enable' : 'Click to disable' }}"
+                (click)="onToggleDisabled(t)">
+                <span class="toggle-knob"></span>
+              </button>
+              <span class="action-sep">|</span>
               <button class="btn-link danger" (click)="onDelete(t)">Delete</button>
             </td>
           </tr>
@@ -251,3 +270,11 @@
     </div>
   </div>
 }
+<!-- View modal — read-only display of full writing topic. -->
+<app-view-content-modal
+  [open]="viewModalOpen()"
+  [data]="$any(viewModalData())"
+  [fields]="viewModalFields"
+  title="View Writing Topic"
+  (closed)="onCloseView()">
+</app-view-content-modal>

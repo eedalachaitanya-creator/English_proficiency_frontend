@@ -17,6 +17,7 @@ import { Topnav } from '../../shared/components/topnav/topnav';
 import { Footer } from '../../shared/components/footer/footer';
 import { AccountMenu } from '../../shared/components/account-menu/account-menu';
 import { Sidebar } from '../../shared/components/sidebar/sidebar';
+import { ViewContentModal, ViewField } from '../../shared/components/view-content-modal/view-content-modal.component';
 
 import { deleteModalService } from '../../core/services/deletemodal.service';
 
@@ -30,7 +31,7 @@ import { deleteModalService } from '../../core/services/deletemodal.service';
 @Component({
   selector: 'app-content-questions',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, Topnav, Footer, AccountMenu, Sidebar],
+  imports: [CommonModule, FormsModule, RouterLink, Topnav, Footer, AccountMenu, Sidebar, ViewContentModal],
   templateUrl: './content-questions.html',
   styleUrl: './content-questions.css',
 })
@@ -54,6 +55,17 @@ export class ContentQuestions implements OnInit {
   questions = signal<QuestionOut[]>([]);
   passages = signal<PassageOut[]>([]);
   loading = signal(true);
+  // ---- View modal state ----
+  viewModalOpen = signal(false);
+  viewModalData = signal<QuestionOut | null>(null);
+  viewModalFields: ViewField[] = [
+    { key: 'question_type', label: 'Type', render: 'badge' },
+    { key: 'difficulty', label: 'Difficulty', render: 'badge' },
+    { key: 'stem', label: 'Question', render: 'longtext' },
+    { key: 'options', label: 'Options', render: 'list' },
+    { key: 'correct_answer', label: 'Correct Option (0-indexed)', render: 'text' },
+    { key: 'passage_id', label: 'Passage ID', render: 'text' },
+  ];
   loadError = signal('');
 
   filterType = signal<QuestionType | ''>('');
@@ -275,26 +287,34 @@ export class ContentQuestions implements OnInit {
     }
   }
 
-  // async onDelete(q: QuestionOut): Promise<void> {
-  //   const ok = await this.modal.confirm(
-  //     `Delete this question?\n\n"${this.truncate(q.stem, 100)}"\n\nThis cannot be undone.`,
-  //     { okText: 'Delete', cancelText: 'Cancel', dangerous: true, title: 'Confirm delete' }
-  //   );
-  //   if (!ok) return;
+  /** Open the View modal for the given question. */
+  onView(q: QuestionOut): void {
+    this.viewModalData.set(q);
+    this.viewModalOpen.set(true);
+  }
 
-  //   this.contentSvc.deleteQuestion(q.id).subscribe({
-  //     next: () => {
-  //       this.questions.update(arr => arr.filter(x => x.id !== q.id));
-  //     },
-  //     error: async (err: ApiError) => {
-  //       await this.modal.alert(
-  //         err.message || 'Could not delete question.',
-  //         { title: err.status === 409 ? 'Cannot delete — question in use' : 'Delete failed' }
-  //       );
-  //     },
-  //   });
-  // }
+  /** Close the View modal. Wired to the modal's (closed) emitter. */
+  onCloseView(): void {
+    this.viewModalOpen.set(false);
+    this.viewModalData.set(null);
+  }
 
+  /** Toggle a question's disabled state. Updates row in place. */
+  onToggleDisabled(q: QuestionOut): void {
+    this.contentSvc.toggleQuestionDisabled(q.id).subscribe({
+      next: (updated) => {
+        this.questions.update(arr =>
+          arr.map(x => (x.id === updated.id ? updated : x))
+        );
+      },
+      error: async (err: ApiError) => {
+        await this.modal.alert(
+          err.message || 'Could not update question.',
+          { title: 'Toggle failed' }
+        );
+      },
+    });
+  }
    async onDelete(p: QuestionOut): Promise<void> {
     const confirmed = await this.delmodal.confirm({
       message: 'Delete this question?',

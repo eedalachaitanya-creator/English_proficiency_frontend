@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed, ViewChild  } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
@@ -15,7 +15,8 @@ import { Topnav } from '../../shared/components/topnav/topnav';
 import { Footer } from '../../shared/components/footer/footer';
 import { AccountMenu } from '../../shared/components/account-menu/account-menu';
 import { Sidebar } from '../../shared/components/sidebar/sidebar';
- import { deleteModalService } from '../../core/services/deletemodal.service';
+import { deleteModalService } from '../../core/services/deletemodal.service';
+import { ViewContentModal, ViewField } from '../../shared/components/view-content-modal/view-content-modal.component';
 
 /**
  * Reading passages management — list, create, edit, delete, bulk-import.
@@ -25,12 +26,12 @@ import { Sidebar } from '../../shared/components/sidebar/sidebar';
 @Component({
   selector: 'app-content-passages',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, Topnav, Footer, AccountMenu, Sidebar],
+  imports: [CommonModule, FormsModule, RouterLink, Topnav, Footer, AccountMenu, Sidebar, ViewContentModal],
   templateUrl: './content-passages.html',
   styleUrl: './content-passages.css',
 })
 export class ContentPassages implements OnInit {
- constructor(private delmodal: deleteModalService) {}
+  constructor(private delmodal: deleteModalService) {}
 
   private contentSvc = inject(HrContentService);
   private modal = inject(ModalService);
@@ -66,6 +67,19 @@ export class ContentPassages implements OnInit {
   csvSubmitting = signal(false);
   csvResult = signal<BulkImportResult | null>(null);
   csvError = signal('');
+
+  // ---- View modal state ----
+  // Read-only modal for viewing the full passage. Driven by ViewContentModal
+  // component in the template; closed via (closed) emitter -> onCloseView().
+  viewModalOpen = signal(false);
+  viewModalData = signal<PassageOut | null>(null);
+  viewModalFields: ViewField[] = [
+    { key: 'title', label: 'Title', render: 'text' },
+    { key: 'difficulty', label: 'Difficulty', render: 'badge' },
+    { key: 'topic', label: 'Topic', render: 'text' },
+    { key: 'word_count', label: 'Word Count', render: 'text' },
+    { key: 'body', label: 'Body', render: 'longtext' },
+  ];
 
   // Live word count for body — gives HR feedback that they're hitting the
   // 50-word minimum BEFORE they submit and get a server-side error.
@@ -187,27 +201,10 @@ export class ContentPassages implements OnInit {
     }
   }
 
-  // async onDelete(p: PassageOut): Promise<void> {
-  //   const ok = await this.modal.confirm(
-  //     `Delete this passage?\n\n"${p.title}"\n\nThis cannot be undone.`,
-  //     { okText: 'Delete', cancelText: 'Cancel', dangerous: true, title: 'Confirm delete' }
-  //   );
-  //   if (!ok) return;
-
-  //   this.contentSvc.deletePassage(p.id).subscribe({
-  //     next: () => {
-  //       this.passages.update(arr => arr.filter(x => x.id !== p.id));
-  //     },
-  //     error: async (err: ApiError) => {
-  //       await this.modal.alert(
-  //         err.message || 'Could not delete passage.',
-  //         { title: err.status === 409 ? 'Cannot delete — passage in use' : 'Delete failed' }
-  //       );
-  //     },
-  //   });
-  // }
-
-   async onDelete(p: PassageOut): Promise<void> {
+  async onDelete(p: PassageOut): Promise<void> {
+    // Soft delete on the backend — sets deleted_at instead of removing the
+    // row. Existing invitations referencing this passage continue to work
+    // because they snapshot assigned IDs at creation time.
     const confirmed = await this.delmodal.confirm({
       message: 'Delete this passage?',
       itemName: p.title,
@@ -216,7 +213,6 @@ export class ContentPassages implements OnInit {
       cancelText: 'Cancel',
       dangerous: true
     });
-    
     if (!confirmed) return;
 
     this.contentSvc.deletePassage(p.id).subscribe({
@@ -224,13 +220,45 @@ export class ContentPassages implements OnInit {
         this.passages.update(arr => arr.filter(x => x.id !== p.id));
       },
       error: async (err: ApiError) => {
-        await this.modal.alert(err.message || 'Could not delete passage.');
+        await this.modal.alert(
+          err.message || 'Could not delete passage.',
+          { title: 'Delete failed' }
+        );
       },
     });
   }
 
-  showErrorModal(err: ApiError) {
-    throw new Error('Method not implemented.');
+  /** Open the View modal for the given passage. */
+  onView(p: PassageOut): void {
+    this.viewModalData.set(p);
+    this.viewModalOpen.set(true);
+  }
+
+  /** Close the View modal. Wired to ViewContentModal's (closed) emitter. */
+  onCloseView(): void {
+    this.viewModalOpen.set(false);
+    this.viewModalData.set(null);
+  }
+
+  /**
+   * Toggle a passage's disabled state. Updates the row in place when the
+   * server confirms, no full list reload. Disabled passages stay visible
+   * to HR (with a badge) but are skipped when assigning new invitations.
+   */
+  onToggleDisabled(p: PassageOut): void {
+    this.contentSvc.togglePassageDisabled(p.id).subscribe({
+      next: (updated) => {
+        this.passages.update(arr =>
+          arr.map(x => (x.id === updated.id ? updated : x))
+        );
+      },
+      error: async (err: ApiError) => {
+        await this.modal.alert(
+          err.message || 'Could not update passage.',
+          { title: 'Toggle failed' }
+        );
+      },
+    });
   }
 
   openCsvModal(): void {

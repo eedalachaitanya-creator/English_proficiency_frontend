@@ -66,12 +66,32 @@
       </div>
 
       <div class="rec-controls">
-        <!-- START button intentionally hidden — recording auto-starts at the
-             end of the 1-min prep phase. Candidate has no manual "begin
-             recording" action. STOP remains so they can end early. -->
-        <button type="button" class="btn btn-secondary" [disabled]="!canStop()" (click)="onStop()">
-          ■   STOP
-        </button>
+        <!-- Three button states across the recording lifecycle:
+             - During recording: STOP enabled, DELETE disabled (greyed)
+             - After STOP (playback shown): STOP hidden, DELETE enabled
+             - After DELETE clicked (awaiting_start): only START shown
+             START re-recording skips prep — candidate already read prompt. -->
+
+        @if (phase() === 'awaiting_start') {
+          <button type="button" class="btn btn-primary" (click)="onStartRerecord()">
+            ●   START
+          </button>
+        } @else {
+          <button
+            type="button"
+            class="btn btn-secondary"
+            [disabled]="!canStop()"
+            (click)="onStop()">
+            ■   STOP
+          </button>
+          <button
+            type="button"
+            class="btn btn-secondary btn-delete"
+            [disabled]="phase() !== 'idle' || !hasPlayback()"
+            (click)="onDeleteRecording()">
+            🗑   DELETE
+          </button>
+        }
       </div>
 
       @if (hasPlayback()) {

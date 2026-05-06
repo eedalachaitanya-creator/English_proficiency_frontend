@@ -219,12 +219,12 @@ export class Writing implements OnInit, OnDestroy {
   // both blocked. Each blocked attempt flashes a transient red warning that
   // auto-clears after 3 seconds.
   onPaste(e: Event): void {
-    e.preventDefault();
-    this.flashPasteWarning();
+    // e.preventDefault();
+    // this.flashPasteWarning();
   }
   onDrop(e: Event): void {
-    e.preventDefault();
-    this.flashPasteWarning();
+    // e.preventDefault();
+    // this.flashPasteWarning();
   }
   onDragOver(e: Event): void {
     e.preventDefault();

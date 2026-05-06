@@ -201,7 +201,8 @@
               type="time"
               id="invStartTime"
               required
-              [(ngModel)]="invStartTime"
+              [ngModel]="invStartTime"
+              (ngModelChange)="onStartTimeChange($event)"
               [disabled]="inviteSubmitting()"
               (click)="openPicker($event)"
               style="width:100%; box-sizing:border-box; padding:10px 12px; border:1px solid var(--border); border-radius:var(--radius); font-size:14px; font-family:inherit; background:#fff; color:var(--text); line-height:1.4; cursor:pointer;">

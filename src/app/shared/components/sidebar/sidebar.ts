@@ -81,6 +81,24 @@ export class Sidebar implements OnInit{
     target.showPicker?.();
   }
 
+  /**
+   * Auto-fill end time to start + 60 minutes when HR sets the start time.
+   * HR can still edit the auto-filled value (e.g. for a 90-min window).
+   * Both inputs are <input type="time"> values in "HH:MM" format.
+   */
+  onStartTimeChange(value: string): void {
+    this.invStartTime = value;
+    if (!value) return;
+
+    const [h, m] = value.split(':').map(Number);
+    if (Number.isNaN(h) || Number.isNaN(m)) return;
+
+    const totalMinutes = (h * 60 + m + 60) % (24 * 60);
+    const newH = Math.floor(totalMinutes / 60).toString().padStart(2, '0');
+    const newM = (totalMinutes % 60).toString().padStart(2, '0');
+    this.invEndTime = `${newH}:${newM}`;
+  }
+
  
   /** Tracks the auto-dismiss timer so a second toast cancels the first. */
   private toastTimer: ReturnType<typeof setTimeout> | null = null;
@@ -353,4 +371,6 @@ export class Sidebar implements OnInit{
   }
  
 }
+
+
 
