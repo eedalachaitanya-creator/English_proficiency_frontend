@@ -13,7 +13,6 @@ import {
 } from '../../core/models/hr.models';
 import { Topnav } from '../../shared/components/topnav/topnav';
 import { Footer } from '../../shared/components/footer/footer';
-import { AccountMenu } from '../../shared/components/account-menu/account-menu';
 import { Sidebar } from '../../shared/components/sidebar/sidebar';
 
 /**
@@ -113,7 +112,7 @@ function getPartsInTimezone(d: Date, tz: string): {
 @Component({
   selector: 'app-hr-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, Topnav, Footer, AccountMenu, Sidebar],
+  imports: [CommonModule, FormsModule, RouterLink, Topnav, Footer, Sidebar],
   templateUrl: './hr-dashboard.html',
   styleUrl: './hr-dashboard.css',
 })

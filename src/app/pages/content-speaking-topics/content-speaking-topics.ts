@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink, Router } from '@angular/router';
+import { Router } from '@angular/router';
 
 import { ApiError } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -26,7 +26,7 @@ import { Sidebar } from '../../shared/components/sidebar/sidebar';
 @Component({
   selector: 'app-content-speaking-topics',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, Topnav, Footer, AccountMenu, Sidebar],
+  imports: [CommonModule, FormsModule, Topnav, Footer, AccountMenu, Sidebar],
   templateUrl: './content-speaking-topics.html',
   styleUrl: './content-speaking-topics.css',
 })
