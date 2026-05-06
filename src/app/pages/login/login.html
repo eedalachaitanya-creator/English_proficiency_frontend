@@ -60,6 +60,12 @@
         <button class="btn" [disabled]="adminSubmitting()">
           {{ adminSubmitting() ? 'Signing in…' : 'LOGIN' }}
         </button>
+
+        <p class="forgot">
+          <a href="#" (click)="$event.preventDefault(); openForgot()">
+            Forgot your password?
+          </a>
+        </p>
       </form>
 
       <!-- HR -->
@@ -110,7 +116,8 @@
 
 <!-- <app-footer></app-footer> -->
 
-<!-- Forgot Modal -->
+<!-- Forgot Modal — role tracks the active tab so the modal posts to
+     the matching backend endpoint (/api/hr/... or /api/admin/...). -->
 @if (forgotOpen()) {
-  <app-forgot-password-modal (closed)="closeForgot()"></app-forgot-password-modal>
+  <app-forgot-password-modal [role]="activeTab" (closed)="closeForgot()"></app-forgot-password-modal>
 }

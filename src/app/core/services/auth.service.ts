@@ -197,6 +197,19 @@ export class AuthService {
     );
   }
 
+  /**
+   * Admin equivalent — only resets accounts whose role='admin'. Same
+   * generic-response contract as the HR endpoint (the backend hides
+   * cross-role emails behind the same 200 message). The UI shouldn't
+   * branch on the result.
+   */
+  adminForgotPassword(email: string): Observable<{ status: string; message: string }> {
+    return this.api.post<{ status: string; message: string }>(
+      '/api/admin/forgot-password',
+      { email },
+    );
+  }
+
   // -------------------------------------------------------------------
   // Admin authentication — mirrors the HR methods above.
   // -------------------------------------------------------------------

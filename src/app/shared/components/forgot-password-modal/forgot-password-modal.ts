@@ -2,6 +2,7 @@ import {
   Component,
   EventEmitter,
   HostListener,
+  Input,
   Output,
   inject,
   signal,
@@ -13,15 +14,18 @@ import { AuthService } from '../../../core/services/auth.service';
 import { ApiError } from '../../../core/services/api.service';
 
 /**
- * Forgot-password modal — single email field, posts to
- * /api/hr/forgot-password.
+ * Forgot-password modal — single email field. Role-aware: posts to
+ * /api/hr/forgot-password by default, or /api/admin/forgot-password
+ * when the parent passes [role]="'admin'".
  *
  * The backend always returns 200 with the same generic message
- * regardless of whether the email exists, so this modal does NOT
- * branch on success vs "no such user" — both render the same
- * confirmation. This is the email-enumeration defense; the modal
- * surfaces the same message verbatim so the UI doesn't accidentally
- * leak which emails are real HR accounts.
+ * regardless of whether the email exists or matches the role, so this
+ * modal does NOT branch on success vs "no such user" — both render
+ * the same confirmation. This is the email-enumeration defense; the
+ * modal surfaces the same message verbatim so the UI doesn't
+ * accidentally leak which emails are real accounts. (The admin
+ * endpoint also silently rejects HR emails and vice versa, which is
+ * why the modal can stay agnostic.)
  *
  * Backdrop click, Cancel, and Escape all close the modal. After a
  * successful submit, the success card auto-closes after 2 seconds
@@ -37,6 +41,10 @@ import { ApiError } from '../../../core/services/api.service';
 })
 export class ForgotPasswordModal {
   private auth = inject(AuthService);
+
+  /** Which endpoint to post to. Defaults to 'hr' for backward compat
+   * with any existing callers that don't pass [role]. */
+  @Input() role: 'hr' | 'admin' = 'hr';
 
   @Output() closed = new EventEmitter<void>();
 
@@ -71,7 +79,10 @@ export class ForgotPasswordModal {
     }
 
     this.submitting.set(true);
-    this.auth.forgotPassword(email).subscribe({
+    const request$ = this.role === 'admin'
+      ? this.auth.adminForgotPassword(email)
+      : this.auth.forgotPassword(email);
+    request$.subscribe({
       next: (res) => {
         this.submitting.set(false);
         // Display the backend's generic message verbatim. Same string

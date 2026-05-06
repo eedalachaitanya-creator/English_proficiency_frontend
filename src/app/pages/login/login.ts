@@ -50,7 +50,9 @@ export class Login implements OnInit {
   adminError = signal('');
   adminSubmitting = signal(false);
 
-  // Forgot-password modal — only on the HR card. Admins reset via CLI.
+  // Forgot-password modal — works for both HR and admin tabs. The
+  // modal reads [role]="activeTab" from the template and posts to the
+  // matching endpoint.
   forgotOpen = signal(false);
 
   openForgot(): void {
