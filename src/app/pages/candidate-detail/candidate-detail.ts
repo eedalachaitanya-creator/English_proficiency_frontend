@@ -452,6 +452,27 @@ export class CandidateDetail implements OnInit {
   }
 
   /**
+   * When an <audio> element starts playing, pause every other audio
+   * on the page. Without this, hitting play on three different
+   * recordings results in three voices overlapping. Wired up via
+   * (play)="onAudioPlay($event.target)" on each audio element.
+   *
+   * Uses document.querySelectorAll('audio') instead of @ViewChildren
+   * so we don't have to track refs for every dynamically rendered
+   * recording — the browser already knows where every audio element
+   * is, and the operation runs once per play event.
+   */
+  onAudioPlay(currentTarget: EventTarget | null): void {
+    const current = currentTarget as HTMLAudioElement | null;
+    if (!current) return;
+    document.querySelectorAll('audio').forEach((a) => {
+      if (a !== current && !a.paused) {
+        a.pause();
+      }
+    });
+  }
+
+  /**
    * Map a submission_reason value to a visual badge for the candidate detail
    * header. Returns null for the default 'candidate_finished' (no badge shown)
    * or for unknown values (graceful fallback for old / forward-compat rows).
