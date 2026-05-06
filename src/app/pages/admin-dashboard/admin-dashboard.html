@@ -1,4 +1,4 @@
-<app-topnav title="Admin Portal  —  HR Management" variant="hr">
+<app-topnav title="Admin Portal  —  User Management" variant="hr">
   <app-account-menu
     [name]="adminName()"
     [email]="adminEmail()"
@@ -11,9 +11,9 @@
 
   <div class="flex-row" style="align-items:center; justify-content:space-between; margin-bottom: 16px;">
     <div>
-      <h1 style="margin:0;">HR Accounts</h1>
+      <h1 style="margin:0;">All Users</h1>
       <p class="subtitle" style="margin:4px 0 0 0;">
-        Total: <strong>{{ totalHrs() }}</strong>
+        Total: <strong>{{ totalUsers() }}</strong>
       </p>
     </div>
     <button type="button" class="btn btn-primary" (click)="openCreate()">
@@ -23,34 +23,164 @@
 
   @if (loadError()) {
     <div class="notice">
-      <strong>Could not load HR accounts.</strong>
+      <strong>Could not load users.</strong>
       {{ loadError() }}
     </div>
   } @else {
     <table class="results">
       <thead>
         <tr>
+          <th style="width: 28px;"></th>
           <th>Name</th>
           <th>Email</th>
+          <th>Role</th>
+          <th>Candidates</th>
           <th>Created</th>
         </tr>
       </thead>
       <tbody>
         @if (loading()) {
-          <tr><td colspan="3" class="text-muted text-center" style="padding: 24px;">Loading…</td></tr>
-        } @else if (hrs().length === 0) {
+          <tr><td colspan="6" class="text-muted text-center" style="padding: 24px;">Loading…</td></tr>
+        } @else if (users().length === 0) {
           <tr>
-            <td colspan="3" class="text-muted text-center" style="padding: 24px;">
-              No HR accounts yet. Click "+ CREATE NEW HR" to add the first one.
+            <td colspan="6" class="text-muted text-center" style="padding: 24px;">
+              No users yet. Click "+ CREATE NEW HR" to add the first one.
             </td>
           </tr>
         } @else {
-          @for (hr of hrs(); track hr.id) {
-            <tr>
-              <td><strong>{{ hr.name }}</strong></td>
-              <td class="text-muted">{{ hr.email }}</td>
-              <td>{{ formatDate(hr.created_at) }}</td>
+          @for (u of users(); track u.id) {
+            <!-- Main row. HR rows are clickable; admin rows are static. -->
+            <tr
+              [class.expandable-row]="u.role === 'hr'"
+              [class.expanded]="u.role === 'hr' && isExpanded(u.id)"
+              [style.cursor]="u.role === 'hr' ? 'pointer' : 'default'"
+              (click)="u.role === 'hr' ? toggleExpand(u) : null">
+              <td class="text-muted text-center">
+                @if (u.role === 'hr') {
+                  <span [style.transform]="isExpanded(u.id) ? 'rotate(90deg)' : 'rotate(0)'"
+                        style="display:inline-block; transition: transform 0.15s;">
+                    ▶
+                  </span>
+                }
+              </td>
+              <td><strong>{{ u.name }}</strong></td>
+              <td class="text-muted">{{ u.email }}</td>
+              <td>
+                <span class="badge" [class.badge-amber]="u.role === 'admin'">
+                  {{ u.role }}
+                </span>
+              </td>
+              <td>
+                @if (u.role === 'hr') {
+                  {{ u.candidate_count }}
+                } @else {
+                  <span class="text-muted">—</span>
+                }
+              </td>
+              <td>{{ formatDate(u.created_at) }}</td>
             </tr>
+
+            <!-- Expanded panel: candidates sub-table for this HR. -->
+            @if (u.role === 'hr' && isExpanded(u.id)) {
+              <tr class="expanded-panel-row">
+                <td colspan="6" style="padding: 0; background: #f8fafc;">
+                  <div style="padding: 16px 24px;">
+                    @if (candidatesErrorFor(u.id)) {
+                      <div class="notice" style="background: var(--red-soft, #fee2e2); border-left:3px solid var(--red, #dc2626);">
+                        {{ candidatesErrorFor(u.id) }}
+                      </div>
+                    } @else if (isCandidatesLoading(u.id) && !candidatesPageFor(u.id)) {
+                      <div class="text-muted text-center" style="padding: 24px;">
+                        Loading candidates…
+                      </div>
+                    } @else if (candidatesPageFor(u.id) && candidatesPageFor(u.id)!.total === 0) {
+                      <div class="text-muted text-center" style="padding: 24px;">
+                        No candidates invited yet.
+                      </div>
+                    } @else if (candidatesPageFor(u.id)) {
+                      <!-- Sub-table mirrors the HR dashboard's own results
+                           layout so admins see the same view HR sees. -->
+                      <table class="results" style="margin: 0;">
+                        <thead>
+                          <tr>
+                            <th>Candidate</th>
+                            <th>Email</th>
+                            <th>Difficulty</th>
+                            <th>Sent</th>
+                            <th>Reading</th>
+                            <th>Writing</th>
+                            <th>Speaking</th>
+                            <th>Total</th>
+                            <th>Rating</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          @for (r of candidatesItemsFor(u.id); track r.invitation_id) {
+                            <tr>
+                              <td>
+                                <strong>{{ r.candidate_name }}</strong>
+                                <span
+                                  [title]="sectionsTooltip(r)"
+                                  style="display:inline-block; margin-left:8px; padding:2px 6px; font-size:10px; font-weight:600; letter-spacing:1px; color:#475569; background:#f1f5f9; border:1px solid #cbd5e1; border-radius:10px; vertical-align:middle;">
+                                  {{ sectionsChip(r) }}
+                                </span>
+                              </td>
+                              <td class="text-muted">{{ r.candidate_email }}</td>
+                              <td>{{ r.difficulty }}</td>
+                              <td>{{ formatSubmittedDate(r.submitted_at) }}</td>
+                              <td class="text-mono">
+                                @if (r.reading_score !== null) { {{ r.reading_score }} } @else { — }
+                              </td>
+                              <td class="text-mono">
+                                @if (r.writing_score !== null) { {{ r.writing_score }} } @else { — }
+                              </td>
+                              <td class="text-mono">
+                                @if (r.speaking_score !== null) { {{ r.speaking_score }} } @else { — }
+                              </td>
+                              <td>
+                                @if (r.total_score !== null) { <strong>{{ r.total_score }}</strong> } @else { — }
+                              </td>
+                              <td>
+                                @if (r.rating) {
+                                  <span class="badge {{ ratingClass(r.rating) }}">{{ ratingLabel(r.rating) }}</span>
+                                } @else {
+                                  <span class="text-muted">pending</span>
+                                }
+                              </td>
+                            </tr>
+                          }
+                        </tbody>
+                      </table>
+
+                      <!-- Pagination footer: only show when more than one page. -->
+                      @if (totalPagesFor(u.id) > 1) {
+                        <div class="flex-row mt-4" style="align-items:center; justify-content:center; gap:12px;">
+                          <button
+                            type="button"
+                            class="btn btn-secondary"
+                            [disabled]="candidatesPageFor(u.id)!.page === 1 || isCandidatesLoading(u.id)"
+                            (click)="prevPage(u.id)">
+                            ← Previous
+                          </button>
+                          <span class="text-muted" style="font-size:13px;">
+                            Page {{ candidatesPageFor(u.id)!.page }} of {{ totalPagesFor(u.id) }}
+                            <span style="margin: 0 8px;">·</span>
+                            {{ candidatesPageFor(u.id)!.total }} total
+                          </span>
+                          <button
+                            type="button"
+                            class="btn btn-secondary"
+                            [disabled]="candidatesPageFor(u.id)!.page >= totalPagesFor(u.id) || isCandidatesLoading(u.id)"
+                            (click)="nextPage(u.id)">
+                            Next →
+                          </button>
+                        </div>
+                      }
+                    }
+                  </div>
+                </td>
+              </tr>
+            }
           }
         }
       </tbody>
@@ -62,7 +192,6 @@
 
 <!-- ─────────────────────────  Create-HR modal  ───────────────────────── -->
 @if (modalOpen()) {
-  
 
       <div class="modal-backdrop show" (click)="closeCreate()">
     <div class="modal" (click)="$event.stopPropagation()">
@@ -76,7 +205,7 @@
 
 
       @if (lastCreated()) {
-       
+
         <!-- Success state — show outcome + close button. Don't reset
              the form so the admin can review what they just created. -->
         <div class="notice" style="background: var(--green-soft, #e7f6e7); border-left:3px solid var(--green, #2f8d3a);">
@@ -101,12 +230,12 @@
             Done
           </button>
         </div>
-       
+
 
       } @else {
         <!-- Form state -->
         <form (ngSubmit)="submitCreate()" novalidate>
-        <div class="modal-body"> 
+        <div class="modal-body">
           <div class="field">
             <label for="newName">Name</label>
             <input

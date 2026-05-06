@@ -1,8 +1,36 @@
-/* Empty — admin dashboard uses the global utility classes from styles.css.
-   Kept as a placeholder so future admin-only styles have an obvious home. */
+/* Admin dashboard — uses the global utility classes from styles.css.
+   The .results table styling, badges, etc. are all global. Only the
+   modal chrome and the expandable-row affordance are local. */
 .modal {    padding: 0 !important;}
 .modal-body {    padding: 30px;}
 .modal-header {    padding: 20px;    background: #13315c;    color: #fff;    position: relative;}
 .modal-header h2 {    color: #fff;}
 .modal-header p.subtitle {    color: #fff;    margin-bottom: 0px;}
 .modal-header a.close-btn {    color: #fff;    position: absolute;    right: 20px;    top: 20px;    z-index: 10;   font-size: 20px; cursor: pointer;}
+
+/* Expandable-row affordance — a subtle hover hint on HR rows that
+   they're clickable. The chevron itself is rotated inline via
+   [style.transform]. */
+.results tr.expandable-row:hover {
+  background: #f1f5f9;
+}
+.results tr.expandable-row.expanded {
+  background: #e2e8f0;
+}
+
+/* Nested-panel row: zero padding on the <td> so the inner div
+   controls the padding; light bg differentiates from the parent
+   table without adding heavy chrome. */
+.results tr.expanded-panel-row > td {
+  padding: 0;
+  background: #f8fafc;
+  border-bottom: 1px solid var(--border, #d8dee6);
+}
+
+/* The inner sub-table inherits the global .results style. Override
+   margin so it sits flush inside the panel rather than carrying the
+   outer table's spacing. */
+.results tr.expanded-panel-row .results {
+  margin: 0;
+  box-shadow: none;
+}

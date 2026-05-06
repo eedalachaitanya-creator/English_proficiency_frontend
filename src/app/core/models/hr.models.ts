@@ -83,11 +83,18 @@ export interface HRCreateByAdminResponse {
   email_error: string | null;
 }
 
-/** One row in GET /api/admin/hrs — the table rendered on the admin dashboard. */
-export interface HRSummary {
+/**
+ * One row in GET /api/admin/users — the admin dashboard's top-level
+ * table. Lists every row in hr_admins (both 'hr' and 'admin' roles)
+ * with a count of how many invitations they've sent. Admins always
+ * have candidate_count=0.
+ */
+export interface AdminUserSummary {
   id: number;
   name: string;
   email: string;
+  role: 'hr' | 'admin';
+  candidate_count: number;
   created_at: string;
 }
 
@@ -185,6 +192,19 @@ export interface ResendEmailResponse {
 // ===========================================================================
 //  Results — table rows + detail panel
 // ===========================================================================
+
+/**
+ * Wrapper returned by GET /api/admin/hrs/{hr_id}/candidates so a busy
+ * HR's candidate list pages instead of streaming all rows at once.
+ * The backend slices via SQL LIMIT/OFFSET; the frontend keeps the
+ * latest page in component state and re-requests for prev/next.
+ */
+export interface PaginatedScoreSummary {
+  items: ResultRow[];   // reuses the existing dashboard row type
+  total: number;        // total candidates across all pages
+  page: number;         // 1-indexed page being returned
+  page_size: number;    // server-applied page size (capped at 100)
+}
 
 /** One row per invitation in the dashboard table. */
 export interface ResultRow {
