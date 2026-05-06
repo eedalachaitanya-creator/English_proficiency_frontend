@@ -11,6 +11,7 @@ import { Observable, throwError, BehaviorSubject } from 'rxjs';
 import { catchError, switchMap, filter, take } from 'rxjs/operators';
 import { JwtService } from '../services/jwt.service';
 import { ApiService } from '../services/api.service';
+import { AuthService } from '../services/auth.service';
 import { RefreshTokenResponse } from '../models/hr.models';
 
 // Module-level state. Shared across all interceptor invocations because
@@ -48,6 +49,7 @@ export const jwtInterceptor: HttpInterceptorFn = (
 ): Observable<HttpEvent<unknown>> => {
   const jwt = inject(JwtService);
   const api = inject(ApiService);
+  const auth = inject(AuthService);
   const router = inject(Router);
 
   // 1. Don't touch auth endpoints. They must work without a token.
@@ -61,7 +63,26 @@ export const jwtInterceptor: HttpInterceptorFn = (
 
   return next(reqWithToken).pipe(
     catchError((error: HttpErrorResponse) => {
-      // Only handle 401s on protected calls. Other errors (404, 500,
+      // 403 with code='must_change_password' is the strict-auth gate
+      // signaling "this user is on a temp credential". Sync the local
+      // signal and route to the forced-change screen so the user can
+      // resolve it. Defense-in-depth: the route guard is the primary
+      // lock, but if the flag flips mid-session (e.g. another tab
+      // initiated forgot-password) the guard hasn't run again yet —
+      // this catches that race.
+      if (
+        error.status === 403 &&
+        (error.error?.detail?.code === 'must_change_password' ||
+         // Some clients/proxies may surface the detail as a string when
+         // the response is misencoded; check both shapes defensively.
+         error.error?.code === 'must_change_password')
+      ) {
+        auth.mustChangePassword.set(true);
+        router.navigateByUrl('/change-password-required');
+        return throwError(() => error);
+      }
+
+      // Only handle 401s past this point. Other errors (404, 500,
       // network) propagate untouched.
       if (error.status !== 401) {
         return throwError(() => error);
