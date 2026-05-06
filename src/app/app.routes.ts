@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { hrAuthGuard } from './core/guards/hr-auth.guard';
 import { adminAuthGuard } from './core/guards/admin-auth.guard';
+import { mustChangePasswordGuard } from './core/guards/must-change-password.guard';
 
 /**
  * COMPLETE — all routes wired:
@@ -32,52 +33,65 @@ export const routes: Routes = [
       import('./pages/login/login').then(m => m.Login),
   },
   {
+    // Forced-change-password screen. Rendered when AuthService's
+    // mustChangePassword signal is true. Only the must-change guard
+    // is applied here (no role guard) — both HR and admin land on
+    // this same component, and the must-change guard naturally
+    // redirects to /login if the flag is false (which would mean
+    // either logged-out or already changed).
+    path: 'change-password-required',
+    loadComponent: () =>
+      import('./pages/change-password-required/change-password-required')
+        .then(m => m.ChangePasswordRequiredPage),
+    canActivate: [mustChangePasswordGuard],
+  },
+  {
     path: 'dashboard',
     loadComponent: () =>
       import('./pages/hr-dashboard/hr-dashboard').then(m => m.HrDashboard),
-    canActivate: [hrAuthGuard],
+    canActivate: [hrAuthGuard, mustChangePasswordGuard],
   },
   {
     path: 'dashboard/candidate/:id',
     loadComponent: () =>
       import('./pages/candidate-detail/candidate-detail').then(m => m.CandidateDetail),
-    canActivate: [hrAuthGuard],
+    canActivate: [hrAuthGuard, mustChangePasswordGuard],
   },
   {
     path: 'dashboard/content',
     loadComponent: () =>
       import('./pages/content-hub/content-hub').then(m => m.ContentHub),
-    canActivate: [hrAuthGuard],
+    canActivate: [hrAuthGuard, mustChangePasswordGuard],
   },
   {
     path: 'dashboard/content/questions',
     loadComponent: () =>
       import('./pages/content-questions/content-questions').then(m => m.ContentQuestions),
-    canActivate: [hrAuthGuard],
+    canActivate: [hrAuthGuard, mustChangePasswordGuard],
   },
   {
     path: 'dashboard/content/passages',
     loadComponent: () =>
       import('./pages/content-passages/content-passages').then(m => m.ContentPassages),
-    canActivate: [hrAuthGuard],
+    canActivate: [hrAuthGuard, mustChangePasswordGuard],
   },
   {
     path: 'dashboard/content/writing-topics',
     loadComponent: () =>
       import('./pages/content-writing-topics/content-writing-topics').then(m => m.ContentWritingTopics),
-    canActivate: [hrAuthGuard],
+    canActivate: [hrAuthGuard, mustChangePasswordGuard],
   },
   {
     path: 'dashboard/content/speaking-topics',
     loadComponent: () =>
       import('./pages/content-speaking-topics/content-speaking-topics').then(m => m.ContentSpeakingTopics),
-    canActivate: [hrAuthGuard],
+    canActivate: [hrAuthGuard, mustChangePasswordGuard],
   },
   {
     path: 'admin/dashboard',
     loadComponent: () =>
       import('./pages/admin-dashboard/admin-dashboard').then(m => m.AdminDashboard),
-    canActivate: [adminAuthGuard],
+    canActivate: [adminAuthGuard, mustChangePasswordGuard],
   },
   {
     path: 'exam/:token',
