@@ -47,7 +47,13 @@
       <!-- Questions column -->
       <section class="questions">
         @for (q of content()!.questions; track trackQuestion($index, q); let qi = $index) {
-          <div class="question">
+          <div
+            class="question"
+            [class.unanswered-warning]="isUnanswered(q.id)"
+            [style.border]="isUnanswered(q.id) ? '2px solid #d93b3b' : null"
+            [style.background]="isUnanswered(q.id) ? '#fff5f5' : null"
+            [style.borderRadius]="isUnanswered(q.id) ? '6px' : null"
+            [style.padding]="isUnanswered(q.id) ? '12px' : null">
             <div class="question-stem">
               <span class="question-type">{{ labelForType(q.question_type) }}</span><br>
               {{ qi + 1 }}. {{ q.stem }}
