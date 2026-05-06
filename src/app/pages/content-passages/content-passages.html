@@ -53,7 +53,7 @@
         <th>Body Preview</th>
         <th style="width: 100px;">Words</th>
         <th style="width: 120px;">Topic</th>
-        <th style="width: 140px;">Actions</th>
+        <th style="width: 220px;">Actions</th>
       </tr>
     </thead>
     <tbody>
@@ -73,20 +73,39 @@
         </tr>
       } @else {
         @for (p of filteredPassages(); track trackById($index, p)) {
-          <tr>
-            <td><strong>{{ p.title }}</strong></td>
+          <tr [class.row-disabled]="p.disabled_at">
+            <td>
+              <strong>{{ p.title }}</strong>
+              @if (p.disabled_at) {
+                <span class="badge-disabled">DISABLED</span>
+              }
+            </td>
             <td>{{ p.difficulty }}</td>
             <td class="text-muted" style="font-size: 13px;">{{ truncate(p.body, 120) }}</td>
             <td class="text-mono">{{ p.word_count }}</td>
             <td class="text-muted" style="font-size: 13px;">{{ p.topic ?? '—' }}</td>
             <td>
+              <button class="btn-link" (click)="onView(p)">View</button>
+              <span class="action-sep">|</span>
               <button class="btn-link" (click)="openEditForm(p)">Edit</button>
-              <span style="color: var(--border); margin: 0 6px;">|</span>
+              <span class="action-sep">|</span>
+              <button
+                type="button"
+                class="toggle-pill"
+                [class.toggle-on]="!p.disabled_at"
+                [attr.aria-label]="p.disabled_at ? 'Enable' : 'Disable'"
+                [attr.aria-checked]="!p.disabled_at"
+                role="switch"
+                title="{{ p.disabled_at ? 'Click to enable' : 'Click to disable' }}"
+                (click)="onToggleDisabled(p)">
+                <span class="toggle-knob"></span>
+              </button>
+              <span class="action-sep">|</span>
               <button class="btn-link danger" (click)="onDelete(p)">Delete</button>
             </td>
           </tr>
         }
-      }
+        }
     </tbody>
   </table>
 
@@ -258,3 +277,12 @@
     </div>
   </div>
 }
+
+<!-- View modal — read-only display of full passage. -->
+<app-view-content-modal
+  [open]="viewModalOpen()"
+  [data]="$any(viewModalData())"
+  [fields]="viewModalFields"
+  title="View Passage"
+  (closed)="onCloseView()">
+</app-view-content-modal>

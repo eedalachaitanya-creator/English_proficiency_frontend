@@ -15,7 +15,8 @@ import { Topnav } from '../../shared/components/topnav/topnav';
 import { Footer } from '../../shared/components/footer/footer';
 import { AccountMenu } from '../../shared/components/account-menu/account-menu';
 import { Sidebar } from '../../shared/components/sidebar/sidebar';
- import { deleteModalService } from '../../core/services/deletemodal.service';
+import { deleteModalService } from '../../core/services/deletemodal.service';
+import { ViewContentModal, ViewField } from '../../shared/components/view-content-modal/view-content-modal.component';
 /**
  * Writing topics management — list, create, edit, delete, bulk-import.
  * Each topic is an essay prompt with a min/max word range.
@@ -23,7 +24,7 @@ import { Sidebar } from '../../shared/components/sidebar/sidebar';
 @Component({
   selector: 'app-content-writing-topics',
   standalone: true,
-  imports: [CommonModule, FormsModule, Topnav, Footer, AccountMenu, Sidebar],
+  imports: [CommonModule, FormsModule, Topnav, Footer, AccountMenu, Sidebar, ViewContentModal],
   templateUrl: './content-writing-topics.html',
   styleUrl: './content-writing-topics.css',
 })
@@ -42,6 +43,16 @@ export class ContentWritingTopics implements OnInit {
 
   topics = signal<WritingTopicOut[]>([]);
   loading = signal(true);
+  // ---- View modal state ----
+  viewModalOpen = signal(false);
+  viewModalData = signal<WritingTopicOut | null>(null);
+  viewModalFields: ViewField[] = [
+    { key: 'difficulty', label: 'Difficulty', render: 'badge' },
+    { key: 'category', label: 'Category', render: 'text' },
+    { key: 'min_words', label: 'Min Words', render: 'text' },
+    { key: 'max_words', label: 'Max Words', render: 'text' },
+    { key: 'prompt_text', label: 'Prompt', render: 'longtext' },
+  ];
   loadError = signal('');
 
   filterDifficulty = signal<'intermediate' | 'expert' | ''>('');
@@ -175,13 +186,36 @@ export class ContentWritingTopics implements OnInit {
       });
     }
   }
+  /** Open the View modal for the given writing topic. */
+  onView(t: WritingTopicOut): void {
+    this.viewModalData.set(t);
+    this.viewModalOpen.set(true);
+  }
 
-  // async onDelete(t: WritingTopicOut): Promise<void> {
-  //   const ok = await this.modal.confirm(
-  //     `Delete this writing topic?\n\n"${this.truncate(t.prompt_text, 100)}"\n\nThis cannot be undone.`,
-  //     { okText: 'Delete', cancelText: 'Cancel', dangerous: true, title: 'Confirm delete' }
-  //   );
-  //   if (!ok) return;
+  /** Close the View modal. Wired to the modal's (closed) emitter. */
+  onCloseView(): void {
+    this.viewModalOpen.set(false);
+    this.viewModalData.set(null);
+  }
+
+  /** Toggle a writing topic's disabled state. Updates row in place. */
+  onToggleDisabled(t: WritingTopicOut): void {
+    this.contentSvc.toggleWritingTopicDisabled(t.id).subscribe({
+      next: (updated) => {
+        this.topics.update(arr =>
+          arr.map(x => (x.id === updated.id ? updated : x))
+        );
+      },
+      error: async (err: ApiError) => {
+        await this.modal.alert(
+          err.message || 'Could not update topic.',
+          { title: 'Toggle failed' }
+        );
+      },
+    });
+  }
+
+
 
   //   this.contentSvc.deleteWritingTopic(t.id).subscribe({
   //     next: () => {

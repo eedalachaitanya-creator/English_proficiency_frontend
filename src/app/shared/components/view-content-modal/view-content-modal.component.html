@@ -1,0 +1,45 @@
+@if (open && data) {
+  <div class="modal-backdrop" (click)="onClose()">
+    <div class="modal-box" (click)="onContentClick($event)">
+      <div class="modal-header">
+        <h2>{{ title }}</h2>
+        <button type="button" class="close-btn" (click)="onClose()" aria-label="Close">×</button>
+      </div>
+
+      <div class="modal-body">
+        @for (field of fields; track field.key) {
+          <div class="field-row">
+            <div class="field-label">{{ field.label }}</div>
+
+            @switch (field.render || 'text') {
+              @case ('longtext') {
+                <pre class="field-longtext">{{ valueOf(field.key) }}</pre>
+              }
+              @case ('list') {
+                @if (isArray(valueOf(field.key))) {
+                  <ol class="field-list">
+                    @for (item of $any(valueOf(field.key)); track $index) {
+                      <li>{{ item }}</li>
+                    }
+                  </ol>
+                } @else {
+                  <div class="field-text">—</div>
+                }
+              }
+              @case ('badge') {
+                <span class="field-badge">{{ valueOf(field.key) || '—' }}</span>
+              }
+              @default {
+                <div class="field-text">{{ valueOf(field.key) || '—' }}</div>
+              }
+            }
+          </div>
+        }
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" (click)="onClose()">Close</button>
+      </div>
+    </div>
+  </div>
+}

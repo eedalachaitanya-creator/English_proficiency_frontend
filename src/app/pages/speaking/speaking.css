@@ -201,3 +201,23 @@
   .section-header .recordings-progress { justify-self: center; }
   .rec-controls { flex-direction: column; width: 100%; }
 }
+
+/* Delete button sits next to STOP. Disabled state is more visible than
+   default — the candidate needs to see "this exists, just not yet usable". */
+.btn-delete {
+  margin-left: 8px;
+  color: #b91c1c;        /* red text — destructive action */
+  border-color: #fecaca;
+}
+
+.btn-delete:hover:not(:disabled) {
+  background: #fef2f2;
+  border-color: #fca5a5;
+}
+
+.btn-delete:disabled {
+  color: #9ca3af;
+  border-color: #e5e7eb;
+  cursor: not-allowed;
+  opacity: 0.6;
+}

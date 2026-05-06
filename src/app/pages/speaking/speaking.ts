@@ -24,7 +24,7 @@ import { Footer } from '../../shared/components/footer/footer';
 const PREP_SECONDS = 60;
 const RECORD_SECONDS = 138;
 
-type Phase = 'idle' | 'prep' | 'recording';
+type Phase = 'idle' | 'prep' | 'recording' | 'awaiting_start';
 // Subset of SubmissionReason that the speaking page can produce — reading
 // and writing reasons are produced by their own pages.
 type SpeakingSubmitReason = Extract<
@@ -525,6 +525,48 @@ export class Speaking implements OnInit, OnDestroy, AfterViewInit {
     // saying "Speak now" and reflects "Recording complete." until the
     // candidate clicks Next (which will move to 'prep' for the next Q).
     this.phase.set('idle');
+  }
+
+  /**
+   * Drop the current question's recording immediately (no confirm).
+   * Transitions to 'awaiting_start' phase, where the START button is shown.
+   *
+   * Pops the LAST recording in the array because the candidate can't jump
+   * backwards once Next is clicked, so the last entry is always for the
+   * current topic.
+   */
+  onDeleteRecording(): void {
+    // Guard: only allow delete when in idle phase WITH a playback recording.
+    // Without this guard, a stale click during phase transitions could
+    // pop the previous topic's recording.
+    if (this.phase() !== 'idle') return;
+    if (this.recordings().length !== this.currentTopicIdx() + 1) return;
+
+    // Drop the recording for the current topic
+    this.recordings.update(arr => arr.slice(0, -1));
+
+    // Tear down the playback element and free the blob URL
+    this.hasPlayback.set(false);
+    if (this.playbackUrl()) {
+      URL.revokeObjectURL(this.playbackUrl());
+      this.playbackUrl.set('');
+    }
+
+    // Reset status messaging
+    this.recStatus.set('Recording deleted. Click START when ready to record again.');
+    this.recStatusKind.set('idle');
+
+    // Move to "awaiting start" — START button shows, STOP/Delete hidden.
+    this.phase.set('awaiting_start');
+  }
+
+  /**
+   * "START" button handler — only visible in awaiting_start phase.
+   * Skips prep (candidate already read the prompt) and starts recording immediately.
+   */
+  onStartRerecord(): void {
+    if (this.phase() !== 'awaiting_start') return;
+    this.startRecording();
   }
 
   onNextTopic(): void {

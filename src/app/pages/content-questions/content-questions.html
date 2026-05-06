@@ -70,7 +70,7 @@
         <th>Stem</th>
         <th style="width: 140px;">Passage</th>
         <th style="width: 80px;">Answer</th>
-        <th style="width: 140px;">Actions</th>
+        <th style="width: 220px;">Actions</th>
       </tr>
     </thead>
     <tbody>
@@ -90,15 +90,34 @@
         </tr>
       } @else {
         @for (q of filteredQuestions(); track trackById($index, q)) {
-          <tr>
+          <tr [class.row-disabled]="q.disabled_at">
             <td><span class="badge type-{{ q.question_type }}">{{ typeLabel(q.question_type) }}</span></td>
             <td>{{ q.difficulty }}</td>
-            <td>{{ truncate(q.stem, 100) }}</td>
+            <td>
+              {{ truncate(q.stem, 100) }}
+              @if (q.disabled_at) {
+                <span class="badge-disabled">DISABLED</span>
+              }
+            </td>
             <td class="text-muted" style="font-size: 13px;">{{ passageTitleFor(q.passage_id) }}</td>
             <td><strong>{{ letter(q.correct_answer) }}</strong></td>
             <td>
+              <button class="btn-link" (click)="onView(q)">View</button>
+              <span class="action-sep">|</span>
               <button class="btn-link" (click)="openEditForm(q)">Edit</button>
-              <span style="color: var(--border); margin: 0 6px;">|</span>
+              <span class="action-sep">|</span>
+              <button
+                type="button"
+                class="toggle-pill"
+                [class.toggle-on]="!q.disabled_at"
+                [attr.aria-label]="q.disabled_at ? 'Enable' : 'Disable'"
+                [attr.aria-checked]="!q.disabled_at"
+                role="switch"
+                title="{{ q.disabled_at ? 'Click to enable' : 'Click to disable' }}"
+                (click)="onToggleDisabled(q)">
+                <span class="toggle-knob"></span>
+              </button>
+              <span class="action-sep">|</span>
               <button class="btn-link danger" (click)="onDelete(q)">Delete</button>
             </td>
           </tr>
@@ -333,3 +352,12 @@
     </div>
   </div>
 }
+
+<!-- View modal — read-only display of full question. -->
+<app-view-content-modal
+  [open]="viewModalOpen()"
+  [data]="$any(viewModalData())"
+  [fields]="viewModalFields"
+  title="View Question"
+  (closed)="onCloseView()">
+</app-view-content-modal>

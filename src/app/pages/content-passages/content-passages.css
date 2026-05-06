@@ -1,4 +1,4 @@
-:host { display: block; min-height: 100vh; }
+﻿:host { display: block; min-height: 100vh; }
 .cp-page { max-width: 1280px; margin: 0 auto; padding: 32px 32px 80px; }
 .page-header { margin-bottom: 24px; }
 .back-link { display: inline-block; color: var(--text-muted); font-size: 14px; text-decoration: none; margin-bottom: 12px; }
@@ -39,9 +39,108 @@
   .cp-page { padding: 16px; }
 }
 
-.modal {    padding: 0 !important;}
-.modal-body {    padding: 30px;}
-.modal-header {    padding: 20px;    background: #13315c;    color: #fff;    position: relative;}
-.modal-header h2 {    color: #fff;}
-.modal-header p.subtitle {    color: #fff;    margin-bottom: 0px;}
-.modal-header a.close-btn {    color: #fff;    position: absolute;    right: 20px;    top: 20px;    z-index: 10;   font-size: 20px; cursor: pointer;}
+/* ---- Teammate's redesigned modal styling ---- */
+.modal {
+  padding: 0 !important;
+}
+.modal-body {
+  padding: 30px;
+}
+.modal-header {
+  padding: 20px;
+  background: #13315c;
+  color: #fff;
+  position: relative;
+}
+.modal-header h2 {
+  color: #fff;
+}
+.modal-header p.subtitle {
+  color: #fff;
+  margin-bottom: 0px;
+}
+.modal-header a.close-btn {
+  color: #fff;
+  position: absolute;
+  right: 20px;
+  top: 20px;
+  z-index: 10;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+/* ---- Disable/Soft-delete UI ---- */
+
+.row-disabled td {
+  opacity: 0.55;
+  font-style: italic;
+}
+.row-disabled td:last-child {
+  opacity: 1;
+  font-style: normal;
+}
+
+.badge-disabled {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  border-radius: 4px;
+  vertical-align: middle;
+}
+
+.action-sep {
+  color: var(--border);
+  margin: 0 6px;
+}
+
+.toggle-pill {
+  display: inline-block;
+  vertical-align: middle;
+  width: 36px;
+  height: 20px;
+  border-radius: 999px;
+  background: #cbd5e1;
+  border: none;
+  padding: 2px;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.15s ease;
+  margin: 0 6px;
+}
+
+.toggle-pill:hover {
+  background: #94a3b8;
+}
+
+.toggle-pill.toggle-on {
+  background: #22c55e;
+}
+
+.toggle-pill.toggle-on:hover {
+  background: #16a34a;
+}
+
+.toggle-pill:focus-visible {
+  outline: 2px solid #f97316;
+  outline-offset: 2px;
+}
+
+.toggle-knob {
+  display: block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  transform: translateX(0);
+  transition: transform 0.15s ease;
+}
+
+.toggle-pill.toggle-on .toggle-knob {
+  transform: translateX(16px);
+}

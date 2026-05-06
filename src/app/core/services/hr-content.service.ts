@@ -26,6 +26,11 @@ export interface PassageOut {
   difficulty: 'intermediate' | 'expert';
   topic: string | null;
   word_count: number;
+  // ISO timestamp set when HR clicks the disable toggle (NULL = enabled).
+  disabled_at: string | null;
+  // ISO timestamp set on soft-delete (NULL = active). Soft-deleted rows
+  // are hidden from the list and excluded from new invitations.
+  deleted_at: string | null;
 }
 
 export interface PassageCreate {
@@ -52,6 +57,8 @@ export interface QuestionOut {
   options: string[];
   correct_answer: number;
   passage_id: number | null;
+  disabled_at: string | null;
+  deleted_at: string | null;
 }
 
 export interface QuestionCreate {
@@ -77,6 +84,8 @@ export interface WritingTopicOut {
   min_words: number;
   max_words: number;
   category: string | null;
+  disabled_at: string | null;
+  deleted_at: string | null;
 }
 
 export interface WritingTopicCreate {
@@ -100,6 +109,8 @@ export interface SpeakingTopicOut {
   prompt_text: string;
   difficulty: 'intermediate' | 'expert';
   category: string | null;
+  disabled_at: string | null;
+  deleted_at: string | null;
 }
 
 export interface SpeakingTopicCreate {
@@ -154,6 +165,52 @@ export class HrContentService {
       .delete<void>(`${this.baseUrl}/api/hr/content/passages/${id}`, {
         withCredentials: true,
       })
+      .pipe(catchError(err => this.toApiError(err)));
+  }
+
+  /**
+   * Toggle a passage's disabled state.
+   * Backend flips disabled_at: NULL → now (disabled), non-NULL → NULL (enabled).
+   * Returns the updated passage so the caller can refresh its UI without
+   * a separate fetch.
+   */
+  togglePassageDisabled(id: number): Observable<PassageOut> {
+    return this.http
+      .post<PassageOut>(
+        `${this.baseUrl}/api/hr/content/passages/${id}/toggle-disabled`,
+        {},
+        { withCredentials: true },
+      )
+      .pipe(catchError(err => this.toApiError(err)));
+  }
+
+  toggleQuestionDisabled(id: number): Observable<QuestionOut> {
+    return this.http
+      .post<QuestionOut>(
+        `${this.baseUrl}/api/hr/content/questions/${id}/toggle-disabled`,
+        {},
+        { withCredentials: true },
+      )
+      .pipe(catchError(err => this.toApiError(err)));
+  }
+
+  toggleWritingTopicDisabled(id: number): Observable<WritingTopicOut> {
+    return this.http
+      .post<WritingTopicOut>(
+        `${this.baseUrl}/api/hr/content/writing-topics/${id}/toggle-disabled`,
+        {},
+        { withCredentials: true },
+      )
+      .pipe(catchError(err => this.toApiError(err)));
+  }
+
+  toggleSpeakingTopicDisabled(id: number): Observable<SpeakingTopicOut> {
+    return this.http
+      .post<SpeakingTopicOut>(
+        `${this.baseUrl}/api/hr/content/speaking-topics/${id}/toggle-disabled`,
+        {},
+        { withCredentials: true },
+      )
       .pipe(catchError(err => this.toApiError(err)));
   }
 

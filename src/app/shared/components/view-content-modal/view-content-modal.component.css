@@ -1,0 +1,138 @@
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 24px;
+}
+
+.modal-box {
+  background: #fff;
+  border-radius: 10px;
+  max-width: 720px;
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.close-btn {
+  background: transparent;
+  border: none;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+  color: #64748b;
+  padding: 0 4px;
+}
+
+.close-btn:hover {
+  color: #0f172a;
+}
+
+.modal-body {
+  padding: 20px 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.field-row {
+  margin-bottom: 16px;
+}
+
+.field-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+}
+
+.field-text {
+  font-size: 14px;
+  color: #0f172a;
+  white-space: pre-wrap;
+}
+
+.field-longtext {
+  font-family: inherit;
+  font-size: 14px;
+  color: #0f172a;
+  background: #f8fafc;
+  padding: 12px 14px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  max-height: 300px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  margin: 0;
+}
+
+.field-list {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 14px;
+  color: #0f172a;
+}
+
+.field-list li {
+  margin-bottom: 4px;
+}
+
+.field-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  background: #f1f5f9;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #334155;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn {
+  padding: 8px 18px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: #f97316;
+  border-color: #f97316;
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: #ea580c;
+}
