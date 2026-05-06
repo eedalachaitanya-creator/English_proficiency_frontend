@@ -14,6 +14,7 @@ import { Topnav } from '../../shared/components/topnav/topnav';
 import { Footer } from '../../shared/components/footer/footer';
 import { AccountMenu } from '../../shared/components/account-menu/account-menu';
 import { Sidebar } from '../../shared/components/sidebar/sidebar';
+import { deleteModalService } from '../../core/services/deletemodal.service';
 
 /**
  * Speaking topics management — list, create, edit, delete.
@@ -31,6 +32,8 @@ import { Sidebar } from '../../shared/components/sidebar/sidebar';
   styleUrl: './content-speaking-topics.css',
 })
 export class ContentSpeakingTopics implements OnInit {
+   constructor(private delmodal: deleteModalService) {}
+
   private contentSvc = inject(HrContentService);
   private modal = inject(ModalService);
   private router = inject(Router);
@@ -157,25 +160,47 @@ export class ContentSpeakingTopics implements OnInit {
     }
   }
 
-  async onDelete(t: SpeakingTopicOut): Promise<void> {
-    const ok = await this.modal.confirm(
-      `Delete this speaking topic?\n\n"${this.truncate(t.prompt_text, 100)}"\n\nThis cannot be undone.`,
-      { okText: 'Delete', cancelText: 'Cancel', dangerous: true, title: 'Confirm delete' }
-    );
-    if (!ok) return;
+  // async onDelete(t: SpeakingTopicOut): Promise<void> {
+  //   const ok = await this.modal.confirm(
+  //     `Delete this speaking topic?\n\n"${this.truncate(t.prompt_text, 100)}"\n\nThis cannot be undone.`,
+  //     { okText: 'Delete', cancelText: 'Cancel', dangerous: true, title: 'Confirm delete' }
+  //   );
+  //   if (!ok) return;
 
-    this.contentSvc.deleteSpeakingTopic(t.id).subscribe({
-      next: () => {
-        this.topics.update(arr => arr.filter(x => x.id !== t.id));
-      },
-      error: async (err: ApiError) => {
-        await this.modal.alert(
-          err.message || 'Could not delete speaking topic.',
-          { title: err.status === 409 ? 'Cannot delete — topic in use' : 'Delete failed' }
-        );
-      },
-    });
-  }
+  //   this.contentSvc.deleteSpeakingTopic(t.id).subscribe({
+  //     next: () => {
+  //       this.topics.update(arr => arr.filter(x => x.id !== t.id));
+  //     },
+  //     error: async (err: ApiError) => {
+  //       await this.modal.alert(
+  //         err.message || 'Could not delete speaking topic.',
+  //         { title: err.status === 409 ? 'Cannot delete — topic in use' : 'Delete failed' }
+  //       );
+  //     },
+  //   });
+  // }
+
+   async onDelete(p: SpeakingTopicOut): Promise<void> {
+      const confirmed = await this.delmodal.confirm({
+        message: 'Delete this question?',
+        itemName: p.prompt_text,
+        title: 'Confirm Delete',
+        okText: 'Delete',
+        cancelText: 'Cancel',
+        dangerous: true
+      });
+      
+      if (!confirmed) return;
+  
+      this.contentSvc.deleteQuestion(p.id).subscribe({
+        next: () => {
+          this.topics.update(arr => arr.filter(x => x.id !== p.id));
+        },
+        error: async (err: ApiError) => {
+          await this.modal.alert(err.message || 'Could not delete question.');
+        },
+      });
+    }
 
   trackById = (_: number, t: SpeakingTopicOut) => t.id;
 }

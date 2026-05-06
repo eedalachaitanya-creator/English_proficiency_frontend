@@ -1,6 +1,6 @@
-<app-topnav title="English Proficiency Test  •  Writing" [meta]="candidateMeta()">
+<app-topnav   [meta]="candidateMeta()">
   <span
-    class="timer-chip"
+    class="timer-chip writing"
     [class.warning]="timerState() === 'warning'"
     [class.danger]="timerState() === 'danger'">
     {{ timerText() }}

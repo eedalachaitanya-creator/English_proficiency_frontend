@@ -1,4 +1,4 @@
-<app-topnav title="Manage Questions" variant="hr">
+<app-topnav  variant="hr">
   <app-account-menu [name]="hrName()" [email]="hrEmail()" (logout)="onLogout()"></app-account-menu>
 </app-topnav>
 
@@ -123,10 +123,18 @@
 <!--  Create / Edit modal                                                  -->
 <!-- ===================================================================== -->
 @if (formOpen()) {
-  <div class="modal-backdrop show" (click)="closeForm()">
-    <div class="modal modal-wide" (click)="$event.stopPropagation()">
-      <h2>{{ formMode() === 'create' ? 'New Question' : 'Edit Question' }}</h2>
 
+   <div class="modal-backdrop show" (click)="closeForm()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+      <h2>{{ formMode() === 'create' ? 'New Question' : 'Edit Question' }}</h2>
+      
+       <a class="close-btn" (click)="closeForm()" aria-label="Close">
+          ✕
+       </a>
+        </div>
+
+  <div class="modal-body">  
       <!-- Type (only editable in create mode) -->
       <div class="field">
         <label>Question Type</label>
@@ -248,6 +256,7 @@
           @else { Save Changes }
         </button>
       </div>
+      </div>  
     </div>
   </div>
 }

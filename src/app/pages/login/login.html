@@ -1,150 +1,116 @@
-<app-topnav></app-topnav>
+<div class="login-container">
 
-<main class="page" style="max-width: 680px; margin: 32px auto; padding: 0 16px; min-height: 76vh;">
-  <div class="card">
-    
-    <!-- Custom Tabs (no Bootstrap) -->
-    <div class="custom-tabs">
-      <button 
-        class="tab-btn" 
-        [class.active]="activeTab === 'admin'" 
-        (click)="setActiveTab('admin')"
-        type="button">
-        Admin Sign In
-      </button>
-      <button 
-        class="tab-btn" 
-        [class.active]="activeTab === 'hr'" 
-        (click)="setActiveTab('hr')"
-        type="button">
-        HR Sign In
-      </button>
-    </div>
-
-    <!-- Tab Content -->
-    <div class="tab-content">
-      
-      <!-- Admin Tab -->
-      <div class="tab-pane" [class.active]="activeTab === 'admin'">
-        <form (ngSubmit)="onAdminSubmit()" novalidate>
-
-          <div class="field">
-            <label for="adminEmail">Email</label>
-            <input
-              type="email"
-              id="adminEmail"
-              name="adminEmail"
-              placeholder="admin@company.com"
-              required
-              autofocus
-              [(ngModel)]="adminEmail"
-              [disabled]="adminSubmitting()">
-          </div>
-
-          <div class="field">
-            <label for="adminPassword">Password</label>
-            <input
-              type="password"
-              id="adminPassword"
-              name="adminPassword"
-              placeholder="••••••••"
-              required
-              [(ngModel)]="adminPassword"
-              [disabled]="adminSubmitting()">
-          </div>
-
-          <div class="field-error">
-            @if (adminError()) {
-              {{ adminError() }}
-            }
-          </div>
-
-          <button
-            type="submit"
-            class="btn btn-primary btn-block"
-            [disabled]="adminSubmitting()">
-            @if (adminSubmitting()) {
-              Signing in…
-            } @else {
-              SIGN IN  →
-            }
-          </button>
-
-        </form>
-
-        <p class="text-muted text-center mt-6" style="font-size: 12px;">
-          Admin credentials are seeded by the backend CLI
-          (<code>create_admin.py</code>) — there is no in-product signup.
-        </p>
-      </div>
-
-      <!-- HR Tab -->
-      <div class="tab-pane" [class.active]="activeTab === 'hr'">
-        <form (ngSubmit)="onHrSubmit()" novalidate>
-
-          <div class="field">
-            <label for="hrEmail">Email</label>
-            <input
-              type="email"
-              id="hrEmail"
-              name="hrEmail"
-              placeholder="you@company.com"
-              required
-              [(ngModel)]="hrEmail"
-              [disabled]="hrSubmitting()">
-          </div>
-
-          <div class="field">
-            <label for="hrPassword">Password</label>
-            <input
-              type="password"
-              id="hrPassword"
-              name="hrPassword"
-              placeholder="••••••••"
-              required
-              [(ngModel)]="hrPassword"
-              [disabled]="hrSubmitting()">
-          </div>
-
-          <div class="field-error">
-            @if (hrError()) {
-              {{ hrError() }}
-            }
-          </div>
-
-          <button
-            type="submit"
-            class="btn btn-primary btn-block"
-            [disabled]="hrSubmitting()">
-            @if (hrSubmitting()) {
-              Signing in…
-            } @else {
-              SIGN IN  →
-            }
-          </button>
-
-          <p class="text-center" style="margin: 12px 0 0 0; font-size: 13px;">
-            <a href="#"
-               (click)="$event.preventDefault(); openForgot()"
-               style="color: var(--orange, #ec6608); text-decoration: none; font-weight: 500;">
-              Forgot password?
-            </a>
-          </p>
-
-        </form>
-
-        <p class="text-muted text-center mt-6" style="font-size: 12px;">
-          New HR account? Ask an admin to create one from the Admin portal.
-        </p>
-      </div>
-
-    </div>
+  <!-- LEFT IMAGE SECTION -->
+  <div class="left-section">
+    <!-- <div class="overlay">
+      <h1>Travelista Tours</h1>
+      <p>Travel is the only purchase that enriches you in ways beyond material wealth</p>
+    </div> -->
   </div>
-</main>
 
-<app-footer></app-footer>
+  <!-- RIGHT LOGIN SECTION -->
+  <div class="right-section">
+    <div class="login-box">
+      <div class="brand"> <span alt="Logo" class="logo_black"> </span></div>
+      <!-- <h2>Welcome</h2> -->
+      <p>Login with Email</p>
 
-<!-- Forgot-password modal -->
+      <!-- Tabs -->
+      <div class="custom-tabs">
+        <button 
+          class="tab-btn"
+          [class.active]="activeTab === 'admin'" 
+          (click)="setActiveTab('admin')">
+          Admin
+        </button>
+
+        <button 
+          class="tab-btn"
+          [class.active]="activeTab === 'hr'" 
+          (click)="setActiveTab('hr')">
+          HR
+        </button>
+      </div>
+
+      <!-- ADMIN -->
+      <form *ngIf="activeTab === 'admin'" (ngSubmit)="onAdminSubmit()">
+
+        <div class="input-group">
+          <i class="fa fa-envelope"></i>
+          <input type="email"
+            placeholder="admin@company.com"
+            [(ngModel)]="adminEmail"
+            name="adminEmail"
+            required>
+        </div>
+
+        <div class="input-group">
+          <i class="fa fa-lock"></i>
+          <input type="password"
+            placeholder="••••••••"
+            [(ngModel)]="adminPassword"
+            name="adminPassword"
+            required>
+        </div>
+
+        <div class="error" *ngIf="adminError()">
+          {{ adminError() }}
+        </div>
+
+        <button class="btn" [disabled]="adminSubmitting()">
+          {{ adminSubmitting() ? 'Signing in…' : 'LOGIN' }}
+        </button>
+      </form>
+
+      <!-- HR -->
+      <form *ngIf="activeTab === 'hr'" (ngSubmit)="onHrSubmit()">
+
+        <div class="input-group">
+          <i class="fa fa-envelope"></i>
+          <input type="email"
+            placeholder="you@company.com"
+            [(ngModel)]="hrEmail"
+            name="hrEmail"
+            required>
+        </div>
+
+        <div class="input-group">
+          <i class="fa fa-lock"></i>
+          <input type="password"
+            placeholder="••••••••"
+            [(ngModel)]="hrPassword"
+            name="hrPassword"
+            required>
+        </div>
+
+        <div class="error" *ngIf="hrError()">
+          {{ hrError() }}
+        </div>
+
+        <button class="btn" [disabled]="hrSubmitting()">
+          {{ hrSubmitting() ? 'Signing in…' : 'LOGIN' }}
+        </button>
+
+        <p class="forgot">
+          <a href="#" (click)="$event.preventDefault(); openForgot()">
+            Forgot your password?
+          </a>
+        </p>
+      </form>
+
+    
+    </div>
+    
+    <div class="powered-text">
+        <p > Powered by Stixis AI Solutions,  &copy; Copyright 2026-2027</p>
+    </div>
+    
+  </div>
+</div>
+
+<!-- <app-footer></app-footer> -->
+
+<!-- Forgot Modal -->
 @if (forgotOpen()) {
   <app-forgot-password-modal (closed)="closeForgot()"></app-forgot-password-modal>
 }

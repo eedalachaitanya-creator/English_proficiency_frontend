@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, ViewChild  } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -15,6 +15,7 @@ import { Topnav } from '../../shared/components/topnav/topnav';
 import { Footer } from '../../shared/components/footer/footer';
 import { AccountMenu } from '../../shared/components/account-menu/account-menu';
 import { Sidebar } from '../../shared/components/sidebar/sidebar';
+ import { deleteModalService } from '../../core/services/deletemodal.service';
 
 /**
  * Reading passages management — list, create, edit, delete, bulk-import.
@@ -29,6 +30,8 @@ import { Sidebar } from '../../shared/components/sidebar/sidebar';
   styleUrl: './content-passages.css',
 })
 export class ContentPassages implements OnInit {
+ constructor(private delmodal: deleteModalService) {}
+
   private contentSvc = inject(HrContentService);
   private modal = inject(ModalService);
   private router = inject(Router);
@@ -184,24 +187,50 @@ export class ContentPassages implements OnInit {
     }
   }
 
-  async onDelete(p: PassageOut): Promise<void> {
-    const ok = await this.modal.confirm(
-      `Delete this passage?\n\n"${p.title}"\n\nThis cannot be undone.`,
-      { okText: 'Delete', cancelText: 'Cancel', dangerous: true, title: 'Confirm delete' }
-    );
-    if (!ok) return;
+  // async onDelete(p: PassageOut): Promise<void> {
+  //   const ok = await this.modal.confirm(
+  //     `Delete this passage?\n\n"${p.title}"\n\nThis cannot be undone.`,
+  //     { okText: 'Delete', cancelText: 'Cancel', dangerous: true, title: 'Confirm delete' }
+  //   );
+  //   if (!ok) return;
+
+  //   this.contentSvc.deletePassage(p.id).subscribe({
+  //     next: () => {
+  //       this.passages.update(arr => arr.filter(x => x.id !== p.id));
+  //     },
+  //     error: async (err: ApiError) => {
+  //       await this.modal.alert(
+  //         err.message || 'Could not delete passage.',
+  //         { title: err.status === 409 ? 'Cannot delete — passage in use' : 'Delete failed' }
+  //       );
+  //     },
+  //   });
+  // }
+
+   async onDelete(p: PassageOut): Promise<void> {
+    const confirmed = await this.delmodal.confirm({
+      message: 'Delete this passage?',
+      itemName: p.title,
+      title: 'Confirm Delete',
+      okText: 'Delete',
+      cancelText: 'Cancel',
+      dangerous: true
+    });
+    
+    if (!confirmed) return;
 
     this.contentSvc.deletePassage(p.id).subscribe({
       next: () => {
         this.passages.update(arr => arr.filter(x => x.id !== p.id));
       },
       error: async (err: ApiError) => {
-        await this.modal.alert(
-          err.message || 'Could not delete passage.',
-          { title: err.status === 409 ? 'Cannot delete — passage in use' : 'Delete failed' }
-        );
+        await this.modal.alert(err.message || 'Could not delete passage.');
       },
     });
+  }
+
+  showErrorModal(err: ApiError) {
+    throw new Error('Method not implemented.');
   }
 
   openCsvModal(): void {

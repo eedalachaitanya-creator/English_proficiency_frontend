@@ -1,19 +1,4 @@
-/* Component-scoped styles for the Login page.
- *
- * Visual design lives in src/styles.css from File 1:
- *   .page-narrow → centers the card and constrains its width
- *   .card        → white background, border, shadow
- *   .field       → vertical spacing for label + input pairs
- *   .btn-primary → orange button styling
- *   .btn-block   → full-width button
- *   .field-error → red error text below inputs
- *   .topnav      → navy header bar (handled by Topnav component)
- *   .footer      → navy-light footer bar (handled by Footer component)
- *
- * The :host { display: block } rule keeps Angular's auto-generated
- * <app-login> wrapper element from collapsing to inline display, which
- * would break the page layout.
- */
+ 
 :host {
   display: block;
   min-height: 100vh;
@@ -28,7 +13,7 @@
 .tab-pane.active { display: block; }
 .card { border-radius: 12px; border: 1px solid var(--border, #e5e7eb); background: white; overflow: hidden; padding: 24px; }
 
-.custom-tabs { display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; margin-bottom: 24px; padding: 0 4px; }
+.custom-tabs { display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; margin-bottom: 24px; padding:  0px; }
 .tab-btn { background: none; border: none; padding: 12px 20px; font-size: 15px; font-weight: 500; color: #6b7280; cursor: pointer; transition: all 0.2s ease; position: relative; background: transparent; }
 .tab-btn:hover { color: #374151; }
 .tab-btn.active { color: #ec6608; }
@@ -59,3 +44,22 @@
   .custom-tabs { gap: 4px; }
   .tab-btn { padding: 10px 16px; font-size: 14px; }
 }
+
+
+.login-container { display: flex; height: 100vh; }
+.overlay { position: absolute; top: 30%; left: 10%; }
+.overlay h1 { font-size: 36px; margin-bottom: 10px;  }
+.overlay p { font-size: 14px; }
+.right-section { width: 50%; display: flex; justify-content: center; align-items: center; background: #fff; flex-direction: column; position: relative; }
+.login-box { width: 320px; }
+.login-box h2 { color: #0b2545; margin-bottom: 10px; font-size: 40px; text-align: center; }
+.login-box p { color: #0b2545; margin-bottom: 20px; text-align: center; } 
+.tab-btn { flex: 1; padding: 8px; border: none; background: #eee; cursor: pointer; }
+.tab-btn.active { background: #0b2545; color: #fff; }
+.input-group { position: relative; margin-bottom: 15px; }
+.input-group input { width: 100%; padding: 10px 40px; border: 1px solid #ccc; border-radius: 5px; }
+.input-group i { position: absolute; top: 10px; left: 10px; color: #999; }
+.btn { width: 100%; padding: 10px; background: #0b2545; color: white; border: none; border-radius: 5px; }
+.error { color: red; font-size: 12px; margin-bottom: 10px; }
+.forgot { text-align: right !important; font-size: 14px; margin-top: 10px; }
+.powered-text{position: fixed;    bottom: 20px;}

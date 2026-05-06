@@ -15,7 +15,7 @@ import { Topnav } from '../../shared/components/topnav/topnav';
 import { Footer } from '../../shared/components/footer/footer';
 import { AccountMenu } from '../../shared/components/account-menu/account-menu';
 import { Sidebar } from '../../shared/components/sidebar/sidebar';
-
+ import { deleteModalService } from '../../core/services/deletemodal.service';
 /**
  * Writing topics management — list, create, edit, delete, bulk-import.
  * Each topic is an essay prompt with a min/max word range.
@@ -28,6 +28,7 @@ import { Sidebar } from '../../shared/components/sidebar/sidebar';
   styleUrl: './content-writing-topics.css',
 })
 export class ContentWritingTopics implements OnInit {
+   constructor(private delmodal: deleteModalService) {}
   private contentSvc = inject(HrContentService);
   private modal = inject(ModalService);
   private router = inject(Router);
@@ -175,25 +176,47 @@ export class ContentWritingTopics implements OnInit {
     }
   }
 
-  async onDelete(t: WritingTopicOut): Promise<void> {
-    const ok = await this.modal.confirm(
-      `Delete this writing topic?\n\n"${this.truncate(t.prompt_text, 100)}"\n\nThis cannot be undone.`,
-      { okText: 'Delete', cancelText: 'Cancel', dangerous: true, title: 'Confirm delete' }
-    );
-    if (!ok) return;
+  // async onDelete(t: WritingTopicOut): Promise<void> {
+  //   const ok = await this.modal.confirm(
+  //     `Delete this writing topic?\n\n"${this.truncate(t.prompt_text, 100)}"\n\nThis cannot be undone.`,
+  //     { okText: 'Delete', cancelText: 'Cancel', dangerous: true, title: 'Confirm delete' }
+  //   );
+  //   if (!ok) return;
 
-    this.contentSvc.deleteWritingTopic(t.id).subscribe({
-      next: () => {
-        this.topics.update(arr => arr.filter(x => x.id !== t.id));
-      },
-      error: async (err: ApiError) => {
-        await this.modal.alert(
-          err.message || 'Could not delete writing topic.',
-          { title: err.status === 409 ? 'Cannot delete — topic in use' : 'Delete failed' }
-        );
-      },
-    });
-  }
+  //   this.contentSvc.deleteWritingTopic(t.id).subscribe({
+  //     next: () => {
+  //       this.topics.update(arr => arr.filter(x => x.id !== t.id));
+  //     },
+  //     error: async (err: ApiError) => {
+  //       await this.modal.alert(
+  //         err.message || 'Could not delete writing topic.',
+  //         { title: err.status === 409 ? 'Cannot delete — topic in use' : 'Delete failed' }
+  //       );
+  //     },
+  //   });
+  // }
+
+   async onDelete(p: WritingTopicOut): Promise<void> {
+      const confirmed = await this.delmodal.confirm({
+        message: 'Delete this writing topic?',
+        itemName: p.prompt_text,
+        title: 'Confirm Delete',
+        okText: 'Delete',
+        cancelText: 'Cancel',
+        dangerous: true
+      });
+      
+      if (!confirmed) return;
+  
+      this.contentSvc.deleteWritingTopic(p.id).subscribe({
+        next: () => {
+          this.topics.update(arr => arr.filter(x => x.id !== p.id));
+        },
+        error: async (err: ApiError) => {
+          await this.modal.alert(err.message || 'Could not delete writing topic.');
+        },
+      });
+    }
 
   openCsvModal(): void {
     this.csvFile.set(null);

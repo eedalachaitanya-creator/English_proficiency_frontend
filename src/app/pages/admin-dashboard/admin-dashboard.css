@@ -1,2 +1,8 @@
 /* Empty — admin dashboard uses the global utility classes from styles.css.
    Kept as a placeholder so future admin-only styles have an obvious home. */
+.modal {    padding: 0 !important;}
+.modal-body {    padding: 30px;}
+.modal-header {    padding: 20px;    background: #13315c;    color: #fff;    position: relative;}
+.modal-header h2 {    color: #fff;}
+.modal-header p.subtitle {    color: #fff;    margin-bottom: 0px;}
+.modal-header a.close-btn {    color: #fff;    position: absolute;    right: 20px;    top: 20px;    z-index: 10;   font-size: 20px; cursor: pointer;}

@@ -54,6 +54,14 @@ export class Reading implements OnInit, OnDestroy {
   content = signal<TestContent | null>(null);
   loadError = signal('');
   answers = signal<ReadingAnswers>({});
+  /**
+   * Toggled ON when the candidate clicks "Keep Answering" on the
+   * unanswered-questions confirmation modal. While true, every unanswered
+   * question gets the .unanswered-warning class (red border) so the
+   * candidate can find them quickly. Cleared automatically as soon as all
+   * questions are answered.
+   */
+  highlightUnanswered = signal(false);
   timerText = signal('--:--');
   timerState = signal<'normal' | 'warning' | 'danger'>('normal');
 
@@ -254,6 +262,33 @@ export class Reading implements OnInit, OnDestroy {
     current[questionId] = optionIndex;
     this.answers.set(current);
     this.store.setReadingAnswers(current);
+    // If the candidate has now answered everything, drop the red highlight
+    // mode so the page returns to its default look. Cheaper than tracking
+    // per-question highlight state — the global flag plus isUnanswered()
+    // already gives us the right behavior.
+    if (this.highlightUnanswered() && this.allAnswered()) {
+      this.highlightUnanswered.set(false);
+    }
+  }
+
+  /**
+   * True only when the red-highlight mode is on AND this specific question
+   * has no answer. Bound to the question container's class in the template.
+   */
+  isUnanswered(questionId: number): boolean {
+    if (!this.highlightUnanswered()) return false;
+    return this.answers()[questionId] === undefined;
+  }
+
+  /**
+   * Used inside selectAnswer() to decide if we can drop the highlight mode.
+   * Compares the count of stored answers to the count of questions on the
+   * loaded test — cheaper than re-computing computed signals each click.
+   */
+  private allAnswered(): boolean {
+    const total = this.totalQuestions();
+    if (total === 0) return true;
+    return Object.keys(this.answers()).length >= total;
   }
 
   isSelected(questionId: number, optionIndex: number): boolean {
@@ -300,7 +335,13 @@ export class Reading implements OnInit, OnDestroy {
         `question${unanswered.length === 1 ? '' : 's'}. ${nextLabel}?`,
         { okText: 'Continue', cancelText: 'Keep Answering', dangerous: true }
       );
-      if (!ok) return;
+      if (!ok) {
+        // Candidate chose to go back and finish. Turn on the per-question
+        // red highlight so they can spot the unanswered ones at a glance
+        // instead of scrolling to find them.
+        this.highlightUnanswered.set(true);
+        return;
+      }
     }
     if (this.countdown) {
       this.countdown.stop();

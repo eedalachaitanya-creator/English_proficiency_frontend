@@ -1,9 +1,13 @@
-<app-topnav
+ <!-- <app-topnav
   title="HR Portal  —  English Proficiency Results"
   [meta]="hrEmail()"
   variant="hr"
   [showLogout]="true"
   (logout)="onLogout()">
+</app-topnav>  -->
+
+<app-topnav   variant="hr">
+  <app-account-menu [name]="hrName()" [email]="hrEmail()" (logout)="onLogout()"></app-account-menu>
 </app-topnav>
  
 <div class="layout">
@@ -42,7 +46,8 @@
     <div class="kpi">
       <div class="label">Total Invitations</div>
       <div class="value">
-        @if (loading()) { — } @else { {{ kpiTotal() }} }
+        <!-- @if (loading()) { — } @else { {{ kpiTotal() }} } -->
+         {{ resultsCount() }}
       </div>
     </div>
  
@@ -222,12 +227,18 @@
  
 <!-- Invite modal -->
 @if (inviteOpen()) {
-  <div class="modal-backdrop show" (click)="closeInvite()">
+    <div class="modal-backdrop show" (click)="closeInvite()">
     <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
       <h2>Invite a Candidate</h2>
       <p class="subtitle">Generates a one-time URL active during your scheduled window.</p>
+       <a class="close-btn" (click)="closeInvite()" aria-label="Close">
+          ✕
+       </a>
+        </div>
  
       @if (!inviteResult()) {
+        <div class="modal-body">
         <div class="field">
           <label for="candName">Candidate Name</label>
           <input
@@ -271,7 +282,7 @@
         </div>
  
         <div class="field">
-          <label>Sections to include *</label>
+          <label>Sections to include <span style="color: red;"> *</span></label>
           <div style="display:flex; gap:24px; align-items:center; flex-wrap:wrap;">
             <label style="display:inline-flex; gap:8px; align-items:center; margin:0;">
               <input
@@ -304,7 +315,7 @@
         </div>
  
         <div class="field">
-          <label for="invTimezone">Timezone *</label>
+          <label for="invTimezone">Timezone <span style="color: red;"> *</span></label>
           <select
             id="invTimezone"
             required
@@ -329,7 +340,7 @@
         </div>
  
         <div class="field">
-          <label for="invDate">Test Date *</label>
+          <label for="invDate">Test Date <span style="color: red;"> *</span></label>
           <input
             type="date"
             id="invDate"
@@ -342,7 +353,7 @@
  
         <div class="field" style="display:flex; gap:12px;">
           <div style="flex:1; min-width:0;">
-            <label for="invStartTime">Start Time *</label>
+            <label for="invStartTime">Start Time <span style="color: red;"> *</span></label>
             <input
               type="time"
               id="invStartTime"
@@ -353,7 +364,7 @@
               style="width:100%; box-sizing:border-box; padding:10px 12px; border:1px solid var(--border); border-radius:var(--radius); font-size:14px; font-family:inherit; background:#fff; color:var(--text); line-height:1.4; cursor:pointer;">
           </div>
           <div style="flex:1; min-width:0;">
-            <label for="invEndTime">End Time *</label>
+            <label for="invEndTime">End Time <span style="color: red;"> *</span></label>
             <input
               type="time"
               id="invEndTime"
@@ -372,7 +383,7 @@
           <div class="field-error">{{ inviteError() }}</div>
         }
  
-        <div class="flex-row">
+        <div class="flex-row mt-4">
           <button
             type="button"
             class="btn btn-secondary"
@@ -387,6 +398,7 @@
             @if (inviteSubmitting()) { Generating… } @else { GENERATE LINK  → }
           </button>
         </div>
+         </div>
       } @else {
         <div class="invite-result">
           <!-- Email-failed banner. Shown ONLY when the modal stayed open
