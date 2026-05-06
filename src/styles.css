@@ -129,3 +129,4 @@ table.results tbody tr:last-child td { border-bottom: none; }
 
  .left-section { width: 50%; background: url('assets/images/login-left.jpg') no-repeat center; background-size: cover; position: relative; color: white; filter: brightness(0.5); }
  .right-section{background: url('assets/images/bg-graybg.png') no-repeat center !important;  }
+ .content {width: 100%;}
