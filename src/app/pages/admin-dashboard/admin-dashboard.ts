@@ -167,5 +167,11 @@ export class AdminDashboard implements OnInit {
 
   onLogout(): void {
     this.auth.adminLogout().subscribe(() => this.router.navigate(['/login']));
+
+     sessionStorage.clear();
+
+  this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
+    this.router.navigate(['/login']);
+  });
   }
 }

@@ -1,5 +1,6 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 
 /**
  * Top navigation bar — appears on every page.
@@ -43,7 +44,8 @@ import { CommonModule } from '@angular/common';
   styleUrl: './topnav.css',
 })
 export class Topnav {
- 
+  private router = inject(Router);
+
   /** Brand text on the left side. */
   @Input() title = '';
 
@@ -63,5 +65,10 @@ export class Topnav {
     // Prevent the <a href="#"> default of jumping to the top of the page.
     event.preventDefault();
     this.logout.emit();
+    sessionStorage.clear();
+
+  this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
+    this.router.navigate(['/login']);
+  });
   }
 }

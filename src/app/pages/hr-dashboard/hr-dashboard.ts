@@ -319,6 +319,11 @@ export class HrDashboard implements OnInit {
   // -------- Logout --------
   onLogout(): void {
     this.auth.logout().subscribe(() => this.router.navigate(['/login']));
+     sessionStorage.clear();
+
+  this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
+    this.router.navigate(['/login']);
+  });
   }
 
   // -------- Row click → navigate to detail page --------
@@ -452,12 +457,7 @@ export class HrDashboard implements OnInit {
       return;
     }
 
-    // Combine date + time strings into a UTC instant, interpreting the
-    // wall-clock value in the HR-selected timezone (NOT browser local).
-    //   invDate      = "YYYY-MM-DD"
-    //   invStartTime = "HH:MM"
-    //   invTimezone  = IANA zone name (e.g. "America/Los_Angeles")
-    // wallClockToUtc returns a UTC Date or null if the inputs are malformed.
+    
     const fromDate = wallClockToUtc(this.invDate, this.invStartTime, this.invTimezone);
     const untilDate = wallClockToUtc(this.invDate, this.invEndTime, this.invTimezone);
     if (!fromDate || !untilDate) {

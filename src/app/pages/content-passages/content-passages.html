@@ -107,12 +107,20 @@
 <!--  Create / Edit modal                                                  -->
 <!-- ===================================================================== -->
 @if (formOpen()) {
-  <div class="modal-backdrop show" (click)="closeForm()">
-    <div class="modal modal-wide" (click)="$event.stopPropagation()">
+       <div class="modal-backdrop show" (click)="closeForm()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
       <h2>{{ formMode() === 'create' ? 'New Passage' : 'Edit Passage' }}</h2>
+      
+       <a class="close-btn" (click)="closeForm()" aria-label="Close">
+          ✕
+       </a>
+        </div>
+
+  <div class="modal-body"> 
 
       <div class="field">
-        <label for="ptitle">Title</label>
+        <label for="ptitle">Title <span style="color:red">*</span> </label>
         <input type="text" id="ptitle"
                [ngModel]="formTitle()"
                (ngModelChange)="formTitle.set($event)"
@@ -147,7 +155,7 @@
 
       <div class="field">
         <label for="pbody">
-          Body
+          Body  <span style="color:red">*</span>
           <span class="word-count" [class.warn]="bodyWordCount() < 50">
             {{ bodyWordCount() }} words {{ bodyWordCount() < 50 ? '(min 50)' : '' }}
           </span>
@@ -157,6 +165,7 @@
                   (ngModelChange)="formBody.set($event)"
                   placeholder="Paste or type the full passage text here. Minimum 50 words."></textarea>
       </div>
+      
 
       @if (formError()) {
         <div class="field-error">{{ formError() }}</div>
@@ -174,6 +183,7 @@
           @else if (formMode() === 'create') { Create Passage }
           @else { Save Changes }
         </button>
+      </div>
       </div>
     </div>
   </div>

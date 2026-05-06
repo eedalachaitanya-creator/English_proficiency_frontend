@@ -102,10 +102,18 @@
 <!--  Create / Edit modal                                                  -->
 <!-- ===================================================================== -->
 @if (formOpen()) {
-  <div class="modal-backdrop show" (click)="closeForm()">
-    <div class="modal modal-wide" (click)="$event.stopPropagation()">
-      <h2>{{ formMode() === 'create' ? 'New Writing Topic' : 'Edit Writing Topic' }}</h2>
+    <div class="modal-backdrop show" (click)="closeForm()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+       <h2>{{ formMode() === 'create' ? 'New Writing Topic' : 'Edit Writing Topic' }}</h2>
+      
+       <a class="close-btn" (click)="closeForm()" aria-label="Close">
+          ✕
+       </a>
+        </div>
 
+  <div class="modal-body"> 
+   
       <div class="field">
         <label for="wprompt">Prompt Text</label>
         <textarea id="wprompt" rows="4"
@@ -171,6 +179,7 @@
           @else if (formMode() === 'create') { Create Topic }
           @else { Save Changes }
         </button>
+      </div>
       </div>
     </div>
   </div>

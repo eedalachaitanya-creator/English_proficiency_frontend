@@ -124,7 +124,7 @@
         </div>
  
         <div class="field">
-          <label>Sections to include *</label>
+          <label>Sections to include <span style="color: red;">*</span></label>
           <div style="display:flex; gap:24px; align-items:center; flex-wrap:wrap;">
             <label style="display:inline-flex; gap:8px; align-items:center; margin:0;">
               <input
@@ -156,26 +156,34 @@
           </p>
         </div>
  
+       
         <div class="field">
-          <label for="invTimezone">Timezone *</label>
+          <label for="invTimezone">Timezone <span style="color: red;"> *</span></label>
           <select
             id="invTimezone"
             required
             [(ngModel)]="invTimezone"
-            [disabled]="inviteSubmitting()"
+            [disabled]="inviteSubmitting() || timezonesLoading() || availableTimezones().length === 0"
             style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius: var(--radius); background:#fff;">
-            <option value="Asia/Kolkata">India Standard Time (IST)</option>
-            <option value="America/New_York">US Eastern Time (ET)</option>
-            <option value="America/Chicago">US Central Time (CT)</option>
-            <option value="America/Denver">US Mountain Time (MT)</option>
-            <option value="America/Los_Angeles">US Pacific Time (PT)</option>
-            <option value="America/Anchorage">US Alaska Time (AKT)</option>
-            <option value="Pacific/Honolulu">US Hawaii Time (HT)</option>
+            @if (timezonesLoading()) {
+              <option [value]="invTimezone">Loading…</option>
+            } @else if (availableTimezones().length === 0) {
+              <option [value]="invTimezone">No timezones available</option>
+            } @else {
+              @for (tz of availableTimezones(); track tz.iana_name) {
+                <option [value]="tz.iana_name">{{ tz.display_label }}</option>
+              }
+            }
           </select>
+          @if (timezonesError()) {
+            <small class="text-muted" style="display:block; margin-top:4px; font-size:12px; color:#b91c1c;">
+              {{ timezonesError() }}
+            </small>
+          }
         </div>
  
         <div class="field">
-          <label for="invDate">Test Date *</label>
+          <label for="invDate">Test Date <span style="color: red;">*</span></label>
           <input
             type="date"
             id="invDate"
@@ -188,7 +196,7 @@
  
         <div class="field" style="display:flex; gap:12px;">
           <div style="flex:1; min-width:0;">
-            <label for="invStartTime">Start Time *</label>
+            <label for="invStartTime">Start Time <span style="color: red;">*</span></label>
             <input
               type="time"
               id="invStartTime"
@@ -199,7 +207,7 @@
               style="width:100%; box-sizing:border-box; padding:10px 12px; border:1px solid var(--border); border-radius:var(--radius); font-size:14px; font-family:inherit; background:#fff; color:var(--text); line-height:1.4; cursor:pointer;">
           </div>
           <div style="flex:1; min-width:0;">
-            <label for="invEndTime">End Time *</label>
+            <label for="invEndTime">End Time <span style="color: red;">*</span></label>
             <input
               type="time"
               id="invEndTime"
@@ -218,7 +226,7 @@
           <div class="field-error">{{ inviteError() }}</div>
         }
  
-        <div class="flex-row">
+        <div class="flex-row mt-4">
           <button
             type="button"
             class="btn btn-secondary"

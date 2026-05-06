@@ -32,8 +32,9 @@ import { ForgotPasswordModal } from '../../shared/components/forgot-password-mod
   styleUrl: './login.css',
 })
 export class Login implements OnInit {
-
+ 
   activeTab: 'admin' | 'hr' = 'admin'; // Default to admin tab
+  
   private auth = inject(AuthService);
   private router = inject(Router);
 
@@ -60,17 +61,11 @@ export class Login implements OnInit {
     this.forgotOpen.set(false);
   }
 
-   setActiveTab(tab: 'admin' | 'hr'): void {
-    this.activeTab = tab;
-    // Clear errors when switching tabs
-    if (tab === 'admin') {
-      this.hrError.set('');
-    } else {
-      this.adminError.set('');
-    }
-  }
+ 
 
   ngOnInit(): void {
+     this.resetState();
+
     // Sequential probes — admin first, then HR if admin returns null.
     // Done sequentially (not in parallel) because parallel probes can
     // leave both currentUser and currentAdmin set in the AuthService
@@ -93,6 +88,34 @@ export class Login implements OnInit {
         });
       },
       error: () => {},
+    });
+  }
+
+    setActiveTab(tab: 'admin' | 'hr'): void {
+    this.activeTab = tab;
+    // // Clear errors when switching tabs
+    // if (tab === 'admin') {
+    //   this.hrError.set('');
+    // } else {
+    //   this.adminError.set('');
+    // }
+  }
+
+   resetState() {
+    this.activeTab = 'admin';
+    this.adminEmail = '';
+    this.adminPassword = '';
+    this.hrEmail = '';
+    this.hrPassword = '';
+    // this.adminError = '';
+    // this.hrError = '';
+  }
+
+  logout() {
+    sessionStorage.clear();
+
+    this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
+      this.router.navigate(['/login']);
     });
   }
 
@@ -139,4 +162,6 @@ export class Login implements OnInit {
       },
     });
   }
+
+    
 }

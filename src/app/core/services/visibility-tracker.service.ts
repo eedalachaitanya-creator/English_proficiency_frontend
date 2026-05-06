@@ -34,8 +34,8 @@ interface WarningPayload {
 export class VisibilityTrackerService {
   private zone = inject(NgZone);
 
-  private readonly MIN_SWITCH_SECONDS = 2;
-  private readonly MAX_STRIKES = 3;
+  private readonly MIN_SWITCH_SECONDS = 200000;
+  private readonly MAX_STRIKES = 1000;
   /**
    * If a single tab-switch lasts longer than this, terminate immediately
    * — independent of the strike count. Catches the "switch once, stay

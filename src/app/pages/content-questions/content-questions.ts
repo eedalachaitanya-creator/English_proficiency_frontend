@@ -18,6 +18,8 @@ import { Footer } from '../../shared/components/footer/footer';
 import { AccountMenu } from '../../shared/components/account-menu/account-menu';
 import { Sidebar } from '../../shared/components/sidebar/sidebar';
 
+import { deleteModalService } from '../../core/services/deletemodal.service';
+
 /**
  * MCQ Questions management — list, create, edit, delete, bulk-import.
  *
@@ -33,6 +35,9 @@ import { Sidebar } from '../../shared/components/sidebar/sidebar';
   styleUrl: './content-questions.css',
 })
 export class ContentQuestions implements OnInit {
+
+   constructor(private delmodal: deleteModalService) {}
+
   private contentSvc = inject(HrContentService);
   private modal = inject(ModalService);
   private router = inject(Router);
@@ -270,22 +275,44 @@ export class ContentQuestions implements OnInit {
     }
   }
 
-  async onDelete(q: QuestionOut): Promise<void> {
-    const ok = await this.modal.confirm(
-      `Delete this question?\n\n"${this.truncate(q.stem, 100)}"\n\nThis cannot be undone.`,
-      { okText: 'Delete', cancelText: 'Cancel', dangerous: true, title: 'Confirm delete' }
-    );
-    if (!ok) return;
+  // async onDelete(q: QuestionOut): Promise<void> {
+  //   const ok = await this.modal.confirm(
+  //     `Delete this question?\n\n"${this.truncate(q.stem, 100)}"\n\nThis cannot be undone.`,
+  //     { okText: 'Delete', cancelText: 'Cancel', dangerous: true, title: 'Confirm delete' }
+  //   );
+  //   if (!ok) return;
 
-    this.contentSvc.deleteQuestion(q.id).subscribe({
+  //   this.contentSvc.deleteQuestion(q.id).subscribe({
+  //     next: () => {
+  //       this.questions.update(arr => arr.filter(x => x.id !== q.id));
+  //     },
+  //     error: async (err: ApiError) => {
+  //       await this.modal.alert(
+  //         err.message || 'Could not delete question.',
+  //         { title: err.status === 409 ? 'Cannot delete — question in use' : 'Delete failed' }
+  //       );
+  //     },
+  //   });
+  // }
+
+   async onDelete(p: QuestionOut): Promise<void> {
+    const confirmed = await this.delmodal.confirm({
+      message: 'Delete this question?',
+      itemName: p.stem,
+      title: 'Confirm Delete',
+      okText: 'Delete',
+      cancelText: 'Cancel',
+      dangerous: true
+    });
+    
+    if (!confirmed) return;
+
+    this.contentSvc.deleteQuestion(p.id).subscribe({
       next: () => {
-        this.questions.update(arr => arr.filter(x => x.id !== q.id));
+        this.questions.update(arr => arr.filter(x => x.id !== p.id));
       },
       error: async (err: ApiError) => {
-        await this.modal.alert(
-          err.message || 'Could not delete question.',
-          { title: err.status === 409 ? 'Cannot delete — question in use' : 'Delete failed' }
-        );
+        await this.modal.alert(err.message || 'Could not delete question.');
       },
     });
   }

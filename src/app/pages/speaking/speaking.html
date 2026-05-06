@@ -1,10 +1,5 @@
-<app-topnav title="English Proficiency Test  •  Speaking" [meta]="candidateMeta()">
-  <span
-    class="timer-chip"
-    [class.warning]="timerState() === 'warning'"
-    [class.danger]="timerState() === 'danger'">
-    {{ timerText() }}
-  </span>
+<app-topnav title="FluentiQ  •  Speaking" [meta]="candidateMeta()">
+  
 </app-topnav>
 
 @if (loadError()) {
@@ -53,6 +48,13 @@
           <span [style.height.px]="4 + h * 56"></span>
         }
       </div>
+
+    <div *ngIf="showTimer">
+      <span class="timer-chip warning timer-chip-speaking" [class.warning]="timerState() === 'warning'"
+        [class.danger]="timerState() === 'danger'">
+        {{ timerText() }}
+      </span>
+    </div>
 
       <div
         class="rec-status"

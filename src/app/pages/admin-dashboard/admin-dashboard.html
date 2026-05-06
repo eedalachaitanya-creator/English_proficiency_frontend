@@ -6,6 +6,7 @@
   </app-account-menu>
 </app-topnav>
 
+<div class="admin-dashboard">
 <main class="page" style="max-width: 1100px; margin: 24px auto; padding: 0 16px;">
 
   <div class="flex-row" style="align-items:center; justify-content:space-between; margin-bottom: 16px;">
@@ -56,25 +57,26 @@
     </table>
   }
 </main>
-
+</div>
 <app-footer></app-footer>
 
 <!-- ─────────────────────────  Create-HR modal  ───────────────────────── -->
 @if (modalOpen()) {
-  <div
-    style="position:fixed; inset:0; background:rgba(11,37,69,0.55); display:flex; align-items:center; justify-content:center; z-index:1000; padding:16px;"
-    (click)="closeCreate()">
-    <div
-      class="card"
-      style="width:480px; max-width:100%; max-height:90vh; overflow:auto;"
-      (click)="$event.stopPropagation()">
+  
 
-      <h2 style="margin:0 0 6px 0;">Create HR account</h2>
-      <p class="subtitle" style="margin:0 0 16px 0;">
-        The new HR will receive a welcome email with their credentials.
-      </p>
+      <div class="modal-backdrop show" (click)="closeCreate()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+      <h2>Create HR account</h2>
+      <p class="subtitle"> The new HR will receive a welcome email with their credentials.
+       <a class="close-btn" (click)="closeCreate()" aria-label="Close">
+          ✕
+       </a>
+        </div>
+
 
       @if (lastCreated()) {
+       
         <!-- Success state — show outcome + close button. Don't reset
              the form so the admin can review what they just created. -->
         <div class="notice" style="background: var(--green-soft, #e7f6e7); border-left:3px solid var(--green, #2f8d3a);">
@@ -99,10 +101,12 @@
             Done
           </button>
         </div>
+       
+
       } @else {
         <!-- Form state -->
         <form (ngSubmit)="submitCreate()" novalidate>
-
+        <div class="modal-body"> 
           <div class="field">
             <label for="newName">Name</label>
             <input
@@ -175,7 +179,7 @@
               }
             </button>
           </div>
-
+ </div>
         </form>
       }
     </div>
