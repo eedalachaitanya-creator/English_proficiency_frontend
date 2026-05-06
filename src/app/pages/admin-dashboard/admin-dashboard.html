@@ -66,8 +66,10 @@
               <td><strong>{{ u.name }}</strong></td>
               <td class="text-muted">{{ u.email }}</td>
               <td>
-                <span class="badge" [class.badge-amber]="u.role === 'admin'">
-                  {{ u.role }}
+                <span class="badge"
+                      [class.role-hr]="u.role === 'hr'"
+                      [class.role-admin]="u.role === 'admin'">
+                  {{ u.role === 'admin' ? 'Admin' : 'HR' }}
                 </span>
               </td>
               <td>
