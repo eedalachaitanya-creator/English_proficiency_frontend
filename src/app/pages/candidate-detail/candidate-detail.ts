@@ -4,6 +4,8 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { forkJoin, of, catchError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
+import { FormsModule } from '@angular/forms';
+
 import { ApiService, ApiError } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ModalService } from '../../core/services/modal.service';
@@ -11,7 +13,10 @@ import {
   ResultDetail,
   InvitationDetails,
   ResendEmailResponse,
+  ResendInvitationRequest,
+  SupportedTimezone,
 } from '../../core/models/hr.models';
+import { wallClockToUtc } from '../../core/utils/timezone';
 import { Topnav } from '../../shared/components/topnav/topnav';
 import { Footer } from '../../shared/components/footer/footer';
 import { RadarBreakdown } from '../../shared/components/radar-breakdown/radar-breakdown';
@@ -39,7 +44,7 @@ import { Sidebar } from '../../shared/components/sidebar/sidebar';
 @Component({
   selector: 'app-candidate-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink, Topnav, Footer, RadarBreakdown, AccountMenu, Sidebar],
+  imports: [CommonModule, FormsModule, RouterLink, Topnav, Footer, RadarBreakdown, AccountMenu, Sidebar],
   templateUrl: './candidate-detail.html',
   styleUrl: './candidate-detail.css',
 })
@@ -69,6 +74,7 @@ export class CandidateDetail implements OnInit {
   codeRevealed = signal(false);
 
   // -------- Resend email state --------
+  /** True while the resend POST is in flight (modal is submitting). */
   resending = signal(false);
   // Toast message shown briefly after resend (success or failure).
   toastMessage = signal('');
@@ -76,6 +82,24 @@ export class CandidateDetail implements OnInit {
   toastIsError = signal(false);
   /** Tracks the auto-dismiss timer so a second toast cancels the first. */
   private toastTimer: ReturnType<typeof setTimeout> | null = null;
+
+  // -------- Resend invitation modal --------
+  /**
+   * Modal state. Open it via openResendModal(); close via closeResendModal().
+   * Form fields start blank EVERY time so the HR explicitly types the new
+   * date/time (no risk of accidentally re-submitting yesterday's window).
+   * Only the timezone defaults — to whatever the original invitation used —
+   * since for the same candidate it's almost always the same zone.
+   */
+  resendModalOpen = signal(false);
+  resendDate = '';
+  resendStartTime = '';
+  resendEndTime = '';
+  resendTimezone = '';
+  resendError = signal('');
+  /** Timezone dropdown options, populated from /api/hr/timezones on first
+   * modal open and cached for the rest of the page session. */
+  timezones = signal<SupportedTimezone[]>([]);
 
   // -------- Copy URL/code feedback --------
   urlCopied = signal(false);
@@ -238,38 +262,110 @@ export class CandidateDetail implements OnInit {
   }
 
   /**
-   * Resend the invitation email — same URL + access code, no regeneration.
-   * Confirms with HR first via modal so a stray click doesn't spam the
-   * candidate. On confirm, calls POST /api/hr/invite/:id/resend-email and
-   * shows a toast with the result. Updates the email status badge in place.
+   * Open the resend-invitation modal. Always reset the form fields to
+   * blank — the HR explicitly picks the new date/time for every resend
+   * (we deliberately avoid defaults that could accidentally re-send a
+   * stale window if the HR hits Enter on autopilot). Timezone defaults
+   * to whatever the original invitation used so the dropdown is
+   * pre-selected for the same candidate.
+   *
+   * Lazy-fetches the timezone list on first open and caches it.
    */
-  async resendEmail(): Promise<void> {
+  openResendModal(): void {
     const inv = this.invitation();
     if (!inv) return;
 
-    const confirmed = await this.modal.confirm(
-      `Resend the invitation email to ${inv.candidate_email}?`,
-      {
-        title: 'Resend invitation email',
-        okText: 'Resend',
-        cancelText: 'Cancel',
-      }
-    );
-    if (!confirmed) return;
+    this.resendDate = '';
+    this.resendStartTime = '';
+    this.resendEndTime = '';
+    this.resendTimezone = inv.display_timezone || 'Asia/Kolkata';
+    this.resendError.set('');
+    this.resendModalOpen.set(true);
+
+    // Fetch timezones if we haven't yet. Cache stays for the page lifetime.
+    if (this.timezones().length === 0) {
+      this.api.get<SupportedTimezone[]>('/api/hr/timezones').subscribe({
+        next: (rows) => this.timezones.set(rows),
+        error: () => {
+          // Non-fatal — the dropdown stays empty and the inline error on
+          // submit will tell the HR to pick a timezone. We deliberately
+          // don't block the modal open on this.
+        },
+      });
+    }
+  }
+
+  closeResendModal(): void {
+    if (this.resending()) return;  // can't cancel mid-flight
+    this.resendModalOpen.set(false);
+  }
+
+  /**
+   * Submit the resend form. Validates the four fields, converts the
+   * wall-clock date+time pair to ISO-8601 UTC strings using the shared
+   * timezone helper (the same conversion the invite-create modal uses),
+   * and POSTs.
+   *
+   * On success: closes the modal, refreshes the invitation panel so the
+   * new window shows immediately, surfaces a success toast.
+   * On 4xx with a detail string: shows the message inline (don't close
+   * the modal — let HR fix the input).
+   * On 410: closes the modal and shows the "already submitted" toast —
+   * the candidate finished the test between page-load and submit.
+   */
+  submitResend(): void {
+    this.resendError.set('');
+    const inv = this.invitation();
+    if (!inv) return;
+
+    if (!this.resendDate || !this.resendStartTime || !this.resendEndTime) {
+      this.resendError.set('Pick a date, start time, and end time.');
+      return;
+    }
+    if (!this.resendTimezone) {
+      this.resendError.set('Pick a timezone.');
+      return;
+    }
+
+    const startUtc = wallClockToUtc(this.resendDate, this.resendStartTime, this.resendTimezone);
+    const endUtc = wallClockToUtc(this.resendDate, this.resendEndTime, this.resendTimezone);
+    if (!startUtc || !endUtc) {
+      this.resendError.set('Could not parse the date or time. Check the format.');
+      return;
+    }
+    if (endUtc <= startUtc) {
+      this.resendError.set('End time must be after start time.');
+      return;
+    }
+
+    const body: ResendInvitationRequest = {
+      valid_from: startUtc.toISOString(),
+      valid_until: endUtc.toISOString(),
+      timezone: this.resendTimezone,
+    };
 
     this.resending.set(true);
     this.api
-      .post<ResendEmailResponse>(`/api/hr/invite/${inv.invitation_id}/resend-email`)
+      .post<ResendEmailResponse>(`/api/hr/invite/${inv.invitation_id}/resend-email`, body)
       .subscribe({
         next: (res) => {
           this.resending.set(false);
-          // Update the badge in place — the InvitationDetails signal needs
-          // to reflect the new email_status without a full page reload.
+          // Update the badge in place — the new window will show after
+          // the panel refreshes from the next /details call.
           this.invitation.update(v =>
-            v ? { ...v, email_status: res.email_status, email_error: res.email_error } : v
+            v ? {
+              ...v,
+              email_status: res.email_status,
+              email_error: res.email_error,
+              valid_from: startUtc.toISOString(),
+              expires_at: endUtc.toISOString(),
+              display_timezone: this.resendTimezone,
+            } : v
           );
+          this.resendModalOpen.set(false);
+
           if (res.email_status === 'sent') {
-            this.showToast(`Invitation email resent to ${inv.candidate_email}`, false);
+            this.showToast(`Invitation resent to ${inv.candidate_email}`, false);
           } else {
             this.showToast(
               `Email failed: ${res.email_error || 'unknown reason'}`,
@@ -284,14 +380,16 @@ export class CandidateDetail implements OnInit {
             return;
           }
           if (err.status === 410) {
-            // Test was submitted between page load and resend click.
+            this.resendModalOpen.set(false);
             this.showToast(
               'This test has already been submitted — cannot resend.',
               true
             );
-          } else {
-            this.showToast(err.message || 'Could not resend email.', true);
+            return;
           }
+          // 400 / 422 — show inline so HR can fix the input without
+          // re-typing the whole form. err.message comes from ApiService.
+          this.resendError.set(err.message || 'Could not resend email.');
         },
       });
   }

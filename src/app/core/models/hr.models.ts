@@ -178,6 +178,22 @@ export interface InvitationDetails {
 
   code_locked: boolean;
   failed_code_attempts: number;
+
+  // IANA timezone the original invitation was scheduled in. Used by the
+  // resend modal to pre-fill the timezone dropdown so HR doesn't repick.
+  display_timezone: string;
+}
+
+/**
+ * Body for POST /api/hr/invite/:id/resend-email. HR picks a NEW window
+ * when resending — the old one has often expired. Same shape as the
+ * window fields on InviteCreateRequest so the backend can reuse its
+ * existing _validate_window helper.
+ */
+export interface ResendInvitationRequest {
+  valid_from: string;   // ISO-8601 UTC
+  valid_until: string;  // ISO-8601 UTC
+  timezone: string;     // IANA name; backend validates against the supported_timezones table
 }
 
 /**

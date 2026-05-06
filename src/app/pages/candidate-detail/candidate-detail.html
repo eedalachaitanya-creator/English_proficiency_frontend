@@ -154,8 +154,8 @@
           <div style="margin-top: 12px;">
             <button type="button" class="btn btn-primary"
                     [disabled]="resending()"
-                    (click)="resendEmail()">
-              @if (resending()) { Sending… } @else { Resend invitation email }
+                    (click)="openResendModal()">
+              Resend invitation email
             </button>
           </div>
         </div>
@@ -303,3 +303,108 @@
 </div>
 
 <app-footer text="© Company HR  •  Scores written by Claude (LLM rubric scoring)"></app-footer>
+
+<!-- ─────────────────────────  Resend invitation modal  ───────────────────────── -->
+@if (resendModalOpen()) {
+  <div class="modal-backdrop show" (click)="closeResendModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Resend invitation</h2>
+        <p class="subtitle">
+          Pick a new date and time. The candidate will get the same URL and access code,
+          just with the new schedule.
+          <a class="close-btn" (click)="closeResendModal()" aria-label="Close">✕</a>
+        </p>
+      </div>
+
+      <form (ngSubmit)="submitResend()" novalidate>
+        <div class="modal-body">
+          <div class="text-muted" style="margin-bottom: 16px; font-size: 13px;">
+            To: <strong>{{ invitation()!.candidate_email }}</strong>
+            ({{ invitation()!.candidate_name }})
+          </div>
+
+          <div class="field">
+            <label for="resendDate">Date</label>
+            <input
+              type="date"
+              id="resendDate"
+              name="resendDate"
+              required
+              [(ngModel)]="resendDate"
+              [disabled]="resending()" />
+          </div>
+
+          <div class="flex-row" style="gap: 12px;">
+            <div class="field" style="flex: 1;">
+              <label for="resendStart">Start time</label>
+              <input
+                type="time"
+                id="resendStart"
+                name="resendStart"
+                required
+                [(ngModel)]="resendStartTime"
+                [disabled]="resending()" />
+            </div>
+            <div class="field" style="flex: 1;">
+              <label for="resendEnd">End time</label>
+              <input
+                type="time"
+                id="resendEnd"
+                name="resendEnd"
+                required
+                [(ngModel)]="resendEndTime"
+                [disabled]="resending()" />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="resendTimezone">Timezone</label>
+            <select
+              id="resendTimezone"
+              name="resendTimezone"
+              required
+              [(ngModel)]="resendTimezone"
+              [disabled]="resending()">
+              @for (tz of timezones(); track tz.iana_name) {
+                <option [value]="tz.iana_name">{{ tz.short_label }}</option>
+              }
+              <!-- Fallback option when timezones haven't loaded yet —
+                   shows the existing invitation's tz so the form is
+                   usable even on a slow GET /timezones. -->
+              @if (timezones().length === 0) {
+                <option [value]="resendTimezone">{{ resendTimezone }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="field-error">
+            @if (resendError()) {
+              {{ resendError() }}
+            }
+          </div>
+
+          <div class="flex-row mt-4" style="justify-content: flex-end; gap: 12px;">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              (click)="closeResendModal()"
+              [disabled]="resending()">
+              Cancel
+            </button>
+            <button
+              type="submit"
+              class="btn btn-primary"
+              [disabled]="resending()">
+              @if (resending()) {
+                Sending…
+              } @else {
+                RESEND WITH NEW WINDOW
+              }
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+}
