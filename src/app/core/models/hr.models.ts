@@ -65,20 +65,25 @@ export interface RefreshTokenResponse {
   expires_in: number;
 }
 
-/** POST /api/admin/hrs body — admin types the new HR's password directly. */
-export interface HRCreateByAdminRequest {
+/** POST /api/admin/users body — admin types the new user's password
+ * directly and picks the role. Defaults the role to 'hr' on the server
+ * if omitted, but the UI always sends an explicit value. */
+export interface UserCreateByAdminRequest {
   name: string;
   email: string;
   password: string;
+  role: 'hr' | 'admin';
 }
 
-/** POST /api/admin/hrs response — includes email_status so the admin UI can
- * tell HR creation succeeded but welcome email failed (similar pattern to
- * candidate invitations). */
-export interface HRCreateByAdminResponse {
+/** POST /api/admin/users response — includes email_status so the admin
+ * UI can tell user creation succeeded but welcome email failed
+ * (same pattern as candidate invitations). `role` round-trips so the
+ * success notice can use the right wording. */
+export interface UserCreateByAdminResponse {
   id: number;
   name: string;
   email: string;
+  role: 'hr' | 'admin';
   email_status: 'sent' | 'failed' | 'pending';
   email_error: string | null;
 }

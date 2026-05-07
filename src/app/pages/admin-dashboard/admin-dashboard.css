@@ -45,3 +45,47 @@
   margin: 0;
   box-shadow: none;
 }
+
+/* Role-toggle tabs inside the create-user modal. Component styles
+   in Angular are scoped, so the login page's .custom-tabs / .tab-btn
+   rules don't bleed in — we duplicate them here verbatim so the
+   pattern looks identical in both places. If these ever drift, lift
+   the rules into styles.css. */
+.custom-tabs {
+  display: flex;
+  gap: 8px;
+  border-bottom: 2px solid #e5e7eb;
+  margin-bottom: 24px;
+  padding: 0;
+}
+.tab-btn {
+  background: transparent;
+  border: none;
+  padding: 12px 20px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+.tab-btn:hover:not(:disabled) {
+  color: #374151;
+}
+.tab-btn.active {
+  color: #ec6608;
+}
+.tab-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: #ec6608;
+  border-radius: 2px;
+}
+.tab-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

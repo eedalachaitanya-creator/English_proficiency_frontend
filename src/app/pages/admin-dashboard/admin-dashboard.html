@@ -17,7 +17,7 @@
       </p>
     </div>
     <button type="button" class="btn btn-primary" (click)="openCreate()">
-      + CREATE NEW HR
+      + ADD USER
     </button>
   </div>
 
@@ -198,8 +198,9 @@
       <div class="modal-backdrop show" (click)="closeCreate()">
     <div class="modal" (click)="$event.stopPropagation()">
       <div class="modal-header">
-      <h2>Create HR account</h2>
-      <p class="subtitle"> The new HR will receive a welcome email with their credentials.
+      <h2>{{ newRole() === 'admin' ? 'Create admin account' : 'Create HR account' }}</h2>
+      <p class="subtitle">
+        The new {{ newRole() === 'admin' ? 'admin' : 'HR' }} will receive a welcome email with their credentials.
        <a class="close-btn" (click)="closeCreate()" aria-label="Close">
           ✕
        </a>
@@ -211,7 +212,9 @@
         <!-- Success state — show outcome + close button. Don't reset
              the form so the admin can review what they just created. -->
         <div class="notice" style="background: var(--green-soft, #e7f6e7); border-left:3px solid var(--green, #2f8d3a);">
-          <p style="margin:0 0 6px 0;"><strong>HR account created.</strong></p>
+          <p style="margin:0 0 6px 0;">
+            <strong>{{ lastCreated()!.role === 'admin' ? 'Admin' : 'HR' }} account created.</strong>
+          </p>
           <p class="text-muted" style="margin:0; font-size:13px;">
             {{ lastCreated()!.name }} &lt;{{ lastCreated()!.email }}&gt;
           </p>
@@ -238,6 +241,35 @@
         <!-- Form state -->
         <form (ngSubmit)="submitCreate()" novalidate>
         <div class="modal-body">
+
+          <!-- Role toggle — Admin | HR. Reuses the same custom-tabs /
+               tab-btn class names the login screen uses so the visual
+               treatment is identical (gray underline, active tab
+               highlighted in orange). HR is selected by default — the
+               common case for this admin tool. -->
+          <div class="custom-tabs" role="tablist" aria-label="Account role">
+            <button
+              type="button"
+              role="tab"
+              [attr.aria-selected]="newRole() === 'admin'"
+              class="tab-btn"
+              [class.active]="newRole() === 'admin'"
+              (click)="setRole('admin')"
+              [disabled]="createSubmitting()">
+              Admin
+            </button>
+            <button
+              type="button"
+              role="tab"
+              [attr.aria-selected]="newRole() === 'hr'"
+              class="tab-btn"
+              [class.active]="newRole() === 'hr'"
+              (click)="setRole('hr')"
+              [disabled]="createSubmitting()">
+              HR
+            </button>
+          </div>
+
           <div class="field">
             <label for="newName">Name</label>
             <input
@@ -306,7 +338,7 @@
               @if (createSubmitting()) {
                 Creating…
               } @else {
-                CREATE HR  →
+                {{ newRole() === 'admin' ? 'CREATE ADMIN' : 'CREATE HR' }}  →
               }
             </button>
           </div>

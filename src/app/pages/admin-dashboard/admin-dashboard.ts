@@ -7,8 +7,8 @@ import { ApiService, ApiError } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import {
   AdminUserSummary,
-  HRCreateByAdminRequest,
-  HRCreateByAdminResponse,
+  UserCreateByAdminRequest,
+  UserCreateByAdminResponse,
   PaginatedScoreSummary,
   ResultRow,
 } from '../../core/models/hr.models';
@@ -83,18 +83,22 @@ export class AdminDashboard implements OnInit {
   /** Server-side page size — matches the spec. */
   readonly pageSize = 25;
 
-  // -------- Create-HR modal state --------
+  // -------- Create-user modal state --------
   modalOpen = signal(false);
   newName = '';
   newEmail = '';
   newPassword = '';
   newPasswordConfirm = '';
+  // Role the admin picked for the new account. HR is the common case so
+  // it's the default. Switched via the pill toggle at the top of the
+  // modal; backend defaults to 'hr' too as a safety net.
+  newRole = signal<'hr' | 'admin'>('hr');
   createSubmitting = signal(false);
   createError = signal('');
   // After a successful create, persist the result so the admin can see
   // whether the welcome email was sent (and the failure reason if not).
   // Cleared when the modal is reopened.
-  lastCreated = signal<HRCreateByAdminResponse | null>(null);
+  lastCreated = signal<UserCreateByAdminResponse | null>(null);
 
   ngOnInit(): void {
     this.loadUsers();
@@ -301,7 +305,7 @@ export class AdminDashboard implements OnInit {
   }
 
   // ============================================================
-  // Create-HR modal — unchanged from prior implementation
+  // Create-user modal
   // ============================================================
 
   openCreate(): void {
@@ -309,6 +313,7 @@ export class AdminDashboard implements OnInit {
     this.newEmail = '';
     this.newPassword = '';
     this.newPasswordConfirm = '';
+    this.newRole.set('hr');
     this.createError.set('');
     this.lastCreated.set(null);
     this.createSubmitting.set(false);
@@ -317,6 +322,14 @@ export class AdminDashboard implements OnInit {
 
   closeCreate(): void {
     this.modalOpen.set(false);
+  }
+
+  /** Pill toggle handler — admin picks 'hr' or 'admin' before filling
+   * out the form. Switching mid-form does not clear the entered values
+   * (only the role changes), so a typo on role doesn't cost the admin
+   * the rest of the form data. */
+  setRole(role: 'hr' | 'admin'): void {
+    this.newRole.set(role);
   }
 
   submitCreate(): void {
@@ -342,14 +355,16 @@ export class AdminDashboard implements OnInit {
       return;
     }
 
-    const body: HRCreateByAdminRequest = {
+    const role = this.newRole();
+    const body: UserCreateByAdminRequest = {
       name,
       email,
       password: this.newPassword,
+      role,
     };
 
     this.createSubmitting.set(true);
-    this.api.post<HRCreateByAdminResponse>('/api/admin/hrs', body).subscribe({
+    this.api.post<UserCreateByAdminResponse>('/api/admin/users', body).subscribe({
       next: (res) => {
         this.createSubmitting.set(false);
         this.lastCreated.set(res);
@@ -358,14 +373,17 @@ export class AdminDashboard implements OnInit {
       },
       error: (err: ApiError) => {
         this.createSubmitting.set(false);
-        // 409 = email already in use (see routes/admin.py create_hr).
-        // 422 = validation error from Pydantic.
+        // 409 = email already in use (see routes/admin.py create_user).
+        // 422 = validation error from Pydantic (e.g. invalid role).
         // 401 = session expired — bounce to login.
         if (err.status === 401) {
           this.router.navigate(['/login']);
           return;
         }
-        this.createError.set(err.message || 'Could not create HR account.');
+        const fallback = role === 'admin'
+          ? 'Could not create admin account.'
+          : 'Could not create HR account.';
+        this.createError.set(err.message || fallback);
       },
     });
   }
