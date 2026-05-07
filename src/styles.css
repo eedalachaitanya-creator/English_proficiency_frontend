@@ -95,7 +95,7 @@ table.results tbody tr:last-child td { border-bottom: none; }
 .badge.flagged { background: var(--red); }
 .notice { background: rgba(255, 165, 82, 0.15); border-left: 4px solid var(--orange); padding: 14px 18px; border-radius: var(--radius); margin: 16px 0; font-size: 13px; color: var(--navy); }
 .notice strong { color: var(--navy); }
-.modal-backdrop { position: fixed; inset: 0; background: rgba(11, 37, 69, 0.45); display: none; align-items: center; justify-content: center; z-index: 1000; animation: fade-in 0.15s ease-out; }
+.modal-backdrop { position: fixed; inset: 0; background: rgba(11, 37, 69, 0.7); display: none; align-items: center; justify-content: center; z-index: 1000; animation: fade-in 0.15s ease-out; }
 .modal-backdrop.show { display: flex; }
 .modal { background: var(--white); border-radius: var(--radius); padding: 28px; width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow-md); animation: scale-in 0.15s ease-out; }
 .modal h2 { margin-bottom: 6px; }
