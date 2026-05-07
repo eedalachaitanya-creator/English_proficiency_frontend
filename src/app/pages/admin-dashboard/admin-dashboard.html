@@ -288,7 +288,7 @@
               type="email"
               id="newEmail"
               name="newEmail"
-              placeholder="hr@company.com"
+              [placeholder]="newRole() === 'admin' ? 'admin@company.com' : 'hr@company.com'"
               required
               [(ngModel)]="newEmail"
               [disabled]="createSubmitting()">
