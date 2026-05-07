@@ -117,6 +117,40 @@ export class ContentPassages implements OnInit {
     return d ? all.filter(p => p.difficulty === d) : all;
   });
 
+  // ---- Pagination state ----
+  /** 1-indexed current page. Renders clamp via effectivePage so the
+   * signal can drift past totalPages without breaking the UI. */
+  currentPage = signal(1);
+  readonly pageSize = 10;
+
+  totalPages = computed(() =>
+    Math.max(1, Math.ceil(this.filteredPassages().length / this.pageSize))
+  );
+
+  effectivePage = computed(() =>
+    Math.min(Math.max(1, this.currentPage()), this.totalPages())
+  );
+
+  pagedPassages = computed(() => {
+    const start = (this.effectivePage() - 1) * this.pageSize;
+    return this.filteredPassages().slice(start, start + this.pageSize);
+  });
+
+  setFilter(d: 'intermediate' | 'expert' | ''): void {
+    this.filterDifficulty.set(d);
+    this.currentPage.set(1);
+  }
+
+  prevPage(): void {
+    if (this.effectivePage() > 1) this.currentPage.set(this.effectivePage() - 1);
+  }
+
+  nextPage(): void {
+    if (this.effectivePage() < this.totalPages()) {
+      this.currentPage.set(this.effectivePage() + 1);
+    }
+  }
+
   truncate(text: string, max = 120): string {
     return text.length > max ? text.slice(0, max - 1) + '…' : text;
   }

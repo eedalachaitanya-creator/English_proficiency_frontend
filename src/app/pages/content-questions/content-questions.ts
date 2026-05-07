@@ -143,7 +143,39 @@ export class ContentQuestions implements OnInit {
     });
   });
 
-  onFilterChange(): void { /* computed handles reactivity */ }
+  // ---- Pagination state ----
+  currentPage = signal(1);
+  readonly pageSize = 10;
+
+  totalPages = computed(() =>
+    Math.max(1, Math.ceil(this.filteredQuestions().length / this.pageSize))
+  );
+
+  effectivePage = computed(() =>
+    Math.min(Math.max(1, this.currentPage()), this.totalPages())
+  );
+
+  pagedQuestions = computed(() => {
+    const start = (this.effectivePage() - 1) * this.pageSize;
+    return this.filteredQuestions().slice(start, start + this.pageSize);
+  });
+
+  /** Filter-change hook — resets to page 1 so applying a filter
+   * doesn't leave the user on a non-existent page. The template's
+   * filter <select>s call this after each setter. */
+  onFilterChange(): void {
+    this.currentPage.set(1);
+  }
+
+  prevPage(): void {
+    if (this.effectivePage() > 1) this.currentPage.set(this.effectivePage() - 1);
+  }
+
+  nextPage(): void {
+    if (this.effectivePage() < this.totalPages()) {
+      this.currentPage.set(this.effectivePage() + 1);
+    }
+  }
 
   typeLabel(t: QuestionType): string {
     switch (t) {

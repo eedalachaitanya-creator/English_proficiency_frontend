@@ -89,7 +89,7 @@
           </td>
         </tr>
       } @else {
-        @for (q of filteredQuestions(); track trackById($index, q)) {
+        @for (q of pagedQuestions(); track trackById($index, q)) {
           <tr [class.row-disabled]="q.disabled_at">
             <td><span class="badge type-{{ q.question_type }}">{{ typeLabel(q.question_type) }}</span></td>
             <td>{{ q.difficulty }}</td>
@@ -127,9 +127,25 @@
   </table>
 
   @if (!loading() && filteredQuestions().length > 0) {
-    <div class="text-muted text-center mt-4" style="font-size: 13px;">
-      Showing {{ filteredQuestions().length }} of {{ questions().length }} questions
-    </div>
+    @if (totalPages() > 1) {
+      <div class="flex-row mt-4" style="align-items:center; justify-content:center; gap:12px;">
+        <button type="button" class="btn btn-secondary"
+                [disabled]="effectivePage() === 1"
+                (click)="prevPage()">← Previous</button>
+        <span class="text-muted" style="font-size:13px;">
+          Page {{ effectivePage() }} of {{ totalPages() }}
+          <span style="margin: 0 8px;">·</span>
+          {{ filteredQuestions().length }} total
+        </span>
+        <button type="button" class="btn btn-secondary"
+                [disabled]="effectivePage() >= totalPages()"
+                (click)="nextPage()">Next →</button>
+      </div>
+    } @else {
+      <div class="text-muted text-center mt-4" style="font-size: 13px;">
+        Showing {{ filteredQuestions().length }} of {{ questions().length }} questions
+      </div>
+    }
   }
 
 </main>

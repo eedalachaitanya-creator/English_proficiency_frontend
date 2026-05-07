@@ -91,6 +91,38 @@ export class ContentSpeakingTopics implements OnInit {
     return d ? all.filter(t => t.difficulty === d) : all;
   });
 
+  // ---- Pagination state ----
+  currentPage = signal(1);
+  readonly pageSize = 10;
+
+  totalPages = computed(() =>
+    Math.max(1, Math.ceil(this.filteredTopics().length / this.pageSize))
+  );
+
+  effectivePage = computed(() =>
+    Math.min(Math.max(1, this.currentPage()), this.totalPages())
+  );
+
+  pagedTopics = computed(() => {
+    const start = (this.effectivePage() - 1) * this.pageSize;
+    return this.filteredTopics().slice(start, start + this.pageSize);
+  });
+
+  setFilter(d: 'intermediate' | 'expert' | ''): void {
+    this.filterDifficulty.set(d);
+    this.currentPage.set(1);
+  }
+
+  prevPage(): void {
+    if (this.effectivePage() > 1) this.currentPage.set(this.effectivePage() - 1);
+  }
+
+  nextPage(): void {
+    if (this.effectivePage() < this.totalPages()) {
+      this.currentPage.set(this.effectivePage() + 1);
+    }
+  }
+
   truncate(text: string, max = 120): string {
     return text.length > max ? text.slice(0, max - 1) + '…' : text;
   }

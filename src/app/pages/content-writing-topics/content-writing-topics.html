@@ -24,7 +24,7 @@
   </div>
 
   <div class="toolbar">
-    <select [ngModel]="filterDifficulty()" (ngModelChange)="filterDifficulty.set($event)">
+    <select [ngModel]="filterDifficulty()" (ngModelChange)="setFilter($event)">
       <option value="">All difficulties</option>
       <option value="intermediate">Intermediate</option>
       <option value="expert">Expert</option>
@@ -69,7 +69,7 @@
           </td>
         </tr>
       } @else {
-        @for (t of filteredTopics(); track trackById($index, t)) {
+        @for (t of pagedTopics(); track trackById($index, t)) {
           <tr [class.row-disabled]="t.disabled_at">
             <td>
               {{ truncate(t.prompt_text, 120) }}
@@ -106,9 +106,25 @@
   </table>
 
   @if (!loading() && filteredTopics().length > 0) {
-    <div class="text-muted text-center mt-4" style="font-size: 13px;">
-      Showing {{ filteredTopics().length }} of {{ topics().length }} writing topics
-    </div>
+    @if (totalPages() > 1) {
+      <div class="flex-row mt-4" style="align-items:center; justify-content:center; gap:12px;">
+        <button type="button" class="btn btn-secondary"
+                [disabled]="effectivePage() === 1"
+                (click)="prevPage()">← Previous</button>
+        <span class="text-muted" style="font-size:13px;">
+          Page {{ effectivePage() }} of {{ totalPages() }}
+          <span style="margin: 0 8px;">·</span>
+          {{ filteredTopics().length }} total
+        </span>
+        <button type="button" class="btn btn-secondary"
+                [disabled]="effectivePage() >= totalPages()"
+                (click)="nextPage()">Next →</button>
+      </div>
+    } @else {
+      <div class="text-muted text-center mt-4" style="font-size: 13px;">
+        Showing {{ filteredTopics().length }} of {{ topics().length }} writing topics
+      </div>
+    }
   }
 
 </main>
