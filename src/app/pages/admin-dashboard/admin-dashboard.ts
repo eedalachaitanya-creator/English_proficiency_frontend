@@ -16,6 +16,7 @@ import { Topnav } from '../../shared/components/topnav/topnav';
 import { Footer } from '../../shared/components/footer/footer';
 import { AccountMenu } from '../../shared/components/account-menu/account-menu';
 import { formatBackendDate } from '../../core/utils/date';
+import { environment } from '../../../environments/environment';
 
 /**
  * Admin portal — manage HR + admin accounts.
@@ -115,6 +116,28 @@ export class AdminDashboard implements OnInit {
   pendingDelete = signal<AdminUserSummary | null>(null);
   deleteSubmitting = signal(false);
   deleteError = signal('');
+
+  // -------- Download state --------
+  /**
+   * True while the all-candidates Excel export is generating. Disables
+   * the top-of-page Export All button so a double-click doesn't kick
+   * off two parallel server-side renders.
+   */
+  exportingAllExcel = signal(false);
+
+  /**
+   * id of the HR whose per-HR Excel is currently exporting, or null
+   * when no per-HR export is in flight. Lets the row-level button show
+   * a spinner state without blocking other HR rows' exports.
+   */
+  exportingHrId = signal<number | null>(null);
+
+  /**
+   * invitation_id of the candidate whose PDF is currently downloading,
+   * or null. Same pattern as the HR dashboard's PDF download — the
+   * button in the affected row swaps glyph for a spinner.
+   */
+  downloadingPdfFor = signal<number | null>(null);
 
   ngOnInit(): void {
     this.loadUsers();
@@ -463,6 +486,162 @@ export class AdminDashboard implements OnInit {
         this.deleteError.set(err.message || 'Could not delete HR.');
       },
     });
+  }
+
+  // ============================================================
+  // Downloads — Excel exports + per-candidate PDF
+  //
+  // All three use raw fetch with credentials:'include' instead of
+  // ApiService because they return binary blobs, not JSON. ApiService
+  // is built around HttpClient which expects JSON and would reject
+  // the binary response. Uses environment.apiUrl so requests bypass
+  // the Angular dev server (port 4200) and hit FastAPI directly
+  // (port 8000) — the dev server doesn't proxy file-extension paths
+  // and would 404 with an HTML error page.
+  // ============================================================
+
+  /**
+   * Top-of-page "Export All Candidates" — downloads an XLSX containing
+   * every invitation across every HR. Server-side this is the only
+   * report that includes an "HR Admin" column, so the admin can tell
+   * who sent each invitation in the multi-HR export.
+   */
+  async onExportAllCandidates(): Promise<void> {
+    if (this.exportingAllExcel()) return;
+    this.exportingAllExcel.set(true);
+    try {
+      const url = `${environment.apiUrl}/api/admin/exports/all-candidates.xlsx`;
+      const response = await fetch(url, { method: 'GET', credentials: 'include' });
+      if (!response.ok) {
+        const detail = await this.extractErrorDetail(response);
+        alert(`Could not download export: ${detail}`);
+        return;
+      }
+      const blob = await response.blob();
+      this.triggerDownload(blob, 'FluentiQ_AllCandidates.xlsx');
+    } catch (err) {
+      console.error('[admin-dashboard] All-candidates export failed:', err);
+      alert('Could not download the export. Check your connection and try again.');
+    } finally {
+      this.exportingAllExcel.set(false);
+    }
+  }
+
+  /**
+   * Per-HR "download" button rendered in the rightmost column of each
+   * HR row, next to the trash icon. Downloads an XLSX containing only
+   * that HR's candidates. Same data shape as the HR's own dashboard
+   * export — admin can fetch it without impersonating the HR.
+   *
+   * The event arg lets us stopPropagation so clicking the download
+   * button doesn't also expand/collapse the HR row (the row-level
+   * click handler runs on bubble-up otherwise).
+   */
+  async onExportHrCandidates(user: AdminUserSummary, event: Event): Promise<void> {
+    event.stopPropagation();
+    if (user.role !== 'hr') return;
+    if (this.exportingHrId() === user.id) return;
+    this.exportingHrId.set(user.id);
+    try {
+      const url = `${environment.apiUrl}/api/admin/hrs/${user.id}/candidates.xlsx`;
+      const response = await fetch(url, { method: 'GET', credentials: 'include' });
+      if (!response.ok) {
+        const detail = await this.extractErrorDetail(response);
+        alert(`Could not download export for ${user.name}: ${detail}`);
+        return;
+      }
+      const blob = await response.blob();
+      // Build a friendly local filename — backend Content-Disposition
+      // wins if present, but having a sensible default helps when
+      // the browser falls back to the URL's last segment.
+      const safeName = (user.name || 'HR').replace(/[^a-zA-Z0-9]/g, '_');
+      this.triggerDownload(blob, `FluentiQ_${safeName}_Candidates.xlsx`);
+    } catch (err) {
+      console.error('[admin-dashboard] Per-HR export failed:', err);
+      alert('Could not download the export. Check your connection and try again.');
+    } finally {
+      this.exportingHrId.set(null);
+    }
+  }
+
+  /**
+   * Per-candidate PDF download — rendered in the new "Report" column
+   * inside the expanded candidate sub-table. Mirrors the HR
+   * dashboard's PDF button exactly; admin can pull any candidate's
+   * report without filter on hr_admin_id.
+   */
+  async onDownloadPdf(r: ResultRow, event: Event): Promise<void> {
+    event.stopPropagation();
+    if (!r.submitted_at) return; // button is hidden in this case anyway
+    if (this.downloadingPdfFor() === r.invitation_id) return;
+    this.downloadingPdfFor.set(r.invitation_id);
+    try {
+      const url = `${environment.apiUrl}/api/admin/results/${r.invitation_id}/report.pdf`;
+      const response = await fetch(url, { method: 'GET', credentials: 'include' });
+      if (!response.ok) {
+        const detail = await this.extractErrorDetail(response);
+        alert(`Could not download report: ${detail}`);
+        return;
+      }
+      const blob = await response.blob();
+      const safeName = (r.candidate_name || 'Candidate').replace(/[^a-zA-Z0-9]/g, '_');
+      this.triggerDownload(blob, `FluentiQ_Report_${safeName}_${r.invitation_id}.pdf`);
+    } catch (err) {
+      console.error('[admin-dashboard] PDF download failed:', err);
+      alert('Could not download the report. Check your connection and try again.');
+    } finally {
+      this.downloadingPdfFor.set(null);
+    }
+  }
+
+  /**
+   * Trigger a browser file download for a Blob. Creates a temporary
+   * <a download> element, clicks it, then revokes the object URL. This
+   * is the standard pattern for programmatic downloads — works in all
+   * modern browsers without needing extra libraries.
+   */
+  private triggerDownload(blob: Blob, filename: string): void {
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    // Defer the revoke to give Safari time to start the download
+    // before the URL is invalidated. 1s is plenty in practice.
+    setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+  }
+
+  /**
+   * Extract a human-readable error message from a non-OK fetch Response.
+   *
+   * FastAPI returns two distinct error shapes:
+   *   { detail: "string message" }                   ← 401, 404, 500
+   *   { detail: [ { msg, loc, type }, ... ] }        ← 422 validation
+   *
+   * Mirrors the logic in api.service.ts's handleError(), which already
+   * normalises these for HttpClient calls. We do it manually here
+   * because we use raw fetch for binary downloads.
+   */
+  private async extractErrorDetail(response: Response): Promise<string> {
+    try {
+      const body = await response.json();
+      if (Array.isArray(body?.detail)) {
+        return body.detail
+          .map((e: { msg: string; loc?: (string | number)[] }) => {
+            const field = Array.isArray(e.loc) ? e.loc[e.loc.length - 1] : '';
+            return field ? `${field}: ${e.msg}` : e.msg;
+          })
+          .join('; ');
+      }
+      if (typeof body?.detail === 'string') {
+        return body.detail;
+      }
+    } catch {
+      // Response wasn't JSON — fall through to HTTP status
+    }
+    return `HTTP ${response.status}`;
   }
 
   onLogout(): void {

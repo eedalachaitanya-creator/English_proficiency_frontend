@@ -5,6 +5,7 @@ import { Router, RouterLink } from '@angular/router';
 
 import { ApiService, ApiError } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
+import { environment } from '../../../environments/environment';
 import {
   ResultRow,
   InviteCreateRequest,
@@ -64,6 +65,23 @@ resultsCount = this.api.resultsCount;
 
   searchQuery = '';
   statusFilter: '' | 'submitted' | 'pending' = '';
+
+  // -------- Download state --------
+  /**
+   * True while the bulk Excel export is being generated. Disables the
+   * Export button so a double-click doesn't fire two parallel downloads.
+   */
+  exportingExcel = signal(false);
+
+  /**
+   * Holds the invitation_id of the row currently generating a PDF, or null
+   * if no PDF download is in flight. Used to:
+   *   1. Disable the clicked PDF button so it can't fire twice
+   *   2. Show a "…" loading indicator on that specific row
+   * Only one PDF download can be in flight at a time per HR — they're fast
+   * (200-500ms), so queuing is unnecessary.
+   */
+  downloadingPdfFor = signal<number | null>(null);
 
   // -------- Pagination state --------
   /** 1-indexed page number. The user-visible "page 1" maps to filteredResults[0..9]. */
@@ -533,5 +551,176 @@ resultsCount = this.api.resultsCount;
 
   formatSubmittedDateTime(submitted_at: string | null): string {
     return formatBackendDateTime(submitted_at);
+  }
+
+  // -------- Report downloads --------
+  /**
+   * Trigger a PDF download for one candidate.
+   *
+   * Uses fetch+blob (NOT the api.service Observable) because the existing
+   * api.service is built around JSON responses — for binary downloads we
+   * need direct access to the blob and full control over the Content-
+   * Disposition filename. credentials='include' ensures the session cookie
+   * goes with the request, matching every other authenticated call.
+   *
+   * Browser flow:
+   *   1. fetch the PDF endpoint with auth cookie
+   *   2. read response as a Blob
+   *   3. create a temporary object URL for the blob
+   *   4. create an invisible <a> with download attribute and click it
+   *   5. the browser pops its native save dialog
+   *   6. revoke the object URL (free the blob memory)
+   *
+   * On 404 (cross-tenant or unknown invitation) → show an alert. On 5xx
+   * (PDF generation failed on the server) → show an alert. On network
+   * failure → show an alert. Always re-enable the button.
+   */
+  async onDownloadPdf(r: ResultRow): Promise<void> {
+    if (!r.submitted_at) {
+      // Should not happen because the button is disabled, but be defensive.
+      return;
+    }
+    if (this.downloadingPdfFor() !== null) return;
+
+    this.downloadingPdfFor.set(r.invitation_id);
+    try {
+      // Use environment.apiUrl (same base URL ApiService uses) so the
+      // request hits the backend directly. A relative URL like
+      // '/api/hr/...' would go to localhost:4200 in dev (the Angular
+      // dev server), which doesn't proxy file-extension paths and returns
+      // a 404 HTML page. ApiService can't be used here because it's built
+      // around JSON responses; for binary downloads we need fetch+blob.
+      const url = `${environment.apiUrl}/api/hr/results/${r.invitation_id}/report.pdf`;
+      const response = await fetch(url, {
+        method: 'GET',
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        const detail = await this.extractErrorDetail(response);
+        alert(`Could not download report: ${detail}`);
+        return;
+      }
+      const blob = await response.blob();
+      this.triggerDownload(blob, this.pdfFilenameFor(r));
+    } catch (err) {
+      console.error('[hr-dashboard] PDF download failed:', err);
+      alert('Could not download the report. Check your connection and try again.');
+    } finally {
+      this.downloadingPdfFor.set(null);
+    }
+  }
+
+  /**
+   * Trigger a bulk Excel export of every invitation belonging to this HR.
+   * Same fetch+blob mechanics as onDownloadPdf — see that method for the
+   * detailed flow.
+   */
+  async onExportExcel(): Promise<void> {
+    if (this.exportingExcel()) return;
+
+    this.exportingExcel.set(true);
+    try {
+      // Same reasoning as onDownloadPdf — must hit the backend directly,
+      // not the Angular dev server. Path is /exports/candidates.xlsx
+      // (NOT /results/export.xlsx) to avoid colliding with the existing
+      // /results/{invitation_id} route — FastAPI matches by order and
+      // would treat "export.xlsx" as a candidate ID, returning 422.
+      const url = `${environment.apiUrl}/api/hr/exports/candidates.xlsx`;
+      const response = await fetch(url, {
+        method: 'GET',
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        const detail = await this.extractErrorDetail(response);
+        alert(`Could not download export: ${detail}`);
+        return;
+      }
+      const blob = await response.blob();
+      // Filename is set by the backend's Content-Disposition; we still pass
+      // a sensible fallback in case the browser ignores the server header.
+      const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+      this.triggerDownload(blob, `FluentiQ_Candidates_${today}.xlsx`);
+    } catch (err) {
+      console.error('[hr-dashboard] Excel export failed:', err);
+      alert('Could not download the export. Check your connection and try again.');
+    } finally {
+      this.exportingExcel.set(false);
+    }
+  }
+
+  /**
+   * Extract a human-readable error message from a non-OK fetch Response.
+   *
+   * FastAPI returns two distinct error shapes:
+   *   { detail: "string message" }                   ← 401, 404, 500
+   *   { detail: [ { msg, loc, type }, ... ] }        ← 422 validation
+   *
+   * Mirrors the logic in api.service.ts's handleError(), which already
+   * normalises these for HttpClient calls. We do it manually here because
+   * we use raw fetch for binary downloads.
+   *
+   * Falls back to the HTTP status code if the body isn't JSON or the
+   * shape doesn't match either expected variant.
+   */
+  private async extractErrorDetail(response: Response): Promise<string> {
+    try {
+      const body = await response.json();
+      if (Array.isArray(body?.detail)) {
+        // 422 validation array — join field-level messages
+        return body.detail
+          .map((e: { msg: string; loc?: (string | number)[] }) => {
+            const field = Array.isArray(e.loc) ? e.loc[e.loc.length - 1] : '';
+            return field ? `${field}: ${e.msg}` : e.msg;
+          })
+          .join('; ');
+      }
+      if (typeof body?.detail === 'string') {
+        return body.detail;
+      }
+    } catch {
+      // Response wasn't JSON — fall through to HTTP status
+    }
+    return `HTTP ${response.status}`;
+  }
+
+  /**
+   * Build a candidate-friendly filename for the PDF. Matches the backend's
+   * naming convention so what the browser saves matches what's in
+   * Content-Disposition. Backend wins if there's a mismatch — the browser
+   * uses the Content-Disposition filename when present.
+   */
+  private pdfFilenameFor(r: ResultRow): string {
+    const safeName = (r.candidate_name || 'candidate')
+      .trim()
+      .replace(/\s+/g, '_')
+      .replace(/[^A-Za-z0-9_.-]/g, '_');
+    const date = (r.submitted_at || '').slice(0, 10).replace(/-/g, '') ||
+      new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    return `Assessment_${safeName}_${date}.pdf`;
+  }
+
+  /**
+   * Trigger a browser download for an in-memory Blob. Uses the standard
+   * pattern: object URL + invisible <a download> + .click() + revoke.
+   *
+   * Why this and not window.location.href = url? Because that wouldn't
+   * include the session cookie reliably across browsers, and we'd have
+   * no way to handle errors before the download starts.
+   */
+  private triggerDownload(blob: Blob, filename: string): void {
+    const objectUrl = URL.createObjectURL(blob);
+    try {
+      const a = document.createElement('a');
+      a.href = objectUrl;
+      a.download = filename;
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    } finally {
+      // Free the blob memory once the click has fired. setTimeout(0) gives
+      // the browser one tick to start the download before we revoke.
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 0);
+    }
   }
 }

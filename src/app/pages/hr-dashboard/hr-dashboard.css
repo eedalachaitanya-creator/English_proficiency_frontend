@@ -78,7 +78,18 @@
 }
 
 .content {
+    /* flex: auto lets .content grow inside .layout's flex row, but without
+       a min-width: 0 it would refuse to shrink below its content's natural
+       width. That's the root cause of the dashboard's horizontal scrollbar:
+       when the inner table demands more width than the viewport - sidebar,
+       .content stretched the whole .layout past the viewport instead of
+       letting overflow handling kick in. min-width: 0 tells flex "you're
+       allowed to be narrower than your content" — content overflow inside
+       .content can then be handled locally rather than pushing the whole
+       page sideways. */
     flex: auto;
+    min-width: 0;
+    overflow-x: hidden;
 }
 
 .modal {    padding: 0 !important;}
@@ -87,3 +98,144 @@
 .modal-header h2 {    color: #fff;}
 .modal-header p.subtitle {    color: #fff;    margin-bottom: 0px;}
 .modal-header a.close-btn {    color: #fff;    position: absolute;    right: 20px;    top: 20px;    z-index: 10;   font-size: 20px; cursor: pointer;}
+
+/* ----------------------------------------------------------------
+ * Action button group — wraps the three buttons (Manage / Invite / Export).
+ *
+ * Why this exists separate from .flex-row: the global .flex-row sets
+ * gap: 12px which is fine for tightly-related controls (search input
+ * and status dropdown), but feels cramped when three same-styled buttons
+ * sit next to each other. 14px between buttons gives them breathing room
+ * without making the group feel sparse.
+ *
+ * margin-left: 24px adds extra visual separation between the search/filter
+ * controls on the left of the row and this action group on the right.
+ * Without it, the row looks like one continuous strip of 5 controls; with
+ * it, the eye reads two distinct groups: "filter controls" and "actions".
+ * ---------------------------------------------------------------- */
+.action-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;                /* tighter gap between buttons — 10px reads as
+                                "grouped" without feeling cramped because the
+                                buttons themselves are now smaller and lighter */
+  margin-left: auto;         /* pushes the group hard to the right edge of the
+                                flex-row, regardless of viewport width */
+}
+
+/* ----------------------------------------------------------------
+ * Header action buttons — Manage Questions / Invite New / Export All.
+ *
+ * Each button sized to its content so the row stays compact. Modern admin
+ * UIs (Stripe, Linear, Vercel) use this content-sized approach rather than
+ * forced uniform widths — uniform sizing on different-length labels creates
+ * dead empty space inside short buttons and makes the row feel artificial.
+ *
+ * Design choices:
+ *   - height: 38px       → matches the search input next to it, so left and
+ *                          right halves of the row align cleanly
+ *   - padding: 0 18px    → enough horizontal room for the text to breathe
+ *   - font-size: 12px    → smaller than global .btn (14px) so the row feels
+ *                          lightweight and modern, not heavy
+ *   - font-weight: 600   → bold enough to read as actions, not so bold the
+ *                          row looks like a row of warning labels
+ *   - letter-spacing 0.5px → subtle polish, the kind that makes a UI feel
+ *                            considered rather than thrown together
+ *   - white-space: nowrap → labels never wrap to two lines on narrow windows
+ *   - text-transform handled by .btn-primary / .btn-secondary already
+ * ---------------------------------------------------------------- */
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;                  /* space between icon glyph (⚙ ↓ +) and label */
+  height: 38px;
+  padding: 0 18px;            /* slightly more inset than before — the text
+                                  needs room to feel balanced inside the box */
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  border-radius: var(--radius);
+}
+
+/* Make the secondary buttons feel lighter so the orange Invite button
+   stands out as the primary action. Without this override the global
+   .btn-secondary uses a heavier border that visually competes with
+   the primary button's solid fill. */
+.action-btn.btn-secondary {
+  background: var(--white);
+  border: 1px solid var(--border);
+  color: var(--navy);
+}
+
+.action-btn.btn-secondary:hover:not(:disabled) {
+  background: var(--bg);
+  border-color: var(--orange-soft);
+  color: var(--navy);
+}
+
+/* ----------------------------------------------------------------
+ * Per-row PDF download button.
+ *
+ * Compact 32x32 square with a download glyph. Sits in the "Report"
+ * column of the results table. Uses design tokens from src/styles.css
+ * so it stays consistent with the rest of the dashboard's buttons.
+ *
+ * Design intent: looks like a "secondary action" — not loud (the
+ * primary CTA is "+ INVITE NEW CANDIDATE") but clearly clickable.
+ * Hover state shifts to the orange brand color so HR sees it's an
+ * actionable element on hover, matching the link/button pattern from
+ * the global stylesheet (a:hover { color: var(--orange) }).
+ * ---------------------------------------------------------------- */
+
+/* Report column — kept ultra-narrow so adding it didn't push the table
+   past the viewport width. Center-aligned so the icon button sits in
+   the middle of the cell. Reduced horizontal padding because the cell
+   only contains a 32px button — full table padding would waste space. */
+table.results th.col-report,
+table.results td.col-report {
+  width: 56px;
+  padding: 8px 6px;
+  text-align: center;
+}
+.pdf-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--border);   /* matches .btn-secondary border */
+  border-radius: var(--radius);       /* dashboard's standard 6px corner */
+  background: var(--white);
+  color: var(--text-muted);           /* readable but understated */
+  cursor: pointer;
+  transition: all 0.15s ease;         /* matches .btn 0.15s transition */
+}
+
+.pdf-icon-btn:hover:not(:disabled) {
+  background: var(--bg);              /* matches .btn-secondary:hover */
+  border-color: var(--orange);        /* dashboard's primary accent */
+  color: var(--orange);
+}
+
+.pdf-icon-btn:active:not(:disabled) {
+  transform: translateY(1px);         /* matches global .btn:active */
+}
+
+.pdf-icon-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Spinner used while a PDF download is in flight. The pdf-icon-btn
+   contains a <svg> with this class when waiting for the backend. */
+.pdf-spinner {
+  animation: pdf-spin 0.8s linear infinite;
+}
+
+@keyframes pdf-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}

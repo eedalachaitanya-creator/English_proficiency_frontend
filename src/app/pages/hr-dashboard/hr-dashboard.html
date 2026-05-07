@@ -1,4 +1,4 @@
- <!-- <app-topnav
+<!-- <app-topnav
   title="HR Portal  —  English Proficiency Results"
   [meta]="hrEmail()"
   variant="hr"
@@ -83,13 +83,29 @@
       <option value="submitted">Submitted</option>
       <option value="pending">Pending</option>
     </select>
- 
-    <span class="spacer"></span>
- 
-     <a routerLink="/dashboard/content" class="btn btn-secondary" style="text-decoration: none;">
-      ⚙ MANAGE QUESTIONS
-    </a>
-    <button class="btn btn-primary" (click)="openInvite()">+ INVITE NEW CANDIDATE</button>  
+
+    <!-- Action button group: filters and search live to the left, actions
+         live to the right. The .action-group's margin-left: auto pushes
+         this whole div to the right edge of the row, creating the visual
+         "left group / right group" split the dashboard wants. -->
+    <div class="action-group">
+       <a routerLink="/dashboard/content" class="btn btn-secondary action-btn" style="text-decoration: none;">
+        ⚙ MANAGE QUESTIONS
+      </a>
+      <button class="btn btn-primary action-btn" (click)="openInvite()">+ INVITE NEW CANDIDATE</button>
+      <!-- Export All button: downloads an Excel of every invitation belonging
+           to this HR. Disabled while generating to prevent double-clicks
+           producing two parallel downloads. -->
+      <button class="btn btn-secondary action-btn"
+              [disabled]="exportingExcel() || allResults().length === 0"
+              (click)="onExportExcel()">
+        @if (exportingExcel()) {
+          Generating…
+        } @else {
+          ↓ EXPORT ALL
+        }
+      </button>
+    </div>
   </div>
  
   <!-- Results table -->
@@ -105,18 +121,19 @@
         <th>Speaking</th>
         <th>Total</th>
         <th>Rating</th>
+        <th class="col-report">Report</th>
       </tr>
     </thead>
     <tbody>
       @if (loading()) {
         <tr>
-          <td colspan="9" class="text-muted text-center" style="padding: 24px;">
+          <td colspan="10" class="text-muted text-center" style="padding: 24px;">
             Loading…
           </td>
         </tr>
       } @else if (filteredResults().length === 0) {
         <tr>
-          <td colspan="9" class="text-muted text-center" style="padding: 24px;">
+          <td colspan="10" class="text-muted text-center" style="padding: 24px;">
             @if (allResults().length === 0) {
               No invitations yet. Click "+ INVITE NEW CANDIDATE" to send the first one.
             } @else {
@@ -155,6 +172,43 @@
                 <span class="badge {{ ratingClass(r.rating) }}">{{ ratingLabel(r.rating) }}</span>
               } @else {
                 <span class="text-muted">pending</span>
+              }
+            </td>
+            <td class="col-report" (click)="$event.stopPropagation()">
+              <!-- Per-row PDF download. Compact icon-only button so the
+                   Report column stays narrow and doesn't push the table
+                   past the viewport width. The download SVG is inlined to
+                   avoid pulling in an icon library for a single glyph.
+
+                   Only meaningful once the candidate has submitted;
+                   otherwise the report would be mostly empty placeholders.
+                   The button is hidden entirely (not just disabled) for
+                   unsubmitted rows so the column reads cleanly when HR
+                   scans the table. -->
+              @if (r.submitted_at) {
+                <button
+                  type="button"
+                  class="pdf-icon-btn"
+                  title="Download PDF report"
+                  [disabled]="downloadingPdfFor() === r.invitation_id"
+                  (click)="onDownloadPdf(r); $event.stopPropagation()">
+                  @if (downloadingPdfFor() === r.invitation_id) {
+                    <!-- Spinning indicator while download is in flight -->
+                    <svg class="pdf-spinner" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="10" stroke-opacity="0.25"/>
+                      <path d="M12 2a10 10 0 0 1 10 10"/>
+                    </svg>
+                  } @else {
+                    <!-- Download icon — clean, single-line, matches modern dashboard UI -->
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                      <polyline points="7 10 12 15 17 10"/>
+                      <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                  }
+                </button>
+              } @else {
+                <span class="text-muted" style="font-size: 11px;">—</span>
               }
             </td>
           </tr>
