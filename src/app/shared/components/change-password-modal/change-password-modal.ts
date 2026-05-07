@@ -81,11 +81,32 @@ export class ChangePasswordModal implements OnDestroy {
     }
   }
 
+  /**
+   * Keydown handler bound to all three password inputs. Suppresses the
+   * space key so the user literally can't enter a space — no need to
+   * surface an error after the fact. Backend has its own whitespace
+   * rejection so even pasted spaces are caught (see onSubmit).
+   */
+  blockSpace(event: KeyboardEvent): void {
+    if (event.key === ' ' || event.code === 'Space') {
+      event.preventDefault();
+    }
+  }
+
   onSubmit(): void {
     this.errorMessage.set('');
 
     if (!this.current) {
       this.errorMessage.set('Enter your current password.');
+      return;
+    }
+    // Defense in depth — keydown handler blocks the space key, but a
+    // paste can still introduce whitespace. Catch it here before any
+    // other check so the user gets a clear message instead of a
+    // confusing "passwords do not match" if only one field has a
+    // stray paste-space.
+    if (/\s/.test(this.next) || /\s/.test(this.confirm)) {
+      this.errorMessage.set('Password cannot contain spaces or other whitespace.');
       return;
     }
     if (this.next.length < 6) {
