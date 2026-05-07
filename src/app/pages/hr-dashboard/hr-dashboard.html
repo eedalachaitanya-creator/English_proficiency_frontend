@@ -90,9 +90,9 @@
          "left group / right group" split the dashboard wants. -->
     <div class="action-group">
        <a routerLink="/dashboard/content" class="btn btn-secondary action-btn" style="text-decoration: none;">
-        ⚙ MANAGE QUESTIONS
+        ⚙ Manage questions
       </a>
-      <button class="btn btn-primary action-btn" (click)="openInvite()">+ INVITE NEW CANDIDATE</button>
+      <button class="btn btn-primary action-btn" (click)="openInvite()">+ Invite new candidate</button>
       <!-- Export All button: downloads an Excel of every invitation belonging
            to this HR. Disabled while generating to prevent double-clicks
            producing two parallel downloads. -->
@@ -102,7 +102,7 @@
         @if (exportingExcel()) {
           Generating…
         } @else {
-          ↓ EXPORT ALL
+          ↓ Export all
         }
       </button>
     </div>
@@ -135,7 +135,7 @@
         <tr>
           <td colspan="10" class="text-muted text-center" style="padding: 24px;">
             @if (allResults().length === 0) {
-              No invitations yet. Click "+ INVITE NEW CANDIDATE" to send the first one.
+              No invitations yet. Click "+ Invite new candidate" to send the first one.
             } @else {
               No candidates match your filters.
             }
