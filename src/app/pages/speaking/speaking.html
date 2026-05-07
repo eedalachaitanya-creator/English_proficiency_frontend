@@ -49,12 +49,13 @@
         }
       </div>
 
-    <div *ngIf="showTimer">
-      <span class="timer-chip warning timer-chip-speaking warning" [class.warning]="timerState() === 'warning'"
-        [class.danger]="timerState() === 'danger'">
+    @if (phase() === 'prep' || phase() === 'recording') {
+      <span class="timer-chip warning timer-chip-speaking warning"
+            [class.warning]="timerState() === 'warning'"
+            [class.danger]="timerState() === 'danger'">
         {{ timerText() }}
       </span>
-    </div>
+    }
 
       <div
         class="rec-status"

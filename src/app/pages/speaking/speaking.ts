@@ -72,8 +72,6 @@ export class Speaking implements OnInit, OnDestroy, AfterViewInit {
   private api = inject(ApiService);
   private router = inject(Router);
 
-  showTimer = true;
-
   @ViewChild('waveformEl', { static: false }) waveformRef?: ElementRef<HTMLDivElement>;
   @ViewChild('playbackEl', { static: false }) playbackRef?: ElementRef<HTMLAudioElement>;
 
@@ -265,10 +263,6 @@ export class Speaking implements OnInit, OnDestroy, AfterViewInit {
     );
 
     window.addEventListener('beforeunload', this.beforeUnloadHandler);
-
-    setTimeout(() => {
-    this.showTimer = false;
-  }, 60000); // 60 seconds = 1 minute
   }
 
   ngAfterViewInit(): void { /* no-op */ }
