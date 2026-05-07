@@ -34,6 +34,8 @@
           Read the question. Recording will start automatically when the prep timer hits zero.
         } @else if (phase() === 'recording') {
           Speak now. Recording auto-stops at {{ timer.formatTime(perTopicSeconds()) }} or when you click STOP.
+        } @else if (phase() === 'awaiting_start') {
+          Click START when you're ready to record again.
         } @else {
           Recording complete.
         }
