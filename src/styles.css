@@ -76,7 +76,7 @@ h3 { font-size: 16px; color: var(--navy); margin-bottom: 8px; }
 .rec-controls { display: flex; justify-content: center; gap: 12px; margin-top: 16px; }
 .confirm-icon { font-size: 96px; color: var(--green); text-align: center; line-height: 1; margin-bottom: 16px; }
 .ref-id { background: var(--bg); border: 1px dashed var(--border); padding: 14px 20px; border-radius: var(--radius); font-family: var(--font-mono); font-size: 16px; font-weight: bold; color: var(--navy); text-align: center; margin-top: 24px; }
-.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+.kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
 .kpi { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; box-shadow: var(--shadow-sm); }
 .kpi .label { font-size: 11px; font-weight: bold; color: var(--text-muted); letter-spacing: 0.5px; text-transform: uppercase; }
 .kpi .value { font-size: 32px; font-weight: bold; color: var(--navy); margin-top: 6px; }
