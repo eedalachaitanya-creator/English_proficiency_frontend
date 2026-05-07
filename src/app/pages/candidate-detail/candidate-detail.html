@@ -133,7 +133,7 @@
         <!-- Lifecycle timestamps + actions -->
         <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border);">
           <div class="text-muted" style="font-size: 13px; margin-bottom: 4px;">
-            Window: {{ formatSubmittedDateTime(invitation()!.valid_from) }}
+            {{ formatSubmittedDateTime(invitation()!.valid_from) }}
             &nbsp;→&nbsp;
             {{ formatSubmittedDateTime(invitation()!.expires_at) }}
           </div>
