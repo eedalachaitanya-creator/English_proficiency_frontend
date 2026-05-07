@@ -92,12 +92,6 @@ resultsCount = this.api.resultsCount;
   kpiTotal = computed(() => this.allResults().length);
   kpiSubmitted = computed(() => this.allResults().filter((r: ResultRow) => r.submitted_at).length);
   kpiPending = computed(() => this.kpiTotal() - this.kpiSubmitted());
-  kpiAvg = computed(() => {
-    const scored = this.allResults().filter((r: ResultRow) => r.total_score != null);
-    if (scored.length === 0) return null;
-    const sum = scored.reduce((s: number, r: ResultRow) => s + (r.total_score ?? 0), 0);
-    return Math.round(sum / scored.length);
-  });
 
   hrEmail = computed(() => this.auth.currentUser()?.email ?? 'Loading…');
   hrName = computed(() => this.auth.currentUser()?.name ?? '');
