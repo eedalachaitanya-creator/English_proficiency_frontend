@@ -287,8 +287,9 @@
 <!-- ─────────────────────────  Create-HR modal  ───────────────────────── -->
 @if (modalOpen()) {
 
-      <div class="modal-backdrop show" (click)="closeCreate()">
-    <div class="modal" (click)="$event.stopPropagation()">
+      <!-- Backdrop click intentionally not bound — see change-password modal. -->
+      <div class="modal-backdrop show">
+    <div class="modal">
       <div class="modal-header">
       <h2>{{ newRole() === 'admin' ? 'Create admin account' : 'Create HR account' }}</h2>
       <p class="subtitle">

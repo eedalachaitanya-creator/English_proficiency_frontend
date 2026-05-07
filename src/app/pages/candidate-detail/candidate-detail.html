@@ -307,8 +307,10 @@
 
 <!-- ─────────────────────────  Resend invitation modal  ───────────────────────── -->
 @if (resendModalOpen()) {
-  <div class="modal-backdrop show" (click)="closeResendModal()">
-    <div class="modal" (click)="$event.stopPropagation()">
+  <!-- Backdrop click intentionally not bound — accidental dismissal
+       would discard the date/time/timezone selections. -->
+  <div class="modal-backdrop show">
+    <div class="modal">
       <div class="modal-header">
         <h2>Resend invitation</h2>
         <p class="subtitle">

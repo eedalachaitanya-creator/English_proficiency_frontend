@@ -137,8 +137,9 @@
 <!--  Create / Edit modal                                                  -->
 <!-- ===================================================================== -->
 @if (formOpen()) {
-    <div class="modal-backdrop show" (click)="closeForm()">
-    <div class="modal" (click)="$event.stopPropagation()">
+    <!-- Backdrop click intentionally not bound — see change-password modal. -->
+    <div class="modal-backdrop show">
+    <div class="modal">
       <div class="modal-header">
        <h2>{{ formMode() === 'create' ? 'New Writing Topic' : 'Edit Writing Topic' }}</h2>
       
@@ -225,8 +226,9 @@
 <!--  CSV Import modal                                                     -->
 <!-- ===================================================================== -->
 @if (csvOpen()) {
-  <div class="modal-backdrop show" (click)="closeCsvModal()">
-    <div class="modal" (click)="$event.stopPropagation()">
+  <!-- Backdrop click intentionally not bound — see change-password modal. -->
+  <div class="modal-backdrop show">
+    <div class="modal">
       <h2>Import Writing Topics from CSV</h2>
       <p class="subtitle">Upload multiple essay prompts at once.</p>
 

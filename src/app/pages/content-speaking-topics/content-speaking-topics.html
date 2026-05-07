@@ -135,8 +135,9 @@
 <!--  Create / Edit modal                                                  -->
 <!-- ===================================================================== -->
 @if (formOpen()) {
-   <div class="modal-backdrop show" (click)="closeForm()">
-    <div class="modal" (click)="$event.stopPropagation()">
+   <!-- Backdrop click intentionally not bound — see change-password modal. -->
+   <div class="modal-backdrop show">
+    <div class="modal">
       <div class="modal-header">
          <h2>{{ formMode() === 'create' ? 'New Speaking Topic' : 'Edit Speaking Topic' }}</h2>
       

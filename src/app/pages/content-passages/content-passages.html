@@ -145,8 +145,9 @@
 <!--  Create / Edit modal                                                  -->
 <!-- ===================================================================== -->
 @if (formOpen()) {
-       <div class="modal-backdrop show" (click)="closeForm()">
-    <div class="modal" (click)="$event.stopPropagation()">
+       <!-- Backdrop click intentionally not bound — see change-password modal. -->
+       <div class="modal-backdrop show">
+    <div class="modal">
       <div class="modal-header">
       <h2>{{ formMode() === 'create' ? 'New Passage' : 'Edit Passage' }}</h2>
       
@@ -232,8 +233,9 @@
 <!--  CSV Import modal                                                     -->
 <!-- ===================================================================== -->
 @if (csvOpen()) {
-  <div class="modal-backdrop show" (click)="closeCsvModal()">
-    <div class="modal" (click)="$event.stopPropagation()">
+  <!-- Backdrop click intentionally not bound — see change-password modal. -->
+  <div class="modal-backdrop show">
+    <div class="modal">
       <h2>Import Passages from CSV</h2>
       <p class="subtitle">Upload a CSV with multiple passages at once.</p>
 

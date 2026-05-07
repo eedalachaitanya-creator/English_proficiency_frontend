@@ -72,8 +72,11 @@
 
 <!-- Invite modal -->
 @if (inviteOpen()) {
-  <div class="modal-backdrop show" (click)="closeInvite()">
-    <div class="modal" (click)="$event.stopPropagation()">
+  <!-- Backdrop click intentionally not bound — accidental clicks
+       outside the form would discard typed candidate data. Use the
+       X button or Cancel button. -->
+  <div class="modal-backdrop show">
+    <div class="modal">
       <div class="modal-header">
       <h2>Invite a Candidate</h2>
       <p class="subtitle">Generates a one-time URL active during your scheduled window.</p>
