@@ -703,8 +703,18 @@ export class Speaking implements OnInit, OnDestroy, AfterViewInit {
       }
       this.tracker.reset();
       this.store.clearTestSession();
+      // Remove the termination overlay BEFORE navigating. The overlay was added
+      // imperatively to document.body (not via the component template), so
+      // Angular's router-driven component destruction won't clean it up. Without
+      // this line the overlay sits on top of the /submitted page hiding it,
+      // forcing the candidate to refresh to see the success message.
+      this.removeTerminationOverlay();
       this.router.navigate(['/submitted']);
     } catch (err) {
+      // On submit failure we keep the overlay visible — setOverlayMessage
+      // flips its text from "Submitting…" to the error message so the
+      // candidate knows to contact HR. Do NOT call removeTerminationOverlay
+      // here.
       console.error('[speaking-autosubmit] submission failed:', err);
       this.setOverlayMessage(
         'Submission could not be completed. Please contact your HR manager.'
@@ -744,6 +754,29 @@ export class Speaking implements OnInit, OnDestroy, AfterViewInit {
   private setOverlayMessage(text: string): void {
     const el = document.getElementById('termSpinnerMsg');
     if (el) el.textContent = text;
+  }
+
+  /**
+   * Remove the termination overlay from document.body.
+   *
+   * The overlay is created by showTerminationOverlay() via direct DOM
+   * manipulation (document.body.appendChild) rather than through the
+   * component template. That means Angular has no idea it exists — when
+   * the speaking component is destroyed by router navigation, the overlay
+   * div stays behind on document.body, sitting on top of whatever page
+   * the router rendered next.
+   *
+   * This method is called in the success path of autoSubmitWithRecordings
+   * right before router.navigate('/submitted'). NOT called in the catch
+   * block: on submit failure we want the overlay to stay visible with the
+   * error message so the candidate sees they need to contact HR.
+   *
+   * Idempotent — if the overlay isn't there (e.g. it was already removed,
+   * or showTerminationOverlay was never called), this is a safe no-op.
+   */
+  private removeTerminationOverlay(): void {
+    const el = document.getElementById('terminationOverlay');
+    if (el) el.remove();
   }
 
   // Note: the onBack() handler that used to live here was removed along with

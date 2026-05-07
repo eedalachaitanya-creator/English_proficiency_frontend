@@ -51,7 +51,7 @@
         }
       </div>
 
-    @if (phase() === 'prep' || phase() === 'recording') {
+    @if (phase() === 'prep') {
       <span class="timer-chip warning timer-chip-speaking warning"
             [class.warning]="timerState() === 'warning'"
             [class.danger]="timerState() === 'danger'">
