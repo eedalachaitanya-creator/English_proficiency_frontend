@@ -3,8 +3,9 @@
   <!-- Dashboard Menu -->
   @if (showDashboard) {
     <div class="menu-item">
-      <button class="invite-btn"  routerLink="/dashboard" 
+      <button class="invite-btn"  routerLink="/dashboard"
         routerLinkActive="active" >
+        <span class="menu-icon">▦</span>
         <span class="menu-text">DASHBOARD</span>
       </button>
     </div>
@@ -52,7 +53,8 @@
   @if (showInviteCandidate) {
     <div class="menu-item">
       <button class="invite-btn" (click)="openInvite()">
-        + INVITE NEW CANDIDATE
+        <span class="menu-icon">+</span>
+        <span class="menu-text">INVITE NEW CANDIDATE</span>
       </button>
     </div>
   }
