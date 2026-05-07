@@ -1,6 +1,9 @@
 <div class="account-menu-wrap">
 
-  <!-- Avatar trigger -->
+  <!-- Avatar trigger. Renders a Font Awesome person silhouette
+       instead of the user's first initial — more recognizable as a
+       profile/account affordance, and avoids the "what does the
+       letter mean?" question new users had. -->
   <button
     type="button"
     class="account-avatar"
@@ -9,7 +12,7 @@
     aria-haspopup="menu"
     [attr.aria-label]="'Account menu for ' + displayName()"
     (click)="toggle()">
-    {{ initial() }}
+    <i class="fas fa-user" aria-hidden="true"></i>
   </button>
 
   <!-- Dropdown -->
