@@ -20,16 +20,19 @@
       <!-- Export All Candidates: downloads an XLSX of every invitation
            across every HR. Includes an "HR Admin" column so the admin
            can attribute each row. Disabled while a download is in
-           flight to prevent double-click double-renders. -->
+           flight to prevent double-click double-renders, and disabled
+           when there are zero candidates so HR doesn't get a confusing
+           "could not download" alert for an empty platform. -->
       <button
         type="button"
         class="btn btn-secondary"
-        [disabled]="exportingAllExcel()"
+        [title]="totalCandidates() === 0 ? 'No candidates to export' : 'Download all candidates (XLSX)'"
+        [disabled]="exportingAllExcel() || totalCandidates() === 0"
         (click)="onExportAllCandidates()">
         @if (exportingAllExcel()) {
           Generating…
         } @else {
-          ↓ EXPORT ALL
+          ↓ EXPORT ALL (XLSX)
         }
       </button>
       <button type="button" class="btn btn-primary" (click)="openCreate()">
@@ -111,9 +114,9 @@
                     <button
                       type="button"
                       class="pdf-icon-btn"
-                      title="Download this HR's candidates (XLSX)"
+                      [title]="u.candidate_count === 0 ? 'No candidates to export' : 'Download this HR\u2019s candidates (XLSX)'"
                       [attr.aria-label]="'Download candidates for ' + u.name"
-                      [disabled]="exportingHrId() === u.id"
+                      [disabled]="exportingHrId() === u.id || u.candidate_count === 0"
                       (click)="onExportHrCandidates(u, $event)">
                       @if (exportingHrId() === u.id) {
                         <svg class="pdf-spinner" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">

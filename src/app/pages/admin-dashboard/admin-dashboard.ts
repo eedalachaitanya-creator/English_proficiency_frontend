@@ -55,6 +55,17 @@ export class AdminDashboard implements OnInit {
   users = signal<AdminUserSummary[]>([]);
   totalUsers = computed(() => this.users().length);
 
+  /**
+   * Sum of candidate_count across all HR users. Used to disable the
+   * top-of-page "Export All" button when there's nothing to export —
+   * prevents the alert-popup-on-empty UX from happening at the all-
+   * candidates level. Admin rows always have candidate_count = 0
+   * (admins don't send invitations), so summing all rows is correct.
+   */
+  totalCandidates = computed(() =>
+    this.users().reduce((sum, u) => sum + (u.candidate_count || 0), 0)
+  );
+
   // -------- Expandable-row state --------
   /**
    * Currently-expanded HR id, or null if no row is expanded. Single-
@@ -508,6 +519,11 @@ export class AdminDashboard implements OnInit {
    */
   async onExportAllCandidates(): Promise<void> {
     if (this.exportingAllExcel()) return;
+    // Defensive: skip if no candidates exist on the platform yet —
+    // matches the disabled-state on the button. Empty-state Excel
+    // would just be a header row, which isn't useful and triggers a
+    // confusing "Generating..." flash for nothing.
+    if (this.totalCandidates() === 0) return;
     this.exportingAllExcel.set(true);
     try {
       const url = `${environment.apiUrl}/api/admin/exports/all-candidates.xlsx`;
@@ -541,6 +557,11 @@ export class AdminDashboard implements OnInit {
     event.stopPropagation();
     if (user.role !== 'hr') return;
     if (this.exportingHrId() === user.id) return;
+    // Defensive: don't even attempt the fetch if this HR has no
+    // candidates. The button is also disabled in the template, but
+    // this guard catches edge cases like stale DOM state during a
+    // change-detection cycle, or a programmatic call from the console.
+    if (user.candidate_count === 0) return;
     this.exportingHrId.set(user.id);
     try {
       const url = `${environment.apiUrl}/api/admin/hrs/${user.id}/candidates.xlsx`;
