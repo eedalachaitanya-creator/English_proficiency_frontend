@@ -36,15 +36,16 @@
           <th>Role</th>
           <th>Candidates</th>
           <th>Created</th>
+          <th style="width: 64px;"></th>
         </tr>
       </thead>
       <tbody>
         @if (loading()) {
-          <tr><td colspan="6" class="text-muted text-center" style="padding: 24px;">Loading…</td></tr>
+          <tr><td colspan="7" class="text-muted text-center" style="padding: 24px;">Loading…</td></tr>
         } @else if (users().length === 0) {
           <tr>
-            <td colspan="6" class="text-muted text-center" style="padding: 24px;">
-              No users yet. Click "+ CREATE NEW HR" to add the first one.
+            <td colspan="7" class="text-muted text-center" style="padding: 24px;">
+              No users yet. Click "+ ADD USER" to add the first one.
             </td>
           </tr>
         } @else {
@@ -80,12 +81,26 @@
                 }
               </td>
               <td>{{ formatDate(u.created_at) }}</td>
+              <td class="text-center">
+                @if (u.role === 'hr') {
+                  <!-- Stop click propagation so opening the modal
+                       doesn't also expand/collapse the row. -->
+                  <button
+                    type="button"
+                    class="row-action-btn row-action-btn--danger"
+                    title="Delete this HR"
+                    aria-label="Delete HR {{ u.name }}"
+                    (click)="askDelete(u, $event)">
+                    🗑
+                  </button>
+                }
+              </td>
             </tr>
 
             <!-- Expanded panel: candidates sub-table for this HR. -->
             @if (u.role === 'hr' && isExpanded(u.id)) {
               <tr class="expanded-panel-row">
-                <td colspan="6" style="padding: 0; background: #f8fafc;">
+                <td colspan="7" style="padding: 0; background: #f8fafc;">
                   <div style="padding: 16px 24px;">
                     @if (candidatesErrorFor(u.id)) {
                       <div class="notice" style="background: var(--red-soft, #fee2e2); border-left:3px solid var(--red, #dc2626);">
@@ -345,6 +360,67 @@
  </div>
         </form>
       }
+    </div>
+  </div>
+}
+
+<!-- ─────────────────────────  Delete-HR confirmation modal  ───────────────────────── -->
+@if (pendingDelete(); as target) {
+  <div class="modal-backdrop show" (click)="cancelDelete()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header" style="background:#7f1d1d;">
+        <h2>Delete HR account?</h2>
+        <p class="subtitle">
+          This action will revoke the HR's access immediately.
+          <a class="close-btn" (click)="cancelDelete()" aria-label="Close">✕</a>
+        </p>
+      </div>
+
+      <div class="modal-body">
+        <p style="margin:0 0 16px 0;">
+          You're about to delete the following HR account:
+        </p>
+        <div class="notice" style="background:#fef2f2;border-left:3px solid #dc2626;">
+          <p style="margin:0 0 4px 0;"><strong>{{ target.name }}</strong></p>
+          <p class="text-muted" style="margin:0;font-size:13px;">{{ target.email }}</p>
+          <p class="text-muted" style="margin:8px 0 0 0;font-size:13px;">
+            {{ target.candidate_count }} candidate
+            {{ target.candidate_count === 1 ? 'invitation' : 'invitations' }} on record &mdash; preserved for audit.
+          </p>
+        </div>
+
+        <ul style="margin:16px 0 0 0;padding-left:20px;color:#374151;font-size:13px;line-height:1.6;">
+          <li>The HR loses access to FluentiQ immediately.</li>
+          <li>Their candidate invitations and results stay in the database.</li>
+          <li>Their email address becomes available for a new account.</li>
+          <li>An admin can restore the account from the database if needed.</li>
+        </ul>
+
+        @if (deleteError()) {
+          <div class="field-error" style="margin-top:16px;">{{ deleteError() }}</div>
+        }
+
+        <div class="flex-row mt-4" style="justify-content:flex-end; gap:12px;">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            (click)="cancelDelete()"
+            [disabled]="deleteSubmitting()">
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="btn btn-danger"
+            (click)="confirmDelete()"
+            [disabled]="deleteSubmitting()">
+            @if (deleteSubmitting()) {
+              Deleting…
+            } @else {
+              DELETE HR
+            }
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 }

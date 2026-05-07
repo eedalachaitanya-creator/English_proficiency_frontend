@@ -100,6 +100,22 @@ export class AdminDashboard implements OnInit {
   // Cleared when the modal is reopened.
   lastCreated = signal<UserCreateByAdminResponse | null>(null);
 
+  // -------- Delete-HR modal state --------
+  /**
+   * Confirmation modal for HR soft-delete. We never delete on first
+   * click — the row's trash button stages the HR here and the user
+   * has to confirm in a separate step. Set to null to dismiss the
+   * modal entirely; the staged row drives both the title (HR's name)
+   * and the destination of the request body.
+   *
+   * Soft delete is reversible (just NULL out deleted_at in the DB),
+   * but the UI surfaces it as a strongly-worded action so the admin
+   * doesn't treat it casually.
+   */
+  pendingDelete = signal<AdminUserSummary | null>(null);
+  deleteSubmitting = signal(false);
+  deleteError = signal('');
+
   ngOnInit(): void {
     this.loadUsers();
   }
@@ -384,6 +400,67 @@ export class AdminDashboard implements OnInit {
           ? 'Could not create admin account.'
           : 'Could not create HR account.';
         this.createError.set(err.message || fallback);
+      },
+    });
+  }
+
+  // ============================================================
+  // Delete-HR confirmation modal
+  // ============================================================
+
+  /**
+   * Open the confirmation modal for the given user. Only HR rows are
+   * deletable from this UI — admin deletion is intentionally out of
+   * scope. The trash button is rendered conditionally in the template,
+   * but we re-check here so a future template change can't bypass it.
+   */
+  askDelete(user: AdminUserSummary, event: Event): void {
+    // Stop the click from bubbling to the row's toggleExpand handler —
+    // otherwise opening the delete modal also expands/collapses the row.
+    event.stopPropagation();
+    if (user.role !== 'hr') return;
+    this.deleteError.set('');
+    this.deleteSubmitting.set(false);
+    this.pendingDelete.set(user);
+  }
+
+  cancelDelete(): void {
+    if (this.deleteSubmitting()) return;
+    this.pendingDelete.set(null);
+  }
+
+  confirmDelete(): void {
+    const user = this.pendingDelete();
+    if (!user || this.deleteSubmitting()) return;
+    this.deleteError.set('');
+    this.deleteSubmitting.set(true);
+
+    this.api.delete<void>(`/api/admin/users/${user.id}`).subscribe({
+      next: () => {
+        this.deleteSubmitting.set(false);
+        this.pendingDelete.set(null);
+        // Collapse the deleted HR's panel if it was expanded.
+        if (this.expandedHrId() === user.id) {
+          this.expandedHrId.set(null);
+        }
+        // Refresh so the row disappears from the table.
+        this.loadUsers();
+      },
+      error: (err: ApiError) => {
+        this.deleteSubmitting.set(false);
+        if (err.status === 401) {
+          this.router.navigate(['/login']);
+          return;
+        }
+        // 404 = already deleted (race with another tab) — close the
+        // modal and refresh; the user will see the row gone. 400 =
+        // role/self-delete refusal; show the message.
+        if (err.status === 404) {
+          this.pendingDelete.set(null);
+          this.loadUsers();
+          return;
+        }
+        this.deleteError.set(err.message || 'Could not delete HR.');
       },
     });
   }

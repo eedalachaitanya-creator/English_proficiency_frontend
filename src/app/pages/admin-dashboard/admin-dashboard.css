@@ -89,3 +89,29 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+/* Inline action button rendered in the rightmost column of an HR
+   row. Trash icon only — no label — kept compact so it doesn't
+   crowd the row. The danger variant flips the background to a soft
+   red on hover so the destructive nature is obvious without being
+   loud at rest. */
+.row-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.row-action-btn:hover {
+  background: #f1f5f9;
+}
+.row-action-btn--danger:hover {
+  background: #fee2e2;
+  border-color: #fecaca;
+}
