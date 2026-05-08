@@ -146,6 +146,8 @@ export class ContentWritingTopics implements OnInit {
   }
 
   openEditForm(t: WritingTopicOut): void {
+      this.viewModalOpen.set(false);
+      
     this.formMode.set('edit');
     this.editingId.set(t.id);
     this.formPromptText.set(t.prompt_text);
@@ -220,8 +222,12 @@ export class ContentWritingTopics implements OnInit {
   }
   /** Open the View modal for the given writing topic. */
   onView(t: WritingTopicOut): void {
+       this.viewModalOpen.set(false);
+    this.formOpen.set(false);
+      setTimeout(() => {
     this.viewModalData.set(t);
     this.viewModalOpen.set(true);
+     }, 0); 
   }
 
   /** Close the View modal. Wired to the modal's (closed) emitter. */

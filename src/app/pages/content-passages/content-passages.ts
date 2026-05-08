@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, Renderer2 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -31,7 +31,7 @@ import { ViewContentModal, ViewField } from '../../shared/components/view-conten
   styleUrl: './content-passages.css',
 })
 export class ContentPassages implements OnInit {
-  constructor(private delmodal: deleteModalService) {}
+  constructor(private delmodal: deleteModalService,  private renderer: Renderer2) {}
 
   private contentSvc = inject(HrContentService);
   private modal = inject(ModalService);
@@ -167,6 +167,9 @@ export class ContentPassages implements OnInit {
   }
 
   openEditForm(p: PassageOut): void {
+     this.renderer.addClass(document.body, 'invite-open');
+     this.viewModalOpen.set(false);
+
     this.formMode.set('edit');
     this.editingId.set(p.id);
     this.formTitle.set(p.title);
@@ -264,12 +267,18 @@ export class ContentPassages implements OnInit {
 
   /** Open the View modal for the given passage. */
   onView(p: PassageOut): void {
+    this.viewModalOpen.set(false);
+     this.formOpen.set(false);
+     
+   setTimeout(() => {
     this.viewModalData.set(p);
     this.viewModalOpen.set(true);
+  }, 0);
   }
 
   /** Close the View modal. Wired to ViewContentModal's (closed) emitter. */
   onCloseView(): void {
+    this.renderer.removeClass(document.body, 'invite-open');
     this.viewModalOpen.set(false);
     this.viewModalData.set(null);
   }

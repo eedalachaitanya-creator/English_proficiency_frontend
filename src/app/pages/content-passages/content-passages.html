@@ -45,7 +45,7 @@
   }
 
   <!-- Passages table -->
-  <table class="cp-table">
+  <table class="cp-table restable">
     <thead>
       <tr>
         <th style="width: 250px;">Title</th>
@@ -81,7 +81,7 @@
               }
             </td>
             <td>{{ p.difficulty }}</td>
-            <td class="text-muted" style="font-size: 13px;">{{ truncate(p.body, 120) }}</td>
+            <td class="text-muted" style="font-size: 13px;" title="{{ p.body }}">{{ truncate(p.body, 120) }}</td>
             <td class="text-mono">{{ p.word_count }}</td>
             <td class="text-muted" style="font-size: 13px;">{{ p.topic ?? '—' }}</td>
             <td>
@@ -234,12 +234,18 @@
 <!-- ===================================================================== -->
 @if (csvOpen()) {
   <!-- Backdrop click intentionally not bound — see change-password modal. -->
-  <div class="modal-backdrop show">
+   <div class="modal-backdrop show">
     <div class="modal">
-      <h2>Import Passages from CSV</h2>
-      <p class="subtitle">Upload a CSV with multiple passages at once.</p>
-
+      <div class="modal-header">
+        <h2>Import Passages from CSV</h2>
+        <p class="subtitle">Upload a CSV with multiple passages at once.</p>
+        <a class="close-btn" (click)="closeCsvModal()" aria-label="Close">
+          ✕
+        </a>
+      </div> 
+ 
       @if (!csvResult()) {
+        <div class="modal-body"> 
         <div class="csv-help">
           <strong>Required columns</strong>:
           <ol>
@@ -273,6 +279,7 @@
             @if (csvSubmitting()) { Uploading… }
             @else { Upload }
           </button>
+        </div>
         </div>
       } @else {
         <div class="csv-result">

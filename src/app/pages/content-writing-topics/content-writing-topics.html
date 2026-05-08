@@ -43,7 +43,7 @@
     </div>
   }
 
-  <table class="cw-table">
+  <table class="cw-table restable">
     <thead>
       <tr>
         <th>Prompt</th>
@@ -71,7 +71,7 @@
       } @else {
         @for (t of pagedTopics(); track trackById($index, t)) {
           <tr [class.row-disabled]="t.disabled_at">
-            <td>
+            <td title="{{ t.prompt_text }}">
               {{ truncate(t.prompt_text, 120) }}
               @if (t.disabled_at) {
                 <span class="badge-disabled">DISABLED</span>
@@ -227,12 +227,19 @@
 <!-- ===================================================================== -->
 @if (csvOpen()) {
   <!-- Backdrop click intentionally not bound — see change-password modal. -->
-  <div class="modal-backdrop show">
+  
+   <div class="modal-backdrop show">
     <div class="modal">
-      <h2>Import Writing Topics from CSV</h2>
-      <p class="subtitle">Upload multiple essay prompts at once.</p>
-
+      <div class="modal-header">
+        <h2>Import Writing Topics from CSV</h2>
+        <p class="subtitle">Upload multiple essay prompts at once.</p>
+        <a class="close-btn" (click)="closeCsvModal()" aria-label="Close">
+          ✕
+        </a>
+      </div> 
+ 
       @if (!csvResult()) {
+         <div class="modal-body"> 
         <div class="csv-help">
           <strong>Required columns</strong>:
           <ol>
@@ -263,6 +270,7 @@
             @if (csvSubmitting()) { Uploading… }
             @else { Upload }
           </button>
+        </div>
         </div>
       } @else {
         <div class="csv-result">

@@ -1,4 +1,4 @@
-import { Component, Input, Output, signal, EventEmitter, OnInit, inject } from '@angular/core';
+import { Component, Input, Output, signal, EventEmitter, OnInit, inject, Renderer2 } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { InviteCreateRequest, InviteCreateResponse, ResultRow, SupportedTimezone } from '../../../core/models/hr.models';
 import { FormsModule } from '@angular/forms';
@@ -18,7 +18,8 @@ export class Sidebar implements OnInit{
    @Input() showDashboard: boolean = true;  // Add this
   private api = inject(ApiService); 
   private router = inject(Router);
- 
+  private renderer = inject(Renderer2);
+
   @Input() showManageQuestions: boolean = true;
   @Input() showInviteCandidate: boolean = true;
   
@@ -133,6 +134,7 @@ export class Sidebar implements OnInit{
 
    // -------- Invite modal --------
   openInvite(): void {
+    this.renderer.addClass(document.body, 'invite-open');
     this.invName = '';
     this.invEmail = '';
     this.invDifficulty = 'intermediate';
@@ -186,6 +188,7 @@ export class Sidebar implements OnInit{
   }
 
    closeInvite(): void {
+    this.renderer.removeClass(document.body, 'invite-open');
     this.inviteOpen.set(false);
   }
 

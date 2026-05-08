@@ -1,5 +1,5 @@
 <!-- <app-topnav
-  title="HR Portal  —  English Proficiency Results"
+  title="HR Portal  —  FluentiQ"
   [meta]="hrEmail()"
   variant="hr"
   [showLogout]="true"
@@ -109,7 +109,8 @@
   </div>
  
   <!-- Results table -->
-  <table class="results">
+   <div class="table-wrap">
+  <table class="results result-table restable">
     <thead>
       <tr>
         <th>Candidate</th>
@@ -145,10 +146,9 @@
         @for (r of pagedResults(); track r.invitation_id) {
           <tr (click)="onRowClick(r)" style="cursor: pointer;">
             <td>
-              <strong>{{ r.candidate_name }}</strong>
+              <strong>{{ r.candidate_name }}</strong> <br>
               <span
-                [title]="sectionsTooltip(r)"
-                style="display:inline-block; margin-left:8px; padding:2px 6px; font-size:10px; font-weight:600; letter-spacing:1px; color:#475569; background:#f1f5f9; border:1px solid #cbd5e1; border-radius:10px; vertical-align:middle;">
+                [title]="sectionsTooltip(r)" class="rws" > 
                 {{ sectionsChip(r) }}
               </span>
             </td>
@@ -171,7 +171,7 @@
               @if (r.rating) {
                 <span class="badge {{ ratingClass(r.rating) }}">{{ ratingLabel(r.rating) }}</span>
               } @else {
-                <span class="text-muted">pending</span>
+                <span class="badge pending">pending</span>
               }
             </td>
             <td class="col-report" (click)="$event.stopPropagation()">
@@ -216,6 +216,7 @@
       }
     </tbody>
   </table>
+  </div>
  
   <!-- Pagination controls -->
   @if (!loading() && filteredResults().length > 0 && totalPages() > 1) {
@@ -448,6 +449,7 @@
         </div>
          </div>
       } @else {
+        <div class="modal-body">
         <div class="invite-result">
           <!-- Email-failed banner. Shown ONLY when the modal stayed open
                because email send failed (success closes the modal entirely).
@@ -501,6 +503,7 @@
         <div class="flex-row mt-4">
           <span class="spacer"></span>
           <button type="button" class="btn btn-primary" (click)="closeInvite()">Close</button>
+        </div>
         </div>
       }
     </div>

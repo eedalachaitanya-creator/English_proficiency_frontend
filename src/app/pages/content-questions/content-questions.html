@@ -62,7 +62,7 @@
   }
 
   <!-- Questions table -->
-  <table class="cq-table">
+  <table class="cq-table restable">
     <thead>
       <tr>
         <th style="width: 80px;">Type</th>
@@ -93,7 +93,7 @@
           <tr [class.row-disabled]="q.disabled_at">
             <td><span class="badge type-{{ q.question_type }}">{{ typeLabel(q.question_type) }}</span></td>
             <td>{{ q.difficulty }}</td>
-            <td>
+            <td title="{{ q.stem }}">
               {{ truncate(q.stem, 100) }}
               @if (q.disabled_at) {
                 <span class="badge-disabled">DISABLED</span>
@@ -102,9 +102,9 @@
             <td class="text-muted" style="font-size: 13px;">{{ passageTitleFor(q.passage_id) }}</td>
             <td><strong>{{ letter(q.correct_answer) }}</strong></td>
             <td>
-              <button class="btn-link" (click)="onView(q)">View</button>
+              <button class="btn-link" (click)="onView(q);  $event.stopPropagation()" >View</button>
               <span class="action-sep">|</span>
-              <button class="btn-link" (click)="openEditForm(q)">Edit</button>
+              <button class="btn-link" (click)="openEditForm(q); $event.stopPropagation()">Edit</button>
               <span class="action-sep">|</span>
               <button
                 type="button"
@@ -303,14 +303,20 @@
 <!-- ===================================================================== -->
 @if (csvOpen()) {
   <!-- Backdrop click intentionally not bound — see change-password modal. -->
-  <div class="modal-backdrop show">
+  
+    <div class="modal-backdrop show">
     <div class="modal">
-      <h2>Import Questions from CSV</h2>
-      <p class="subtitle">
-        Upload a CSV file with grammar, vocabulary, or fill-in-the-blank questions.
-      </p>
+      <div class="modal-header">
+        <h2>Import Questions from CSV</h2>
+        <p class="subtitle">Upload a CSV file with grammar, vocabulary, or fill-in-the-blank questions.</p>
+        <a class="close-btn" (click)="closeCsvModal()" aria-label="Close">
+          ✕
+        </a>
+      </div> 
+ 
 
       @if (!csvResult()) {
+        <div class="modal-body"> 
         <div class="csv-help">
           <strong>Required columns</strong> (in this order):
           <ol>
@@ -345,6 +351,7 @@
             @if (csvSubmitting()) { Uploading… }
             @else { Upload }
           </button>
+        </div>
         </div>
       } @else {
         <div class="csv-result">

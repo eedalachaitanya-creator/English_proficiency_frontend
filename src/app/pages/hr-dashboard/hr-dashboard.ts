@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, Renderer2  } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -53,6 +53,9 @@ export class HrDashboard implements OnInit {
   private auth = inject(AuthService);
   private router = inject(Router);
 
+  constructor(
+  private renderer: Renderer2
+) {}
  
 
 resultsCount = this.api.resultsCount;
@@ -299,6 +302,7 @@ resultsCount = this.api.resultsCount;
 
   // -------- Invite modal --------
   openInvite(): void {
+     this.renderer.addClass(document.body, 'invite-open');
     this.invName = '';
     this.invEmail = '';
     this.invDifficulty = 'intermediate';
@@ -362,6 +366,7 @@ resultsCount = this.api.resultsCount;
   }
 
   closeInvite(): void {
+     this.renderer.removeClass(document.body, 'invite-open');
     this.inviteOpen.set(false);
   }
 

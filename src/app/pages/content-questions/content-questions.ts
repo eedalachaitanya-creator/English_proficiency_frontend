@@ -215,6 +215,8 @@ export class ContentQuestions implements OnInit {
   }
 
   openEditForm(q: QuestionOut): void {
+     this.viewModalOpen.set(false);
+
     this.formMode.set('edit');
     this.editingId.set(q.id);
     this.formType.set(q.question_type);
@@ -321,8 +323,13 @@ export class ContentQuestions implements OnInit {
 
   /** Open the View modal for the given question. */
   onView(q: QuestionOut): void {
+    this.viewModalOpen.set(false);
+    this.formOpen.set(false);
+   setTimeout(() => {
     this.viewModalData.set(q);
     this.viewModalOpen.set(true);
+  }, 0); 
+    
   }
 
   /** Close the View modal. Wired to the modal's (closed) emitter. */

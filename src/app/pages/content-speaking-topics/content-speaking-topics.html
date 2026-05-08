@@ -42,7 +42,7 @@
     </div>
   }
 
-  <table class="cs-table">
+  <table class="cs-table restable">
     <thead>
       <tr>
         <th>Prompt</th>
@@ -69,7 +69,7 @@
       } @else {
         @for (t of pagedTopics(); track trackById($index, t)) {
           <tr [class.row-disabled]="t.disabled_at">
-            <td>
+            <td title="{{ t.prompt_text }}">
               {{ truncate(t.prompt_text, 150) }}
               @if (t.disabled_at) {
                 <span class="badge-disabled">DISABLED</span>

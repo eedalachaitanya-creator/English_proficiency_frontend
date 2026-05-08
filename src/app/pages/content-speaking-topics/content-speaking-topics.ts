@@ -138,6 +138,8 @@ export class ContentSpeakingTopics implements OnInit {
   }
 
   openEditForm(t: SpeakingTopicOut): void {
+    this.viewModalOpen.set(false);
+
     this.formMode.set('edit');
     this.editingId.set(t.id);
     this.formPromptText.set(t.prompt_text);
@@ -201,8 +203,12 @@ export class ContentSpeakingTopics implements OnInit {
   }
   /** Open the View modal for the given speaking topic. */
   onView(t: SpeakingTopicOut): void {
+     this.viewModalOpen.set(false);
+    this.formOpen.set(false);
+    setTimeout(() => {
     this.viewModalData.set(t);
     this.viewModalOpen.set(true);
+     }, 0); 
   }
 
   /** Close the View modal. Wired to the modal's (closed) emitter. */

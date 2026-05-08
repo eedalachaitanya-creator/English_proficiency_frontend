@@ -7,9 +7,10 @@ a { color: var(--navy); text-decoration: none; }
 a:hover { color: var(--orange); }
 .topnav { background: var(--navy); color: var(--white); padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-sm); }
 .topnav .brand { font-size: 18px; font-weight: bold; letter-spacing: 0.3px; }
-.topnav .meta { font-size: 12px; opacity: 0.95; }
+.topnav .meta { font-size: 12px; opacity: 1; }
 .topnav.hr { background: linear-gradient(90deg, var(--navy) 0%, var(--navy-light) 100%); }
-.page { max-width: 1200px; margin: 0 auto; padding: 32px; }
+/* .page { max-width: 1200px; margin: 0 auto; padding: 32px; } */
+.page { max-width: 100%; margin: 0 auto; padding: 32px; }
 .page-narrow { max-width: 520px; margin: 0 auto; padding: 48px 24px;     min-height: calc(100vh - 111px); }
 .card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; box-shadow: var(--shadow-sm); }
 .card-header { background: var(--navy); color: var(--white); padding: 14px 20px; font-size: 14px; font-weight: bold; letter-spacing: 0.5px; border-radius: var(--radius) var(--radius) 0 0; margin: -28px -28px 20px -28px; }
@@ -92,6 +93,7 @@ table.results tbody tr:last-child td { border-bottom: none; }
 .badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; color: var(--white); }
 .badge.reviewed { background: var(--green); }
 .badge.new { background: var(--orange); }
+.badge.pending { background: var(--orange-soft); }
 .badge.flagged { background: var(--red); }
 .notice { background: rgba(255, 165, 82, 0.15); border-left: 4px solid var(--orange); padding: 14px 18px; border-radius: var(--radius); margin: 16px 0; font-size: 13px; color: var(--navy); }
 .notice strong { color: var(--navy); }
@@ -127,6 +129,62 @@ table.results tbody tr:last-child td { border-bottom: none; }
  .logo{background: url(assets/images/fluentiq.png); display: inline-block ; height: 30px; width:120px; background-size: contain;}
  .logo_black{background: url(assets/images/fluentiq_black.png); display: inline-block ;     height: 57px;    width: 295px;}
 
- .left-section { width: 50%; background: url('assets/images/login-left.jpg') no-repeat center; background-size: cover; position: relative; color: white; filter: brightness(0.5); }
+ .left-section { width: 50%; background: url('assets/images/HR-login.png') no-repeat center; background-size: cover; position: relative; color: white; filter: brightness(0.8); }
  .right-section{background: url('assets/images/bg-graybg.png') no-repeat center !important;  }
  .content {width: 100%;}
+ .rws {display:inline-block; margin-top: 5px;   padding:2px 6px; font-size:10px; font-weight:600; letter-spacing:1px; color:#475569; background:#f1f5f9; border:1px solid #cbd5e1; border-radius:10px; vertical-align:middle;}
+
+ body.invite-open {  overflow: hidden;}
+ @media screen and (min-width: 991px) {
+    .table-wrap {overflow: auto;max-width: 100% !important;}
+    .result-table{min-width: 100% !important; width: 1250px;}
+}
+
+@media only screen and (max-width: 992px) {
+.table-wrap { overflow-x: hidden; }
+.restable thead { display: none; }
+.restable, .restable tbody, .restable tr, .restable td { display: block; width: 100%; }
+.restable tr { margin-bottom: 15px; border: 1px solid #ddd; border-radius: 10px; background: #fff; padding: 10px; }
+.restable td { position: relative; padding: 12px 10px 12px 42% !important; border-bottom: 1px solid #eee; text-align: left; white-space: normal; word-break: break-word; min-height: 48px; }
+.restable td:last-child { border-bottom: none; }
+.restable td::before { content: ""; position: absolute; left: 10px; top: 12px; width: 35%; font-weight: 600; color: #666; white-space: nowrap; }
+
+.result-table td:nth-of-type(1)::before { content: "Candidate"; }
+.result-table td:nth-of-type(2)::before { content: "Email"; }
+.result-table td:nth-of-type(3)::before { content: "Difficulty"; }
+.result-table td:nth-of-type(4)::before { content: "Submitted"; }
+.result-table td:nth-of-type(5)::before { content: "Reading"; }
+.result-table td:nth-of-type(6)::before { content: "Writing"; }
+.result-table td:nth-of-type(7)::before { content: "Speaking"; }
+.result-table td:nth-of-type(8)::before { content: "Total"; }
+.result-table td:nth-of-type(9)::before { content: "Rating"; }
+.result-table td:nth-of-type(10)::before { content: "Report"; }
+
+.cp-table td:nth-of-type(1)::before { content: "Title"; }
+.cp-table td:nth-of-type(2)::before { content: "Difficulty"; }
+.cp-table td:nth-of-type(3)::before { content: "Body Preview"; }
+.cp-table td:nth-of-type(4)::before { content: "Words"; }
+.cp-table td:nth-of-type(5)::before { content: "Topic"; }
+.cp-table td:nth-of-type(6)::before { content: "Actions"; }
+
+
+.cq-table td:nth-of-type(1)::before { content: "Type"; }
+.cq-table td:nth-of-type(2)::before { content: "Difficulty"; }
+.cq-table td:nth-of-type(3)::before { content: "Stem"; }
+.cq-table td:nth-of-type(4)::before { content: "Passage"; }
+.cq-table td:nth-of-type(5)::before { content: "Answer"; }
+.cq-table td:nth-of-type(6)::before { content: "Actions"; }
+
+.cw-table td:nth-of-type(1)::before { content: "Prompt"; }
+.cw-table td:nth-of-type(2)::before { content: "Difficulty"; }
+.cw-table td:nth-of-type(3)::before { content: "Word Range"; }
+.cw-table td:nth-of-type(4)::before { content: "Category"; }
+.cw-table td:nth-of-type(5)::before { content: "Actions"; } 
+
+.cs-table td:nth-of-type(1)::before { content: "Prompt"; }
+.cs-table td:nth-of-type(2)::before { content: "Difficulty"; } 
+.cs-table td:nth-of-type(3)::before { content: "Category"; }
+.cs-table td:nth-of-type(4)::before { content: "Actions"; } 
+
+
+}
