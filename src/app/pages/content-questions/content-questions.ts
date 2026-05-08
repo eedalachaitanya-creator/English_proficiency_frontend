@@ -18,6 +18,7 @@ import { Footer } from '../../shared/components/footer/footer';
 import { AccountMenu } from '../../shared/components/account-menu/account-menu';
 import { Sidebar } from '../../shared/components/sidebar/sidebar';
 import { ViewContentModal, ViewField } from '../../shared/components/view-content-modal/view-content-modal.component';
+import { downloadCsvTemplate, stripSampleRows } from '../../core/utils/csv-template';
 
 import { deleteModalService } from '../../core/services/deletemodal.service';
 
@@ -63,7 +64,7 @@ export class ContentQuestions implements OnInit {
     { key: 'difficulty', label: 'Difficulty', render: 'badge' },
     { key: 'stem', label: 'Question', render: 'longtext' },
     { key: 'options', label: 'Options', render: 'list' },
-    { key: 'correct_answer', label: 'Correct Option (0-indexed)', render: 'text' },
+    { key: 'correct_answer_display', label: 'Correct Option', render: 'text' },
     { key: 'passage_id', label: 'Passage ID', render: 'text' },
   ];
   loadError = signal('');
@@ -325,11 +326,17 @@ export class ContentQuestions implements OnInit {
   onView(q: QuestionOut): void {
     this.viewModalOpen.set(false);
     this.formOpen.set(false);
-   setTimeout(() => {
-    this.viewModalData.set(q);
-    this.viewModalOpen.set(true);
-  }, 0); 
-    
+    // Build a 1-indexed display string for the correct option so HR sees
+    // "Option 3" instead of the raw 0-indexed integer (2). The underlying
+    // record's `correct_answer` stays 0-indexed for API/storage parity.
+    const augmented = {
+      ...q,
+      correct_answer_display: `Option ${q.correct_answer + 1}`,
+    } as unknown as QuestionOut;
+    setTimeout(() => {
+      this.viewModalData.set(augmented);
+      this.viewModalOpen.set(true);
+    }, 0);
   }
 
   /** Close the View modal. Wired to the modal's (closed) emitter. */
@@ -383,6 +390,32 @@ export class ContentQuestions implements OnInit {
     this.csvOpen.set(true);
   }
 
+  downloadTemplate(): void {
+    downloadCsvTemplate(
+      [
+        'question_type',
+        'difficulty',
+        'stem',
+        'option_a',
+        'option_b',
+        'option_c',
+        'option_d',
+        'correct_answer',
+      ],
+      'mcq-questions-template.csv',
+      [
+        'grammar',
+        'intermediate',
+        'Choose the correct form: She _____ to the meeting yesterday.',
+        'go',
+        'goes',
+        'went',
+        'going',
+        'C',
+      ],
+    );
+  }
+
   closeCsvModal(): void {
     if (this.csvSubmitting()) return;
     this.csvOpen.set(false);
@@ -396,7 +429,7 @@ export class ContentQuestions implements OnInit {
     this.csvResult.set(null);
   }
 
-  submitCsv(): void {
+  async submitCsv(): Promise<void> {
     const file = this.csvFile();
     if (!file) {
       this.csvError.set('Choose a CSV file first.');
@@ -405,7 +438,10 @@ export class ContentQuestions implements OnInit {
     this.csvSubmitting.set(true);
     this.csvError.set('');
 
-    this.contentSvc.bulkImportQuestions(file).subscribe({
+    // Strip the canned [SAMPLE] rows so they never reach the database.
+    const { file: cleanedFile } = await stripSampleRows(file);
+
+    this.contentSvc.bulkImportQuestions(cleanedFile).subscribe({
       next: (result) => {
         this.csvResult.set(result);
         this.csvSubmitting.set(false);

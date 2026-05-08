@@ -17,6 +17,7 @@ import { AccountMenu } from '../../shared/components/account-menu/account-menu';
 import { Sidebar } from '../../shared/components/sidebar/sidebar';
 import { deleteModalService } from '../../core/services/deletemodal.service';
 import { ViewContentModal, ViewField } from '../../shared/components/view-content-modal/view-content-modal.component';
+import { downloadCsvTemplate, stripSampleRows } from '../../core/utils/csv-template';
 /**
  * Writing topics management — list, create, edit, delete, bulk-import.
  * Each topic is an essay prompt with a min/max word range.
@@ -297,6 +298,20 @@ export class ContentWritingTopics implements OnInit {
     this.csvOpen.set(true);
   }
 
+  downloadTemplate(): void {
+    downloadCsvTemplate(
+      ['prompt_text', 'difficulty', 'min_words', 'max_words', 'category'],
+      'writing-topics-template.csv',
+      [
+        'Describe a challenging project you led at work and what you learned from it.',
+        'intermediate',
+        '200',
+        '300',
+        'professional',
+      ],
+    );
+  }
+
   closeCsvModal(): void {
     if (this.csvSubmitting()) return;
     this.csvOpen.set(false);
@@ -310,13 +325,16 @@ export class ContentWritingTopics implements OnInit {
     this.csvResult.set(null);
   }
 
-  submitCsv(): void {
+  async submitCsv(): Promise<void> {
     const file = this.csvFile();
     if (!file) { this.csvError.set('Choose a CSV file first.'); return; }
     this.csvSubmitting.set(true);
     this.csvError.set('');
 
-    this.contentSvc.bulkImportWritingTopics(file).subscribe({
+    // Strip the canned [SAMPLE] rows so they never reach the database.
+    const { file: cleanedFile } = await stripSampleRows(file);
+
+    this.contentSvc.bulkImportWritingTopics(cleanedFile).subscribe({
       next: (result) => {
         this.csvResult.set(result);
         this.csvSubmitting.set(false);

@@ -17,6 +17,7 @@ import { AccountMenu } from '../../shared/components/account-menu/account-menu';
 import { Sidebar } from '../../shared/components/sidebar/sidebar';
 import { deleteModalService } from '../../core/services/deletemodal.service';
 import { ViewContentModal, ViewField } from '../../shared/components/view-content-modal/view-content-modal.component';
+import { downloadCsvTemplate, stripSampleRows } from '../../core/utils/csv-template';
 
 /**
  * Reading passages management — list, create, edit, delete, bulk-import.
@@ -311,6 +312,24 @@ export class ContentPassages implements OnInit {
     this.csvOpen.set(true);
   }
 
+  downloadTemplate(): void {
+    downloadCsvTemplate(
+      ['title', 'body', 'difficulty', 'topic'],
+      'reading-passages-template.csv',
+      [
+        'The Rise of Remote Work',
+        'Remote work has transformed how companies operate in the modern era. ' +
+        'Many organizations now allow employees to work from home or other ' +
+        'flexible locations, which has reshaped office culture, hiring ' +
+        'practices, and team communication. While the shift offers benefits ' +
+        'like reduced commuting time and access to a wider talent pool, it ' +
+        'has also introduced challenges around collaboration and management.',
+        'intermediate',
+        'workplace',
+      ],
+    );
+  }
+
   closeCsvModal(): void {
     if (this.csvSubmitting()) return;
     this.csvOpen.set(false);
@@ -324,13 +343,18 @@ export class ContentPassages implements OnInit {
     this.csvResult.set(null);
   }
 
-  submitCsv(): void {
+  async submitCsv(): Promise<void> {
     const file = this.csvFile();
     if (!file) { this.csvError.set('Choose a CSV file first.'); return; }
     this.csvSubmitting.set(true);
     this.csvError.set('');
 
-    this.contentSvc.bulkImportPassages(file).subscribe({
+    // Strip the canned [SAMPLE] rows from the downloaded template before
+    // upload so they never reach the database, regardless of whether HR
+    // remembered to delete them.
+    const { file: cleanedFile } = await stripSampleRows(file);
+
+    this.contentSvc.bulkImportPassages(cleanedFile).subscribe({
       next: (result) => {
         this.csvResult.set(result);
         this.csvSubmitting.set(false);

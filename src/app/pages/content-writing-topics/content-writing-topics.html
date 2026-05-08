@@ -249,6 +249,16 @@
             <li><code>max_words</code> — maximum essay length (≤ 1000, must be > min)</li>
             <li><code>category</code> — short tag like "professional", or leave blank</li>
           </ol>
+          <p class="csv-template-link">
+            <button type="button" class="btn-link" (click)="downloadTemplate()">
+              📄 Download sample template
+            </button>
+          </p>
+          <small class="text-muted">
+            The template includes one example row prefixed with
+            <code>[SAMPLE]</code>. It is automatically skipped on upload —
+            keep it for reference or delete it before saving.
+          </small>
         </div>
 
         <div class="field">

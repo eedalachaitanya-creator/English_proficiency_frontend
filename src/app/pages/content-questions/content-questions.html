@@ -330,6 +330,16 @@
             Reading comprehension questions are not supported in CSV import (they need to be linked to a passage).
             Use the <em>+ NEW QUESTION</em> form for those.
           </small>
+          <p class="csv-template-link">
+            <button type="button" class="btn-link" (click)="downloadTemplate()">
+              📄 Download sample template
+            </button>
+          </p>
+          <small class="text-muted">
+            The template includes one example row prefixed with
+            <code>[SAMPLE]</code>. It is automatically skipped on upload —
+            keep it for reference or delete it before saving.
+          </small>
         </div>
 
         <div class="field">

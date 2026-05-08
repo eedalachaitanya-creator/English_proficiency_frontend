@@ -259,6 +259,16 @@
             For passages with line breaks in the body, wrap the body in double quotes
             in your CSV. Excel and Google Sheets do this automatically when you export.
           </small>
+          <p class="csv-template-link">
+            <button type="button" class="btn-link" (click)="downloadTemplate()">
+              📄 Download sample template
+            </button>
+          </p>
+          <small class="text-muted">
+            The template includes one example row prefixed with
+            <code>[SAMPLE]</code>. It is automatically skipped on upload —
+            keep it for reference or delete it before saving.
+          </small>
         </div>
 
         <div class="field">
