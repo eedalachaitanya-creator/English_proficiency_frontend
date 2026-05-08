@@ -150,8 +150,34 @@ export class Writing implements OnInit, OnDestroy {
         );
       })
     );
+    // Resize-based violations (Gemini sidebar / DevTools / sidebar extension).
+    // Same warning + terminate pattern as tab-switch but independent counter.
     this.subs.add(
-      this.tracker.onTerminate().subscribe(() => {
+      this.tracker.onFirstResizeWarning().subscribe((p) => {
+        this.modal.alert(
+          `We detected your browser window narrowed by ${p.pixelsLost} pixels — ` +
+          `this happens when a side panel (like Chrome's Gemini, DevTools, or a ` +
+          `browser extension) opens.\n\n` +
+          `This incident has been logged and will be visible to your HR reviewer. ` +
+          `Please close any side panels and use the full browser width for the test.`,
+          { title: 'Window narrowing detected' }
+        );
+      })
+    );
+    this.subs.add(
+      this.tracker.onFinalResizeWarning().subscribe((p) => {
+        this.modal.alert(
+          `Final warning.\n\n` +
+          `Your window has been narrowed ${p.count} times. One more narrowing ` +
+          `event will automatically end your test and submit whatever you've ` +
+          `completed so far.\n\nClose any side panels (Gemini, DevTools, ` +
+          `extensions) before proceeding.`,
+          { title: '⚠ FINAL WARNING' }
+        );
+      })
+    );
+    this.subs.add(
+      this.tracker.onResizeTerminate().subscribe(() => {
         if (this.countdown) {
           this.countdown.stop();
           this.countdown = null;
@@ -159,8 +185,6 @@ export class Writing implements OnInit, OnDestroy {
         this.forceSubmit.terminateAndSubmit('tab_switch_termination');
       })
     );
-
-    window.addEventListener('beforeunload', this.beforeUnloadHandler);
   }
 
   ngOnDestroy(): void {

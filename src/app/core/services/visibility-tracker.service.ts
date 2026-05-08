@@ -19,6 +19,12 @@ interface WarningPayload {
   count: number;
 }
 
+interface ResizeWarningPayload {
+  count: number;
+  /** How many pixels of width were lost when the resize fired. */
+  pixelsLost: number;
+}
+
 /**
  * Visibility tracker — Angular port of frontend/js/visibility-tracker.js.
  *
@@ -45,6 +51,21 @@ export class VisibilityTrackerService {
    */
   private readonly MAX_SINGLE_SWITCH_SECONDS = 30;
   private readonly STORAGE_KEY = 'visibilityStats';
+  /** Independent storage for resize-tracking. Does NOT mix with tab-switch
+      counter. Frontend-only — backend treats both terminations identically
+      (Option 2 frontend-only — see chat decision 2026-05-08). */
+  private readonly RESIZE_STORAGE_KEY = 'resizeStats';
+  /** How many pixels of width loss to count as a "narrowing event."
+      Tuned for typical Chrome side panel (~400px) without firing on
+      legitimate window drag/zoom. */
+  private readonly RESIZE_NARROW_THRESHOLD_PX = 200;
+  /** Captured at start() so we know what "full width" looked like. */
+  private baselineWidth = 0;
+  /** setTimeout that re-captures baseline once the user stops resizing,
+      so legitimate slow drags don't pile up false positives. */
+  private resizeDebounceId: ReturnType<typeof setTimeout> | null = null;
+  private boundResizeHandler: (() => void) | null = null;
+  private resizeTerminated = false;
 
   private hiddenSince: number | null = null;
   /** setTimeout id for the 30-second long-away termination; null when not pending. */
@@ -60,6 +81,10 @@ export class VisibilityTrackerService {
   private finalWarning$ = new Subject<WarningPayload>();
   private terminate$ = new Subject<TabSwitchStats>();
 
+  private firstResizeWarning$ = new Subject<ResizeWarningPayload>();
+  private finalResizeWarning$ = new Subject<ResizeWarningPayload>();
+  private resizeTerminate$ = new Subject<TabSwitchStats>();
+
   /**
    * Begin listening for visibility changes. Idempotent — safe to call from
    * each test-page's ngOnInit, even if the previous page already started it.
@@ -73,6 +98,13 @@ export class VisibilityTrackerService {
     this.boundPagehide = () => this.onPageHide();
     document.addEventListener('visibilitychange', this.boundHandler);
     window.addEventListener('pagehide', this.boundPagehide);
+
+    // Capture baseline before any sidebar / DevTools opens. Loaded count
+    // survives navigation between test sections via sessionStorage.
+    this.baselineWidth = window.innerWidth;
+    this.boundResizeHandler = () => this.onResize();
+    window.addEventListener('resize', this.boundResizeHandler);
+
     this.listening = true;
   }
 
@@ -85,6 +117,14 @@ export class VisibilityTrackerService {
     if (this.boundPagehide) {
       window.removeEventListener('pagehide', this.boundPagehide);
       this.boundPagehide = null;
+    }
+    if (this.boundResizeHandler) {
+      window.removeEventListener('resize', this.boundResizeHandler);
+      this.boundResizeHandler = null;
+    }
+    if (this.resizeDebounceId !== null) {
+      clearTimeout(this.resizeDebounceId);
+      this.resizeDebounceId = null;
     }
     this.clearAwayTimeout();
     this.listening = false;
@@ -99,9 +139,11 @@ export class VisibilityTrackerService {
     this.hiddenSince = null;
     this.clearAwayTimeout();
     this.terminated = false;
+    this.resizeTerminated = false;
     this.count.set(0);
     try {
       sessionStorage.removeItem(this.STORAGE_KEY);
+      sessionStorage.removeItem(this.RESIZE_STORAGE_KEY);
     } catch {
       // sessionStorage disabled — silently ignore
     }
@@ -115,6 +157,15 @@ export class VisibilityTrackerService {
   }
   onTerminate(): Observable<TabSwitchStats> {
     return this.terminate$.asObservable();
+  }
+  onFirstResizeWarning(): Observable<ResizeWarningPayload> {
+    return this.firstResizeWarning$.asObservable();
+  }
+  onFinalResizeWarning(): Observable<ResizeWarningPayload> {
+    return this.finalResizeWarning$.asObservable();
+  }
+  onResizeTerminate(): Observable<TabSwitchStats> {
+    return this.resizeTerminate$.asObservable();
   }
 
   private onVisibilityChange(): void {
@@ -207,6 +258,80 @@ export class VisibilityTrackerService {
   private saveStats(stats: TabSwitchStats): void {
     try {
       sessionStorage.setItem(this.STORAGE_KEY, JSON.stringify(stats));
+    } catch {
+      // sessionStorage full or disabled — silently ignore
+    }
+  }
+  private onResize(): void {
+    if (this.resizeTerminated) return;
+
+    const currentWidth = window.innerWidth;
+    const lostWidth = this.baselineWidth - currentWidth;
+
+    // Significant narrowing — Gemini sidebar, DevTools, or sidebar-style extension.
+    if (lostWidth >= this.RESIZE_NARROW_THRESHOLD_PX) {
+      const stats = this.loadResizeStats();
+      stats.count += 1;
+      this.saveResizeStats(stats);
+
+      if (stats.count >= this.MAX_STRIKES) {
+        this.resizeTerminated = true;
+        this.zone.run(() => this.resizeTerminate$.next(stats));
+        return;
+      }
+
+      const payload: ResizeWarningPayload = {
+        count: stats.count,
+        pixelsLost: lostWidth,
+      };
+      if (stats.count === this.MAX_STRIKES - 1) {
+        this.zone.run(() => this.finalResizeWarning$.next(payload));
+      } else {
+        this.zone.run(() => this.firstResizeWarning$.next(payload));
+      }
+
+      // Reset baseline so the SAME open sidebar doesn't keep firing on
+      // small width adjustments while it stays open.
+      this.baselineWidth = currentWidth;
+      return;
+    }
+
+    // Window grew (sidebar closed, or candidate maximized). Re-capture
+    // baseline so the next narrowing is measured from this new baseline.
+    if (lostWidth < -50) {
+      this.baselineWidth = currentWidth;
+      return;
+    }
+
+    // Small drift (within +/-50px). Debounce — re-capture baseline if user
+    // stops resizing for 500ms, so legitimate window drags don't pile up
+    // and trigger a false positive on the next sidebar open.
+    if (this.resizeDebounceId !== null) {
+      clearTimeout(this.resizeDebounceId);
+    }
+    this.resizeDebounceId = setTimeout(() => {
+      this.baselineWidth = window.innerWidth;
+      this.resizeDebounceId = null;
+    }, 500);
+  }
+
+  private loadResizeStats(): TabSwitchStats {
+    try {
+      const raw = sessionStorage.getItem(this.RESIZE_STORAGE_KEY);
+      if (!raw) return { count: 0, totalSeconds: 0 };
+      const parsed = JSON.parse(raw);
+      return {
+        count: Number.isFinite(parsed.count) ? parsed.count : 0,
+        totalSeconds: 0,  // not tracked for resize
+      };
+    } catch {
+      return { count: 0, totalSeconds: 0 };
+    }
+  }
+
+  private saveResizeStats(stats: TabSwitchStats): void {
+    try {
+      sessionStorage.setItem(this.RESIZE_STORAGE_KEY, JSON.stringify(stats));
     } catch {
       // sessionStorage full or disabled — silently ignore
     }
