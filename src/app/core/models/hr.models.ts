@@ -246,6 +246,9 @@ export interface ResultRow {
   include_reading: boolean;
   include_writing: boolean;
   include_speaking: boolean;
+  /** Window expiry — used to compute "Not Attended" status for
+      unsubmitted invitations whose window has passed. */
+  expires_at: string;
 }
 
 /** A single audio recording — info HR needs to play it back. */

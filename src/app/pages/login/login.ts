@@ -43,12 +43,14 @@ export class Login implements OnInit {
   hrPassword = '';
   hrError = signal('');
   hrSubmitting = signal(false);
+  showHrPassword = signal(false);
 
   // Admin card state
   adminEmail = '';
   adminPassword = '';
   adminError = signal('');
   adminSubmitting = signal(false);
+  showAdminPassword = signal(false);
 
   // Forgot-password modal — works for both HR and admin tabs. The
   // modal reads [role]="activeTab" from the template and posts to the

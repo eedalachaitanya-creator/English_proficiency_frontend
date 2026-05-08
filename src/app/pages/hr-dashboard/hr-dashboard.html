@@ -170,6 +170,8 @@
             <td>
               @if (r.rating) {
                 <span class="badge {{ ratingClass(r.rating) }}">{{ ratingLabel(r.rating) }}</span>
+              } @else if (isNotAttended(r)) {
+                <span class="text-muted not-attended">Not Attended</span>
               } @else {
                 <span class="badge pending">pending</span>
               }
@@ -288,7 +290,7 @@
       @if (!inviteResult()) {
         <div class="modal-body">
         <div class="field">
-          <label for="candName">Name</label>
+          <label for="candName">Name <span style="color: red;">*</span></label>
           <input
             type="text"
             id="candName"
@@ -298,7 +300,7 @@
         </div>
  
         <div class="field">
-          <label for="candEmail">Email</label>
+          <label for="candEmail">Email <span style="color: red;">*</span></label>
           <input
             type="email"
             id="candEmail"
@@ -308,7 +310,7 @@
         </div>
  
         <div class="field">
-          <label>Difficulty</label>
+          <label>Difficulty <span style="color: red;">*</span></label>
           <div class="difficulty-radios" style="display:flex; gap:24px; align-items:center;">
             <label style="display:inline-flex; gap:8px; align-items:center; margin:0;">
               <input

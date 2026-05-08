@@ -46,11 +46,16 @@
 
         <div class="input-group">
           <i class="fa fa-lock"></i>
-          <input type="password"
+          <input [type]="showAdminPassword() ? 'text' : 'password'"
             placeholder="••••••••"
             [(ngModel)]="adminPassword"
             name="adminPassword"
             required>
+          <button type="button" class="password-toggle"
+            (click)="showAdminPassword.set(!showAdminPassword())"
+            [attr.aria-label]="showAdminPassword() ? 'Hide password' : 'Show password'">
+            <i class="fa" [class.fa-eye]="!showAdminPassword()" [class.fa-eye-slash]="showAdminPassword()"></i>
+          </button>
         </div>
 
         <div class="error" *ngIf="adminError()">
@@ -82,11 +87,16 @@
 
         <div class="input-group">
           <i class="fa fa-lock"></i>
-          <input type="password"
+          <input [type]="showHrPassword() ? 'text' : 'password'"
             placeholder="••••••••"
             [(ngModel)]="hrPassword"
             name="hrPassword"
             required>
+          <button type="button" class="password-toggle"
+            (click)="showHrPassword.set(!showHrPassword())"
+            [attr.aria-label]="showHrPassword() ? 'Hide password' : 'Show password'">
+            <i class="fa" [class.fa-eye]="!showHrPassword()" [class.fa-eye-slash]="showHrPassword()"></i>
+          </button>
         </div>
 
         <div class="error" *ngIf="hrError()">

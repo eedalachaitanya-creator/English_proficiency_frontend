@@ -151,7 +151,7 @@
   <div class="modal-body"> 
    
       <div class="field">
-        <label for="wprompt">Prompt Text</label>
+        <label for="wprompt">Prompt Text <span style="color:red">*</span></label>
         <textarea id="wprompt" rows="4"
                   [ngModel]="formPromptText()"
                   (ngModelChange)="formPromptText.set($event)"
@@ -159,7 +159,7 @@
       </div>
 
       <div class="field">
-        <label>Difficulty</label>
+        <label>Difficulty <span style="color: red;">*</span></label>
         <div class="radios">
           <label>
             <input type="radio" name="wdiff" value="intermediate"
@@ -178,13 +178,13 @@
 
       <div class="field-row">
         <div class="field">
-          <label for="wmin">Min Words</label>
+          <label for="wmin">Min Words <span style="color:red">*</span></label>
           <input type="number" id="wmin" min="50" max="1000"
                  [ngModel]="formMinWords()"
                  (ngModelChange)="formMinWords.set(+$event)">
         </div>
         <div class="field">
-          <label for="wmax">Max Words</label>
+          <label for="wmax">Max Words <span style="color:red">*</span></label>
           <input type="number" id="wmax" min="50" max="1000"
                  [ngModel]="formMaxWords()"
                  (ngModelChange)="formMaxWords.set(+$event)">

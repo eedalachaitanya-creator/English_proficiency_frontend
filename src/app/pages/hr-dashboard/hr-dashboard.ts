@@ -550,6 +550,13 @@ resultsCount = this.api.resultsCount;
     return '';
   }
 
+  isNotAttended(row: ResultRow): boolean {
+  if (row.rating) return false;          // has rating → already attended/scored
+  if (row.submitted_at) return false;    // submitted → not "not attended"
+  if (!row.expires_at) return false;     // safety: missing data → don't claim "not attended"
+  return new Date(row.expires_at) < new Date();
+}
+
   formatSubmittedDate(submitted_at: string | null): string {
     return formatBackendDate(submitted_at);
   }
