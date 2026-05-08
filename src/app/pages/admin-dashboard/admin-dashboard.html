@@ -389,25 +389,39 @@
 
           <div class="field">
             <label for="newPassword">Password <span style="color:red">*</span></label>
-            <input
-              type="password"
-              id="newPassword"
-              name="newPassword"
-              placeholder="minimum 6 characters"
-              required
-              [(ngModel)]="newPassword"
-              [disabled]="createSubmitting()">
+            <div class="password-wrap">
+              <input
+                [type]="showNewPassword() ? 'text' : 'password'"
+                id="newPassword"
+                name="newPassword"
+                placeholder="minimum 6 characters"
+                required
+                [(ngModel)]="newPassword"
+                [disabled]="createSubmitting()">
+              <button type="button" class="password-toggle"
+                (click)="showNewPassword.set(!showNewPassword())"
+                [attr.aria-label]="showNewPassword() ? 'Hide password' : 'Show password'">
+                <i class="fa" [class.fa-eye]="!showNewPassword()" [class.fa-eye-slash]="showNewPassword()"></i>
+              </button>
+            </div>
           </div>
 
           <div class="field">
             <label for="newPasswordConfirm">Confirm password <span style="color:red">*</span></label>
-            <input
-              type="password"
-              id="newPasswordConfirm"
-              name="newPasswordConfirm"
-              required
-              [(ngModel)]="newPasswordConfirm"
-              [disabled]="createSubmitting()">
+            <div class="password-wrap">
+              <input
+                [type]="showNewPasswordConfirm() ? 'text' : 'password'"
+                id="newPasswordConfirm"
+                name="newPasswordConfirm"
+                required
+                [(ngModel)]="newPasswordConfirm"
+                [disabled]="createSubmitting()">
+              <button type="button" class="password-toggle"
+                (click)="showNewPasswordConfirm.set(!showNewPasswordConfirm())"
+                [attr.aria-label]="showNewPasswordConfirm() ? 'Hide password' : 'Show password'">
+                <i class="fa" [class.fa-eye]="!showNewPasswordConfirm()" [class.fa-eye-slash]="showNewPasswordConfirm()"></i>
+              </button>
+            </div>
           </div>
 
           <div class="field-error">

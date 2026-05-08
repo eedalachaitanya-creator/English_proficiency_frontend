@@ -101,6 +101,8 @@ export class AdminDashboard implements OnInit {
   newEmail = '';
   newPassword = '';
   newPasswordConfirm = '';
+  showNewPassword = signal(false);
+  showNewPasswordConfirm = signal(false);
   // Role the admin picked for the new account. HR is the common case so
   // it's the default. Switched via the pill toggle at the top of the
   // modal; backend defaults to 'hr' too as a safety net.
@@ -363,6 +365,8 @@ export class AdminDashboard implements OnInit {
     this.newEmail = '';
     this.newPassword = '';
     this.newPasswordConfirm = '';
+    this.showNewPassword.set(false);
+    this.showNewPasswordConfirm.set(false);
     this.newRole.set('hr');
     this.createError.set('');
     this.lastCreated.set(null);

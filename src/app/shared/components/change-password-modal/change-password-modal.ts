@@ -48,6 +48,10 @@ export class ChangePasswordModal implements OnDestroy {
   next = '';
   confirm = '';
 
+  showCurrent = signal(false);
+  showNext = signal(false);
+  showConfirm = signal(false);
+
   errorMessage = signal('');
   successMessage = signal('');
   submitting = signal(false);
