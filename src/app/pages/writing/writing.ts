@@ -185,6 +185,15 @@ export class Writing implements OnInit, OnDestroy {
         this.forceSubmit.terminateAndSubmit('tab_switch_termination');
       })
     );
+    this.subs.add(
+      this.tracker.onTerminate().subscribe(() => {
+        if (this.countdown) {
+          this.countdown.stop();
+          this.countdown = null;
+        }
+        this.forceSubmit.terminateAndSubmit('tab_switch_termination');
+      })
+    );
   }
 
   ngOnDestroy(): void {

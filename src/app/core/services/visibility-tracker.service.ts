@@ -40,7 +40,6 @@ interface ResizeWarningPayload {
 export class VisibilityTrackerService {
   private zone = inject(NgZone);
 
-  private readonly MIN_SWITCH_SECONDS = 2;
   private readonly MAX_STRIKES = 3;
   /**
    * If a single tab-switch lasts longer than this, terminate immediately
@@ -68,11 +67,15 @@ export class VisibilityTrackerService {
   private resizeTerminated = false;
 
   private hiddenSince: number | null = null;
+  /** Single source of truth for "candidate is currently away." Guarded so
+      that one physical switch which fires BOTH `visibilitychange` and
+      `window.blur` is recorded as one strike, not two. */
+  private isAway = false;
   /** setTimeout id for the 30-second long-away termination; null when not pending. */
   private awayTimeoutId: ReturnType<typeof setTimeout> | null = null;
   private terminated = false;
   private listening = false;
-  private boundHandler: (() => void) | null = null;
+  private boundAwayCheck: (() => void) | null = null;
   private boundPagehide: (() => void) | null = null;
 
   count = signal(0);
@@ -94,9 +97,18 @@ export class VisibilityTrackerService {
     const saved = this.loadStats();
     this.count.set(saved.count);
 
-    this.boundHandler = () => this.onVisibilityChange();
+    // Strict away-detection: the candidate is "away" whenever EITHER the
+    // tab is hidden (other tab in same window) OR the window has lost OS
+    // focus (Cmd+Tab / Alt+Tab to another app, undocked DevTools, another
+    // browser window). `visibilitychange` alone misses app-level switches
+    // on macOS — `blur`/`focus` cover that gap. The shared handler reads
+    // `document.hidden` and `document.hasFocus()` directly, so whichever
+    // event fires first wins and the other becomes a no-op via `isAway`.
+    this.boundAwayCheck = () => this.checkAway();
     this.boundPagehide = () => this.onPageHide();
-    document.addEventListener('visibilitychange', this.boundHandler);
+    document.addEventListener('visibilitychange', this.boundAwayCheck);
+    window.addEventListener('blur', this.boundAwayCheck);
+    window.addEventListener('focus', this.boundAwayCheck);
     window.addEventListener('pagehide', this.boundPagehide);
 
     // Capture baseline before any sidebar / DevTools opens. Loaded count
@@ -110,9 +122,11 @@ export class VisibilityTrackerService {
 
   stop(): void {
     if (!this.listening) return;
-    if (this.boundHandler) {
-      document.removeEventListener('visibilitychange', this.boundHandler);
-      this.boundHandler = null;
+    if (this.boundAwayCheck) {
+      document.removeEventListener('visibilitychange', this.boundAwayCheck);
+      window.removeEventListener('blur', this.boundAwayCheck);
+      window.removeEventListener('focus', this.boundAwayCheck);
+      this.boundAwayCheck = null;
     }
     if (this.boundPagehide) {
       window.removeEventListener('pagehide', this.boundPagehide);
@@ -137,6 +151,7 @@ export class VisibilityTrackerService {
   reset(): void {
     this.stop();
     this.hiddenSince = null;
+    this.isAway = false;
     this.clearAwayTimeout();
     this.terminated = false;
     this.resizeTerminated = false;
@@ -168,36 +183,61 @@ export class VisibilityTrackerService {
     return this.resizeTerminate$.asObservable();
   }
 
-  private onVisibilityChange(): void {
+  /**
+   * Unified handler for `visibilitychange`, `window.blur`, and
+   * `window.focus`. Decides "away" from current document/window state
+   * rather than trusting any single event, so a switch detected by ONE
+   * event but missed by ANOTHER is still caught — and a switch reported
+   * by BOTH is recorded once thanks to the `isAway` guard.
+   *
+   * Strict policy: every transition into "away" produces exactly one
+   * strike on return. There is NO minimum-duration grace window — a
+   * sub-second peek at another tab/app is flagged the same as a long
+   * absence. This is the explicit product requirement: tab-switching
+   * must be flagged each time.
+   */
+  private checkAway(): void {
     if (this.terminated) return;
-
-    if (document.hidden) {
-      this.hiddenSince = Date.now();
-      // Schedule a long-away termination — fires while the candidate is
-      // still on another tab / browser. Cleared if they return in time.
-      this.awayTimeoutId = setTimeout(() => {
-        this.awayTimeoutId = null;
-        if (this.terminated || this.hiddenSince === null) return;
-        const elapsedSec = Math.round((Date.now() - this.hiddenSince) / 1000);
-        const stats = this.loadStats();
-        stats.count += 1;
-        stats.totalSeconds += elapsedSec;
-        this.saveStats(stats);
-        this.count.set(stats.count);
-        this.terminated = true;
-        this.hiddenSince = null;
-        this.zone.run(() => this.terminate$.next(stats));
-      }, this.MAX_SINGLE_SWITCH_SECONDS * 1000);
-      return;
+    const away = document.hidden || !document.hasFocus();
+    if (away === this.isAway) return;
+    if (away) {
+      this.onAway();
+    } else {
+      this.onReturn();
     }
+  }
 
-    // Candidate returned. Cancel the pending long-away termination.
+  private onAway(): void {
+    this.isAway = true;
+    this.hiddenSince = Date.now();
+    // Schedule a long-away termination — fires while the candidate is
+    // still on another tab / browser. Cleared if they return in time.
+    this.awayTimeoutId = setTimeout(() => {
+      this.awayTimeoutId = null;
+      if (this.terminated || this.hiddenSince === null) return;
+      const elapsedSec = Math.round((Date.now() - this.hiddenSince) / 1000);
+      const stats = this.loadStats();
+      stats.count += 1;
+      stats.totalSeconds += elapsedSec;
+      this.saveStats(stats);
+      this.count.set(stats.count);
+      this.terminated = true;
+      this.hiddenSince = null;
+      this.isAway = false;
+      this.zone.run(() => this.terminate$.next(stats));
+    }, this.MAX_SINGLE_SWITCH_SECONDS * 1000);
+  }
+
+  private onReturn(): void {
+    this.isAway = false;
     this.clearAwayTimeout();
     if (this.hiddenSince === null) return;
     const elapsedMs = Date.now() - this.hiddenSince;
     this.hiddenSince = null;
-    const elapsedSec = Math.round(elapsedMs / 1000);
-    if (elapsedSec < this.MIN_SWITCH_SECONDS) return;
+    // Display elapsed seconds rounded UP to a minimum of 1, so a
+    // sub-second switch is reported as "1 second" in the warning text
+    // rather than "0 seconds." The strike itself counts unconditionally.
+    const elapsedSec = Math.max(1, Math.round(elapsedMs / 1000));
 
     const stats = this.loadStats();
     stats.count += 1;
@@ -231,14 +271,13 @@ export class VisibilityTrackerService {
 
   private onPageHide(): void {
     if (this.hiddenSince === null) return;
-    const elapsedSec = Math.round((Date.now() - this.hiddenSince) / 1000);
-    if (elapsedSec >= this.MIN_SWITCH_SECONDS) {
-      const stats = this.loadStats();
-      stats.count += 1;
-      stats.totalSeconds += elapsedSec;
-      this.saveStats(stats);
-    }
+    const elapsedSec = Math.max(1, Math.round((Date.now() - this.hiddenSince) / 1000));
+    const stats = this.loadStats();
+    stats.count += 1;
+    stats.totalSeconds += elapsedSec;
+    this.saveStats(stats);
     this.hiddenSince = null;
+    this.isAway = false;
   }
 
   private loadStats(): TabSwitchStats {

@@ -287,6 +287,11 @@ export class Speaking implements OnInit, OnDestroy, AfterViewInit {
         this.handleTerminate();
       })
     );
+    this.subs.add(
+      this.tracker.onTerminate().subscribe(() => {
+        this.handleTerminate();
+      })
+    );
   }
 
   ngAfterViewInit(): void { /* no-op */ }
