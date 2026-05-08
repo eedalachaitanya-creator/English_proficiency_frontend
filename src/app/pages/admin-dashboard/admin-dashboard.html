@@ -47,7 +47,7 @@
       {{ loadError() }}
     </div>
   } @else {
-    <table class="results">
+    <table class="results admin-table restable">
       <thead>
         <tr>
           <th style="width: 28px;"></th>
@@ -364,7 +364,7 @@
           </div>
 
           <div class="field">
-            <label for="newName">Name</label>
+            <label for="newName">Name <span style="color:red">*</span></label>
             <input
               type="text"
               id="newName"
@@ -376,7 +376,7 @@
           </div>
 
           <div class="field">
-            <label for="newEmail">Email</label>
+            <label for="newEmail">Email <span style="color:red">*</span></label>
             <input
               type="email"
               id="newEmail"
@@ -388,7 +388,7 @@
           </div>
 
           <div class="field">
-            <label for="newPassword">Password</label>
+            <label for="newPassword">Password <span style="color:red">*</span></label>
             <input
               type="password"
               id="newPassword"
@@ -400,7 +400,7 @@
           </div>
 
           <div class="field">
-            <label for="newPasswordConfirm">Confirm password</label>
+            <label for="newPasswordConfirm">Confirm password <span style="color:red">*</span></label>
             <input
               type="password"
               id="newPasswordConfirm"

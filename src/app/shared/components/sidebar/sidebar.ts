@@ -27,6 +27,29 @@ export class Sidebar implements OnInit{
 
   openMenu: string = 'questions';  // Changed from '' to 'questions'
 
+  sidebarOpen = signal(false);
+
+toggleSidebar(): void {
+  const isOpen = !this.sidebarOpen();
+
+  this.sidebarOpen.set(isOpen);
+
+  if (isOpen) {
+    this.renderer.addClass(document.body, 'sidebar-open-body');
+  } else {
+    this.renderer.removeClass(document.body, 'sidebar-open-body');
+  }
+}
+
+ngOnDestroy(): void {
+  this.renderer.removeClass(document.body, 'sidebar-open-body');
+}
+
+closeSidebar(): void {
+  this.sidebarOpen.set(false);
+  this.renderer.removeClass(document.body, 'sidebar-open-body');
+}
+
     openPicker(event: Event): void {
     const target = event.target as HTMLInputElement & { showPicker?: () => void };
     target.showPicker?.();

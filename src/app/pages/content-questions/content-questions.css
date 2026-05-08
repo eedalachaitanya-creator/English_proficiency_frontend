@@ -1,5 +1,6 @@
 :host { display: block; min-height: 100vh; }
-.cq-page { max-width: 1280px; margin: 0 auto; padding: 32px 32px 80px; }
+/* .cq-page { max-width: 1280px; margin: 0 auto; padding: 32px 32px 80px; } */
+.cq-page { max-width: 100%; margin: 0 auto; padding: 32px 32px 80px; }
 .page-header { margin-bottom: 24px; }
 .back-link { display: inline-block; color: var(--text-muted); font-size: 14px; text-decoration: none; margin-bottom: 12px; }
 .back-link:hover { color: var(--navy); text-decoration: underline; }
@@ -45,6 +46,7 @@
 @media (max-width: 800px) {
   .toolbar { flex-wrap: wrap; }
   .cq-page { padding: 16px; }
+  .toolbar select{max-width: 200px;}
 }
 .row-disabled td { opacity: 0.55; font-style: italic; }
 .row-disabled td:last-child { opacity: 1; font-style: normal; }

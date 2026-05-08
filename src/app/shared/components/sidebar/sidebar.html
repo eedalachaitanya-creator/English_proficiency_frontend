@@ -1,4 +1,14 @@
-<aside class="sidebar">
+<!-- Mobile Toggle -->
+<button class="mobile-menu-btn" (click)="toggleSidebar()">
+  ☰
+</button>
+
+<!-- Backdrop -->
+@if (sidebarOpen()) {
+  <div class="sidebar-backdrop" (click)="closeSidebar()"></div>
+}
+
+<aside class="sidebar" [class.sidebar-open]="sidebarOpen()">
  
   <!-- Dashboard Menu -->
   @if (showDashboard) {

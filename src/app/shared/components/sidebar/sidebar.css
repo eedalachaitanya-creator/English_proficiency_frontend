@@ -1,25 +1,7 @@
-.sidebar { width: 240px; background: #fff; border-right: 1px solid var(--border); padding: 1px 0; min-height: 100%; }
+/* .sidebar { width: 240px; background: #fff; border-right: 1px solid var(--border); padding: 1px 0; min-height: 100%; } */
 .menu-title { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; color: var(--text-muted); padding: 0 20px 12px; }
 .menu-item { margin-bottom: 1px; }
-/* Menu parent (the expandable "MANAGE QUESTIONS" header) — styled to
-   match the .invite-btn rhythm (navy bg, white text) so all three
-   sidebar items read as a uniform stack. The chevron and icon are
-   white-on-navy too. The previous light-grey treatment made this row
-   look like a different kind of widget than its siblings. */
-.menu-parent {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  cursor: pointer;
-  width: 100%;
-  padding: 12px;
-  background-color: #13315c;
-  color: #fff;
-  font-size: 14px;
-  font-weight: 600;
-  border-radius: 0;
-  transition: background-color 0.2s ease;
-}
+.menu-parent { display: flex; align-items: center; justify-content: space-between; cursor: pointer; width: 100%; padding: 12px; background-color: #13315c; color: #fff; font-size: 14px; font-weight: 600; border-radius: 0; transition: background-color 0.2s ease; }
 .menu-parent:hover { background-color: #13315c; }
 .menu-icon { font-size: 16px; margin-right: 10px; color: #fff; }
 .menu-text { flex: 1; font-weight: 600; color: #fff; }
@@ -45,4 +27,14 @@
 @keyframes toast-slide-in {
   from { opacity: 0; transform: translate(-50%, -10px); }
   to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+.sidebar { width: 260px; background: #fff; height: 100vh; border-right: 1px solid #eee; padding:  1px 0; overflow-y: auto; transition: transform 0.3s ease; }
+.mobile-menu-btn { display: none; position: relative; top: -55px; left: 14px; z-index:1201; width: 42px; height: 42px; border: none; border-radius: 10px; background: #ff6b00; color: #fff; font-size: 22px; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+.sidebar-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1198; }
+@media (max-width: 992px) {
+  
+  .mobile-menu-btn { display: flex; align-items: center; justify-content: center; }
+  .sidebar { position: fixed; top: 0; left: 0; z-index: 1200; width: 280px; max-width: 85%; height: 100vh; background: #fff; transform: translateX(-100%); box-shadow: 4px 0 18px rgba(0,0,0,0.12); }
+  .sidebar.sidebar-open { transform: translateX(0); top: 67px;}
 }
