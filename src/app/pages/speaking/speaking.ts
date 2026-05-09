@@ -12,7 +12,7 @@ import { StoreService } from '../../core/services/store.service';
 import { TimerService, TimerHandle } from '../../core/services/timer.service';
 import { ModalService } from '../../core/services/modal.service';
 import { VisibilityTrackerService } from '../../core/services/visibility-tracker.service';
-import type { SubmissionReason } from '../../core/services/force-submit.service';
+import { ForceSubmitService, type SubmissionReason } from '../../core/services/force-submit.service';
 import { TestContent, SpeakingTopicPublic } from '../../core/models/test.models';
 import { nextSectionRoute } from '../../core/utils/section-routing';
 import { Topnav } from '../../shared/components/topnav/topnav';
@@ -71,6 +71,7 @@ export class Speaking implements OnInit, OnDestroy, AfterViewInit {
   private tracker = inject(VisibilityTrackerService);
   private api = inject(ApiService);
   private router = inject(Router);
+  private forceSubmit = inject(ForceSubmitService);
 
   @ViewChild('waveformEl', { static: false }) waveformRef?: ElementRef<HTMLDivElement>;
   @ViewChild('playbackEl', { static: false }) playbackRef?: ElementRef<HTMLAudioElement>;
@@ -658,7 +659,9 @@ export class Speaking implements OnInit, OnDestroy, AfterViewInit {
 
     try {
       const fd = this.buildSubmitFormData('candidate_finished');
-      const res = await firstValueFrom(this.api.post<SubmitResponse>('/api/submit', fd));
+      const res = await this.forceSubmit.submitWithOnlineRetry(() =>
+        firstValueFrom(this.api.post<SubmitResponse>('/api/submit', fd)),
+      );
       if (res?.ref_id) {
         this.store.setRefId(res.ref_id);
       }

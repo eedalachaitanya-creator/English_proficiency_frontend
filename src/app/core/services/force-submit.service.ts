@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 
-import { ApiService } from './api.service';
+import { ApiError, ApiService } from './api.service';
 import { StoreService } from './store.service';
 import { VisibilityTrackerService } from './visibility-tracker.service';
 
@@ -107,7 +107,9 @@ export class ForceSubmitService {
     if (this.inFlight || this.submitted) return;
     this.inFlight = true;
     try {
-      const res = await this._postSubmit('candidate_finished');
+      const res = await this.submitWithOnlineRetry(() =>
+        this._postSubmit('candidate_finished'),
+      );
       this.submitted = true;
       if (res?.ref_id) {
         this.store.setRefId(res.ref_id);
@@ -118,6 +120,150 @@ export class ForceSubmitService {
     } finally {
       this.inFlight = false;
     }
+  }
+
+  /**
+   * Wrap a submit attempt with auto-retry on a network failure.
+   *
+   * Behaviour:
+   *   - Runs `attempt()`.
+   *   - If it throws an ApiError with status 0 (the request never reached
+   *     the server — almost always a candidate dropping offline mid-submit),
+   *     shows a full-screen "Reconnecting…" overlay with a Cancel button,
+   *     then waits for either the browser's `online` event OR a Cancel
+   *     click.
+   *   - On `online`: retries once. Success returns normally; any retry
+   *     failure throws so the caller can show the standard "Submission
+   *     failed" modal.
+   *   - On Cancel: throws the original status-0 error so the caller's
+   *     existing error handling fires unchanged (modal alert, retry from
+   *     the page).
+   *
+   * The wait isn't time-bounded — a candidate with a permanently dead
+   * network can use Cancel to escape. Without Cancel, a permanent outage
+   * would trap them on the overlay forever.
+   *
+   * Used by submitFinal (reading/writing pages) and the speaking page's
+   * manual submit path so a brief connection drop doesn't lose the
+   * candidate's submission.
+   */
+  async submitWithOnlineRetry<T>(attempt: () => Promise<T>): Promise<T> {
+    try {
+      return await attempt();
+    } catch (err) {
+      if (!isNetworkError(err)) throw err;
+
+      const cancel = new AbortController();
+      this.showReconnectOverlay(() => cancel.abort());
+      try {
+        await waitForOnlineOrCancel(cancel.signal);
+        // Online again — retry once. Whatever happens propagates so the
+        // caller's existing error path (modal alert) handles it.
+        return await attempt();
+      } catch (waitOrRetryErr) {
+        // The wait helper throws Error('cancelled') on cancel — surface
+        // the original network error in that case so the caller's modal
+        // says "you appear to be offline" rather than something cryptic.
+        if ((waitOrRetryErr as Error)?.message === 'cancelled') throw err;
+        throw waitOrRetryErr;
+      } finally {
+        this.hideReconnectOverlay();
+      }
+    }
+  }
+
+  /**
+   * Build the "Reconnecting…" overlay using DOM APIs (no innerHTML, no
+   * untrusted content). The keyframes/hover styles live in a global
+   * <style> tag we inject once on first use; the overlay itself is
+   * destroyed on each hide so its in-progress animation resets cleanly
+   * the next time we need it.
+   */
+  private showReconnectOverlay(onCancel: () => void): void {
+    if (document.getElementById('reconnectOverlay')) return;
+    this.ensureReconnectStyles();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'reconnectOverlay';
+    overlay.style.cssText = `
+      position: fixed; inset: 0; z-index: 9999;
+      background: rgba(11, 37, 69, 0.95); color: #fff;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 24px; text-align: center;
+      font-family: var(--font-body, "Ubuntu", sans-serif);
+      animation: reconnect-fade-in 220ms ease-out;
+    `;
+
+    // Three concentric arcs that pulse outward from a small dot — visually
+    // says "actively reaching" rather than "everything is broken". Orange
+    // matches the FluentIQ accent so the overlay reads as part of the app.
+    const pulseWrap = document.createElement('div');
+    pulseWrap.style.cssText = 'position:relative;width:96px;height:96px;margin-bottom:24px;';
+    for (const delay of ['0s', '0.66s', '1.33s']) {
+      const ring = document.createElement('div');
+      ring.style.cssText =
+        'position:absolute;inset:0;border:3px solid #FF6B35;border-radius:50%;' +
+        `opacity:0;animation:reconnect-pulse 2s ease-out infinite;animation-delay:${delay};`;
+      pulseWrap.appendChild(ring);
+    }
+    const dot = document.createElement('div');
+    dot.style.cssText =
+      'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);' +
+      'width:14px;height:14px;background:#FF6B35;border-radius:50%;';
+    pulseWrap.appendChild(dot);
+
+    const heading = document.createElement('h1');
+    heading.textContent = 'Reconnecting…';
+    heading.style.cssText =
+      'font-size:28px;margin:0 0 12px;font-weight:700;letter-spacing:0.3px;';
+
+    const body = document.createElement('p');
+    body.textContent =
+      "Your work is safe. We'll submit your test as soon as your connection is back.";
+    body.style.cssText =
+      'font-size:16px;max-width:480px;line-height:1.55;margin:0 0 28px;opacity:0.92;';
+
+    const btn = document.createElement('button');
+    btn.id = 'reconnectCancelBtn';
+    btn.type = 'button';
+    btn.textContent = 'Cancel';
+    btn.style.cssText =
+      'background:transparent;color:#fff;padding:10px 28px;' +
+      'border:1px solid rgba(255,255,255,0.5);border-radius:6px;' +
+      'font-size:13px;font-weight:600;letter-spacing:0.5px;' +
+      'text-transform:uppercase;cursor:pointer;' +
+      'transition:background 0.15s, border-color 0.15s;';
+    btn.addEventListener('click', onCancel);
+
+    overlay.append(pulseWrap, heading, body, btn);
+    document.body.appendChild(overlay);
+  }
+
+  private hideReconnectOverlay(): void {
+    document.getElementById('reconnectOverlay')?.remove();
+  }
+
+  /** Inject the keyframes + hover style block once. Idempotent. */
+  private ensureReconnectStyles(): void {
+    if (document.getElementById('reconnect-overlay-styles')) return;
+    const style = document.createElement('style');
+    style.id = 'reconnect-overlay-styles';
+    style.textContent = `
+      @keyframes reconnect-pulse {
+        0%   { transform: scale(0.4); opacity: 0.85; }
+        100% { transform: scale(1.4); opacity: 0; }
+      }
+      @keyframes reconnect-fade-in {
+        from { opacity: 0; }
+        to   { opacity: 1; }
+      }
+      #reconnectCancelBtn:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.85);
+      }
+    `;
+    document.head.appendChild(style);
   }
 
   private async _postSubmit(reason: SubmissionReason): Promise<SubmitResponse> {
@@ -172,4 +318,48 @@ export class ForceSubmitService {
     const el = document.getElementById('termSpinnerMsg');
     if (el) el.textContent = text;
   }
+}
+
+
+// ----------------------------------------------------------------------
+// Module-level helpers for submitWithOnlineRetry. Kept outside the class
+// so they're trivially unit-testable and don't pull in Angular DI.
+// ----------------------------------------------------------------------
+
+/** True when the error is a 0-status ApiError, i.e. "request never reached
+ *  the server" — the only failure mode where retrying once the connection
+ *  is back makes sense. Auth/validation/business errors should not retry. */
+function isNetworkError(err: unknown): boolean {
+  return err instanceof ApiError && err.status === 0;
+}
+
+/** Resolve when the browser fires `online`, or reject with Error('cancelled')
+ *  when the AbortSignal aborts. If the browser already reports onLine=true
+ *  (e.g. the request failed due to a brief blip and the connection has
+ *  since recovered), give the network 500ms to settle before resolving so
+ *  the immediate retry has a better chance of reaching the server. */
+function waitForOnlineOrCancel(signal: AbortSignal): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    if (signal.aborted) {
+      reject(new Error('cancelled'));
+      return;
+    }
+    let settled = false;
+    const finish = (ok: boolean) => {
+      if (settled) return;
+      settled = true;
+      window.removeEventListener('online', onOnline);
+      signal.removeEventListener('abort', onAbort);
+      if (ok) setTimeout(resolve, 500);
+      else reject(new Error('cancelled'));
+    };
+    const onOnline = () => finish(true);
+    const onAbort = () => finish(false);
+    if (navigator.onLine) {
+      finish(true);
+      return;
+    }
+    window.addEventListener('online', onOnline);
+    signal.addEventListener('abort', onAbort);
+  });
 }
