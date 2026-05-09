@@ -41,7 +41,7 @@
 
     <select
       [ngModel]="filterPassageId()"
-      (ngModelChange)="filterPassageId.set($event === '' ? null : +$event); onFilterChange()">
+      (ngModelChange)="filterPassageId.set(parsePassageId($event)); onFilterChange()">
       <option [ngValue]="null">All passages</option>
       @for (p of passages(); track p.id) {
         <option [ngValue]="p.id">{{ p.title }}</option>
@@ -234,7 +234,7 @@
           <label for="fpassage">Linked Passage</label>
           <select id="fpassage"
                   [ngModel]="formPassageId()"
-                  (ngModelChange)="formPassageId.set($event === '' ? null : +$event)">
+                  (ngModelChange)="formPassageId.set(parsePassageId($event))">
             <option [ngValue]="null">— Select a passage —</option>
             @for (p of passagesForCurrentDifficulty(); track p.id) {
               <option [ngValue]="p.id">{{ p.title }}</option>

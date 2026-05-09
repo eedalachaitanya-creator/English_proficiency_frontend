@@ -73,6 +73,27 @@ export class ContentQuestions implements OnInit {
   filterDifficulty = signal<'intermediate' | 'expert' | ''>('');
   filterPassageId = signal<number | null>(null);
 
+  /**
+   * Map a passage-dropdown value to `number | null`.
+   *
+   * The "All passages" / "— Select a passage —" option binds to
+   * `[ngValue]="null"`, so when the user picks it `(ngModelChange)`
+   * fires with `$event === null`. The previous inline expression
+   * `$event === '' ? null : +$event` only caught the empty-string case
+   * — for `null` it fell through to `+null === 0`, which the filter
+   * computed `if (pid !== null && q.passage_id !== pid)` then treated
+   * as "filter to passage with id 0", matching nothing. Same bug bit
+   * the create/edit form's passage picker.
+   *
+   * Centralising the parse here keeps both call sites in sync and
+   * makes the null-vs-id intent explicit.
+   */
+  parsePassageId(value: unknown): number | null {
+    if (value === null || value === undefined || value === '') return null;
+    const n = +(value as number | string);
+    return Number.isFinite(n) ? n : null;
+  }
+
   // ------- Form state (used for both create and edit) -------
   formOpen = signal(false);
   formMode = signal<'create' | 'edit'>('create');
