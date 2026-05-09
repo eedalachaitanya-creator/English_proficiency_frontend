@@ -234,9 +234,9 @@
               style="width:100%; box-sizing:border-box; padding:10px 12px; border:1px solid var(--border); border-radius:var(--radius); font-size:14px; font-family:inherit; background:#fff; color:var(--text); line-height:1.4; cursor:pointer;">
           </div>
         </div>
-        <small class="text-muted" style="display:block; margin-top:4px; font-size:12px;">
-          Window must be at least 60 minutes (the test takes ~60 min).
-        </small>
+        @if (isWindowTooShort()) {
+          <div class="field-error">Test window must be at least 60 minutes.</div>
+        }
  
         @if (inviteError()) {
           <div class="field-error">{{ inviteError() }}</div>

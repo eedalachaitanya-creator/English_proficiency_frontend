@@ -410,6 +410,18 @@ resultsCount = this.api.resultsCount;
     this.invEndTime = `${newH}:${newM}`;
   }
 
+  /** True when the user has filled both time fields and the resulting
+   * window is shorter than the 60-minute minimum the backend enforces.
+   * Drives the inline error message under the time inputs — replaces the
+   * always-on static hint that used to sit there. */
+  isWindowTooShort(): boolean {
+    if (!this.invStartTime || !this.invEndTime) return false;
+    const [sh, sm] = this.invStartTime.split(':').map(Number);
+    const [eh, em] = this.invEndTime.split(':').map(Number);
+    if ([sh, sm, eh, em].some((n) => Number.isNaN(n))) return false;
+    return (eh * 60 + em) - (sh * 60 + sm) < 60;
+  }
+
   submitInvite(): void {
     this.inviteError.set('');
     const name = this.invName.trim();
@@ -446,7 +458,7 @@ resultsCount = this.api.resultsCount;
       return;
     }
     if (untilMs - fromMs < 60 * 60 * 1000) {
-      this.inviteError.set('Window must be at least 60 minutes (the test takes ~60 min).');
+      this.inviteError.set('Test window must be at least 60 minutes.');
       return;
     }
     // Defense in depth — the Generate Link button is also disabled in this
