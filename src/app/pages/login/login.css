@@ -1,4 +1,3 @@
- 
 :host {
   display: block;
   min-height: 100vh;
@@ -63,9 +62,6 @@
 .error { color: red; font-size: 12px; margin-bottom: 10px; }
 .forgot { text-align: right !important; font-size: 14px; margin-top: 10px; }
 .powered-text{position: fixed;    bottom: 20px;}
-/* Eye icon button — sits inside .input-group on the right side */
-.input-group button.password-toggle { position: absolute; top: 3px; right: 40px; background: transparent; border: none; cursor: pointer; color: #999; font-size: 14px; padding: 0; margin: 0; line-height: 1; }
-.input-group button.password-toggle:hover { color: #333; }
 
 .login-container { display: flex; min-height: 100vh; width: 100%; overflow: hidden; }
 .left-section { flex: 1; background-size: cover; background-position: center; background-repeat: no-repeat; min-height: 100vh; }
@@ -77,8 +73,31 @@
 .tab-btn.active { background: #000; color: #fff; }
 .input-group { position: relative; margin-bottom: 18px; }
 .input-group i { position: absolute; top: 50%; left: 14px; transform: translateY(-50%); color: #777; }
-.input-group input { width: 100%; height: 48px; padding: 0 14px 0 42px; border: 1px solid #ddd; border-radius: 8px; outline: none; font-size: 14px; }
+.input-group input { width: 100%; height: 48px; padding: 0 42px 0 42px; border: 1px solid #ddd; border-radius: 8px; outline: none; font-size: 14px; }
 .input-group input:focus { border-color: #000; }
+/* Eye toggle — mirrors the lock icon on the left: centered vertically,
+   14px from the edge. Explicit width/height gives a proper click target.
+   The inner <i> is already centered by flex so font-size changes won't
+   shift it. */
+.input-group button.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #777;
+  font-size: 14px;
+  padding: 0;
+  margin: 0;
+}
+.input-group button.password-toggle:hover { color: #000; }
 .btn { width: 100%; height: 48px; border: none; border-radius: 8px; background: #000; color: #fff; font-weight: 600; cursor: pointer; transition: 0.3s; }
 .btn:hover { opacity: 0.9; }
 .error { color: #d00; font-size: 13px; margin-bottom: 12px; }
