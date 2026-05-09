@@ -342,7 +342,12 @@ export class HrContentService {
         })
         .join('; ');
     } else if (err.status === 0) {
-      message = 'Could not reach the server. Is the backend running on port 8000?';
+      // See api.service.ts for the rationale on the navigator.onLine
+      // branching here — same logic, mirrored to keep both services
+      // consistent until they're consolidated.
+      message = navigator.onLine
+        ? 'Could not reach the server.'
+        : 'You appear to be offline.';
     } else {
       message = err.statusText || `HTTP ${err.status}`;
     }

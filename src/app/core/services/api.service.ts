@@ -139,10 +139,19 @@ setResults(rows: any[]) {
       // Most application-level errors — single string detail.
       message = data.detail;
     } else if (err.status === 0) {
-      // Status 0 means the request never reached the server — usually CORS
-      // misconfiguration in dev, or the FastAPI process isn't running.
-      message =
-        'Could not reach the server. Is the backend running on port 8000?';
+      // Status 0 means the request never received a response. Common causes:
+      //   - the candidate dropped offline mid-submit (most frequent),
+      //   - a hotspot with broken DNS or captive-portal interception,
+      //   - the API host being momentarily unreachable on the LAN.
+      // navigator.onLine is a hint, not ground truth (it returns true for
+      // any connected network, even with broken DNS) — but it's accurate
+      // enough to distinguish the "obvious offline" case so we show a
+      // clear, candidate-friendly message and keep a generic fallback for
+      // the trickier "online but server unreachable" case. Either way we
+      // never expose dev-only details like the backend port.
+      message = navigator.onLine
+        ? 'Could not reach the server.'
+        : 'You appear to be offline.';
     } else {
       message = err.statusText || `HTTP ${err.status}`;
     }
