@@ -124,8 +124,12 @@ table.results tbody tr:last-child td { border-bottom: none; }
 .flex-row { display: flex; gap: 12px; align-items: center; }
 /* Inline hint shown under any "set a new password" input — same wording on
  * change-password, admin Create User, and forced first-login change. Keeps
- * UX consistent and the rule text in one place. */
+ * UX consistent and the rule text in one place. The four complexity rules
+ * are rendered as a vertical bullet list so each requirement is easy to
+ * scan at a glance. */
 .password-hint { display: block; margin-top: 6px; font-size: 12px; line-height: 1.5; }
+.password-hint ul { margin: 4px 0 4px 18px; padding: 0; list-style: disc; }
+.password-hint li { margin: 1px 0; }
 /* Uniform height for all toolbar controls (selects + buttons). Without this
  * the three item types render at different heights — selects ~36px, text-only
  * buttons ~40px, and emoji-prefixed buttons ~45px (the emoji inflates the
