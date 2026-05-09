@@ -24,7 +24,7 @@ h3 { font-size: 16px; color: var(--navy); margin-bottom: 8px; }
 .field input:focus { outline: none; border-color: var(--orange); box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.15); }
 .field input.mono { font-family: var(--font-mono); letter-spacing: 2px; }
 .field-error { color: var(--red); font-size: 12px; margin-top: 4px; min-height: 16px; }
-.btn { display: inline-block; padding: 12px 24px; border: none; border-radius: var(--radius); font-family: var(--font-body); font-size: 14px; font-weight: bold; letter-spacing: 0.3px; cursor: pointer; transition: background 0.15s, transform 0.05s; text-align: center; }
+.btn { display: inline-block; padding: 12px 24px; border: none; border-radius: var(--radius); font-family: var(--font-body); font-size: 14px; font-weight: bold; letter-spacing: 0.3px; cursor: pointer; transition: background 0.15s, transform 0.05s; text-align: center; white-space: nowrap; flex-shrink: 0; }
 .btn:active { transform: translateY(1px); }
 .btn-primary { background: var(--orange); color: var(--white); }
 .btn-primary:hover { background: #E55A24; }
@@ -122,6 +122,17 @@ table.results tbody tr:last-child td { border-bottom: none; }
 .mb-4 { margin-bottom: 16px; }
 .mb-6 { margin-bottom: 24px; }
 .flex-row { display: flex; gap: 12px; align-items: center; }
+/* Inline hint shown under any "set a new password" input — same wording on
+ * change-password, admin Create User, and forced first-login change. Keeps
+ * UX consistent and the rule text in one place. */
+.password-hint { display: block; margin-top: 6px; font-size: 12px; line-height: 1.5; }
+/* Uniform height for all toolbar controls (selects + buttons). Without this
+ * the three item types render at different heights — selects ~36px, text-only
+ * buttons ~40px, and emoji-prefixed buttons ~45px (the emoji inflates the
+ * line-box). The fixed height + inline-flex centering on buttons makes the
+ * action bar look consistent across pages and across content variations. */
+.toolbar select { height: 40px; box-sizing: border-box; }
+.toolbar .btn { height: 40px; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; padding: 0 18px; }
 .spacer { flex: 1; }
 .hidden { display: none !important; }
 .layout {display: flex; min-height: calc(100vh - 135px);  }
@@ -131,7 +142,7 @@ table.results tbody tr:last-child td { border-bottom: none; }
 
  .left-section { width: 50%; background: url('assets/images/HR-login.png') no-repeat center; background-size: cover; position: relative; color: white; filter: brightness(0.8); }
  .right-section{background: url('assets/images/bg-graybg.png') no-repeat center !important;  }
- .content {width: 100%;}
+ .content {width: 100%; min-width: 0; overflow-x: hidden;}
  .rws {display:inline-block; margin-top: 5px;   padding:2px 6px; font-size:10px; font-weight:600; letter-spacing:1px; color:#475569; background:#f1f5f9; border:1px solid #cbd5e1; border-radius:10px; vertical-align:middle;}
 
  body.invite-open {  overflow: hidden;}

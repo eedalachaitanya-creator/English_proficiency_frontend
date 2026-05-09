@@ -404,6 +404,12 @@
                 <i class="fa" [class.fa-eye]="!showNewPassword()" [class.fa-eye-slash]="showNewPassword()"></i>
               </button>
             </div>
+            <small class="text-muted password-hint">
+              Password must be 6&ndash;128 characters long and contain at least
+              1 uppercase letter, 1 lowercase letter, 1 number, and 1 special
+              character (e.g., <code>@ _ ! # $ % &amp;</code>). Spaces and tabs
+              are not allowed.
+            </small>
           </div>
 
           <div class="field">

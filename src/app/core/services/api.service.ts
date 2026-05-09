@@ -120,8 +120,19 @@ setResults(rows: any[]) {
       // 422 validation — array of { msg, loc, type } objects.
       message = data.detail
         .map((e: { msg: string; loc?: (string | number)[] }) => {
-          const field = Array.isArray(e.loc) ? e.loc[e.loc.length - 1] : '';
-          return field ? `${field}: ${e.msg}` : e.msg;
+          const field = Array.isArray(e.loc) ? String(e.loc[e.loc.length - 1] ?? '') : '';
+          // Pydantic V2 prefixes any plain `raise ValueError(...)` with
+          // "Value error, ". When the validator uses PydanticCustomError
+          // the prefix is absent; for other validators we strip it so it
+          // never reaches the user.
+          const msg = e.msg.replace(/^(Value error|Assertion failed),\s*/, '');
+          // A standalone, human-readable sentence (starts with an uppercase
+          // letter, ends with a period) is the validator author's signal for
+          // "no extra context needed — show as-is". Otherwise we prepend the
+          // field name so terse Pydantic-defaults like "field required" still
+          // make sense to the user.
+          const isCompleteSentence = /^[A-Z].*\.$/.test(msg);
+          return field && !isCompleteSentence ? `${field}: ${msg}` : msg;
         })
         .join('; ');
     } else if (data && typeof data.detail === 'string') {

@@ -316,13 +316,13 @@
         <p class="subtitle">
           Pick a new date and time. The candidate will get the same URL and access code,
           just with the new schedule.
-          <a class="close-btn" (click)="closeResendModal()" aria-label="Close">✕</a>
         </p>
+        <a class="close-btn" (click)="closeResendModal()" aria-label="Close">✕</a>
       </div>
 
       <form (ngSubmit)="submitResend()" novalidate>
         <div class="modal-body">
-          <div class="text-muted" style="margin-bottom: 16px; font-size: 13px;">
+          <div class="resend-recipient">
             To: <strong>{{ invitation()!.candidate_email }}</strong>
             ({{ invitation()!.candidate_name }})
           </div>
@@ -338,8 +338,8 @@
               [disabled]="resending()" />
           </div>
 
-          <div class="flex-row" style="gap: 12px;">
-            <div class="field" style="flex: 1;">
+          <div class="field-row">
+            <div class="field">
               <label for="resendStart">Start time</label>
               <input
                 type="time"
@@ -349,7 +349,7 @@
                 [(ngModel)]="resendStartTime"
                 [disabled]="resending()" />
             </div>
-            <div class="field" style="flex: 1;">
+            <div class="field">
               <label for="resendEnd">End time</label>
               <input
                 type="time"

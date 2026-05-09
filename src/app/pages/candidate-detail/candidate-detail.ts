@@ -18,6 +18,7 @@ import {
 } from '../../core/models/hr.models';
 import { wallClockToUtc } from '../../core/utils/timezone';
 import { formatBackendDateTime } from '../../core/utils/date';
+import { copyToClipboard } from '../../core/utils/clipboard';
 import { Topnav } from '../../shared/components/topnav/topnav';
 import { Footer } from '../../shared/components/footer/footer';
 import { RadarBreakdown } from '../../shared/components/radar-breakdown/radar-breakdown';
@@ -246,7 +247,7 @@ export class CandidateDetail implements OnInit {
   copyUrl(): void {
     const inv = this.invitation();
     if (!inv) return;
-    navigator.clipboard.writeText(inv.exam_url).finally(() => {
+    copyToClipboard(inv.exam_url).then(() => {
       this.urlCopied.set(true);
       setTimeout(() => this.urlCopied.set(false), 2000);
     });
@@ -256,7 +257,7 @@ export class CandidateDetail implements OnInit {
   copyCode(): void {
     const inv = this.invitation();
     if (!inv) return;
-    navigator.clipboard.writeText(inv.access_code).finally(() => {
+    copyToClipboard(inv.access_code).then(() => {
       this.codeCopied.set(true);
       setTimeout(() => this.codeCopied.set(false), 2000);
     });

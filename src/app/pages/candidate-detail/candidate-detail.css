@@ -109,3 +109,60 @@
   color: var(--text-muted);
   letter-spacing: 6px;
 }
+
+/* ----------------------------------------------------------------
+ * Resend invitation modal — matches the canonical popup pattern used
+ * by hr-dashboard's invite modal, change-password, and forgot-password.
+ * Dark navy header bar, white title/subtitle, absolute-positioned X
+ * in the top-right corner, white body with full-width form fields.
+ * ---------------------------------------------------------------- */
+.modal { padding: 0 !important; }
+.modal-body { padding: 30px; }
+.modal-header { padding: 20px; background: #13315c; color: #fff; position: relative; }
+.modal-header h2 { color: #fff; }
+.modal-header p.subtitle { color: #fff; margin-bottom: 0; padding-right: 32px; }
+.modal-header a.close-btn { color: #fff; position: absolute; right: 20px; top: 20px; z-index: 10; font-size: 20px; cursor: pointer; }
+
+/* Date/time/select inputs aren't covered by the global .field input rule
+ * (which targets only text/email/password). Without this they render at
+ * their browser-default width, causing the inconsistent field widths seen
+ * in the resend modal. Same shape as the global rule for consistency. */
+.modal .field input[type="date"],
+.modal .field input[type="time"],
+.modal .field select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-family: var(--font-body);
+  font-size: 14px;
+  background: var(--white);
+  color: var(--text);
+  line-height: 1.4;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.modal .field input[type="date"]:focus,
+.modal .field input[type="time"]:focus,
+.modal .field select:focus {
+  outline: none;
+  border-color: var(--orange);
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.15);
+}
+
+/* Two-column row for Start time / End time. Each child .field already
+ * carries its own margin-bottom, so the row inherits the standard rhythm. */
+.modal .field-row {
+  display: flex;
+  gap: 12px;
+}
+.modal .field-row > .field {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Recipient line at the top of the resend form. */
+.modal .resend-recipient {
+  color: var(--text-muted);
+  font-size: 13px;
+  margin-bottom: 16px;
+}

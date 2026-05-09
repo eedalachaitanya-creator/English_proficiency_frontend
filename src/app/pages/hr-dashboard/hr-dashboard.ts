@@ -17,6 +17,7 @@ import { Footer } from '../../shared/components/footer/footer';
 import { AccountMenu } from '../../shared/components/account-menu/account-menu';
 import { wallClockToUtc } from '../../core/utils/timezone';
 import { formatBackendDate, formatBackendDateTime } from '../../core/utils/date';
+import { copyToClipboard } from '../../core/utils/clipboard';
 import { Sidebar } from '../../shared/components/sidebar/sidebar';
 
 /**
@@ -528,9 +529,7 @@ resultsCount = this.api.resultsCount;
   copyInviteUrl(): void {
     const res = this.inviteResult();
     if (!res) return;
-    navigator.clipboard.writeText(res.exam_url).then(() => {
-      this.inviteCopied.set(true);
-    }).catch(() => {
+    copyToClipboard(res.exam_url).then(() => {
       this.inviteCopied.set(true);
     });
   }

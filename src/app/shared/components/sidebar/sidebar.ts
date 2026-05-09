@@ -1,4 +1,4 @@
-import { Component, Input, Output, signal, EventEmitter, OnInit, inject, Renderer2 } from '@angular/core';
+import { Component, Input, Output, signal, EventEmitter, OnInit, inject, Renderer2, HostListener } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { InviteCreateRequest, InviteCreateResponse, ResultRow, SupportedTimezone } from '../../../core/models/hr.models';
 import { FormsModule } from '@angular/forms';
@@ -7,6 +7,7 @@ import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { formatBackendDate, formatBackendDateTime } from '../../../core/utils/date';
 import { wallClockToUtc } from '../../../core/utils/timezone';
+import { copyToClipboard } from '../../../core/utils/clipboard';
   
 @Component({
   selector: 'app-sidebar',
@@ -48,6 +49,22 @@ ngOnDestroy(): void {
 closeSidebar(): void {
   this.sidebarOpen.set(false);
   this.renderer.removeClass(document.body, 'sidebar-open-body');
+}
+
+/**
+ * The sidebar's open state is only meaningful at the mobile breakpoint
+ * (max-width: 992px), where the sidebar is a slide-in drawer with a
+ * backdrop. If the user opens it on mobile and then widens the window
+ * past the breakpoint, the drawer styles deactivate but the open state
+ * stays true — leaving the backdrop element in the DOM as a stale
+ * click-blocking overlay. Closing the sidebar on resize keeps the
+ * state consistent with the layout that's actually being rendered.
+ */
+@HostListener('window:resize')
+onWindowResize(): void {
+  if (window.innerWidth > 992 && this.sidebarOpen()) {
+    this.closeSidebar();
+  }
 }
 
     openPicker(event: Event): void {
@@ -331,9 +348,7 @@ closeSidebar(): void {
   copyInviteUrl(): void {
     const res = this.inviteResult();
     if (!res) return;
-    navigator.clipboard.writeText(res.exam_url).then(() => {
-      this.inviteCopied.set(true);
-    }).catch(() => {
+    copyToClipboard(res.exam_url).then(() => {
       this.inviteCopied.set(true);
     });
   }

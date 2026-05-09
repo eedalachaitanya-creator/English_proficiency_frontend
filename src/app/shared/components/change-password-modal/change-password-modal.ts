@@ -110,11 +110,24 @@ export class ChangePasswordModal implements OnDestroy {
     // confusing "passwords do not match" if only one field has a
     // stray paste-space.
     if (/\s/.test(this.next) || /\s/.test(this.confirm)) {
-      this.errorMessage.set('Password cannot contain spaces or other whitespace.');
+      this.errorMessage.set('Password cannot contain spaces.');
       return;
     }
     if (this.next.length < 6) {
       this.errorMessage.set('New password must be at least 6 characters.');
+      return;
+    }
+    // Mirror the backend complexity policy. Building the missing-rules list
+    // dynamically gives the user the exact same error wording the API would
+    // return — keeps the two layers in sync and avoids generic "policy
+    // failed" messages when only one rule is missing.
+    const missing: string[] = [];
+    if (!/[A-Z]/.test(this.next)) missing.push('1 uppercase letter');
+    if (!/[a-z]/.test(this.next)) missing.push('1 lowercase letter');
+    if (!/[0-9]/.test(this.next)) missing.push('1 number');
+    if (!/[^A-Za-z0-9\s]/.test(this.next)) missing.push('1 special character');
+    if (missing.length) {
+      this.errorMessage.set('Password must contain at least ' + missing.join(', ') + '.');
       return;
     }
     if (this.next !== this.confirm) {

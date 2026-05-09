@@ -45,6 +45,20 @@ export class ChangePasswordRequiredPage {
   errorMessage = signal('');
   submitting = signal(false);
 
+  // Per-field visibility for the eye toggle. Default false (masked) — same
+  // pattern as the change-password modal.
+  showCurrent = signal(false);
+  showNext = signal(false);
+  showConfirm = signal(false);
+
+  /** Block the spacebar at the source so a stray space never enters the
+   * field. Backend rejects whitespace anyway, but stopping the keystroke
+   * is a clearer UX than letting a typed space through and surfacing an
+   * error on submit. */
+  blockSpace(event: KeyboardEvent): void {
+    if (event.key === ' ') event.preventDefault();
+  }
+
   /** Display name for the greeting. Pulls from whichever role-signal
    * is populated; falls back to empty string so the greeting reads
    * gracefully if the user object somehow hasn't loaded. */
@@ -73,8 +87,23 @@ export class ChangePasswordRequiredPage {
       this.errorMessage.set('Enter your current (temporary) password.');
       return;
     }
+    if (/\s/.test(this.next) || /\s/.test(this.confirm)) {
+      this.errorMessage.set('Password cannot contain spaces.');
+      return;
+    }
     if (this.next.length < 6) {
       this.errorMessage.set('New password must be at least 6 characters.');
+      return;
+    }
+    // Mirror the backend policy so the user gets the exact same wording
+    // before the API call.
+    const missing: string[] = [];
+    if (!/[A-Z]/.test(this.next)) missing.push('1 uppercase letter');
+    if (!/[a-z]/.test(this.next)) missing.push('1 lowercase letter');
+    if (!/[0-9]/.test(this.next)) missing.push('1 number');
+    if (!/[^A-Za-z0-9\s]/.test(this.next)) missing.push('1 special character');
+    if (missing.length) {
+      this.errorMessage.set('Password must contain at least ' + missing.join(', ') + '.');
       return;
     }
     if (this.next !== this.confirm) {
