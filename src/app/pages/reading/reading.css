@@ -134,6 +134,16 @@
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 20px;
+  transition: box-shadow 0.15s ease;
+}
+/* Highlight unanswered questions during the "Keep Answering" mode without
+ * wrapping the options in a red box. An inset left-edge box-shadow adds a
+ * 4px red accent inside the existing border so layout never shifts (no
+ * border-width change, no padding change) and — critically — selecting an
+ * option doesn't visually appear to put a red border around the option,
+ * which was the symptom the user reported. */
+.question.unanswered-warning {
+  box-shadow: inset 4px 0 0 0 #d93b3b;
 }
 .question-stem {
   font-size: 15px;
