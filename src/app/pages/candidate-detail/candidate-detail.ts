@@ -301,6 +301,21 @@ export class CandidateDetail implements OnInit {
     if (this.resending()) return;  // can't cancel mid-flight
     this.resendModalOpen.set(false);
   }
+  /**
+   * Auto-fill the end time to start + 1 hour whenever HR picks a start
+   * time. Mirrors the hr-dashboard invite modal so both forms behave the
+   * same way. HR can still manually edit the end time after auto-fill.
+   */
+  onResendStartTimeChange(value: string): void {
+    this.resendStartTime = value;
+    if (!value) return;
+    const [h, m] = value.split(':').map(Number);
+    if (Number.isNaN(h) || Number.isNaN(m)) return;
+    const totalMinutes = (h * 60 + m + 60) % (24 * 60);
+    const newH = Math.floor(totalMinutes / 60).toString().padStart(2, '0');
+    const newM = (totalMinutes % 60).toString().padStart(2, '0');
+    this.resendEndTime = `${newH}:${newM}`;
+  }
 
   /**
    * Submit the resend form. Validates the four fields, converts the

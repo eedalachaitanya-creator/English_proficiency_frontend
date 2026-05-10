@@ -346,7 +346,8 @@
                 id="resendStart"
                 name="resendStart"
                 required
-                [(ngModel)]="resendStartTime"
+                [ngModel]="resendStartTime"
+                (ngModelChange)="onResendStartTimeChange($event)"
                 [disabled]="resending()" />
             </div>
             <div class="field">
