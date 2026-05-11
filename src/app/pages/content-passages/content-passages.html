@@ -16,7 +16,7 @@
 <main class="cp-page">
 
   <div class="page-header">
-    <!-- <a routerLink="/dashboard/content" class="back-link">← Back to Content Hub</a> -->
+    <a routerLink="/dashboard" class="back-link">← Back to Dashboard</a>
     <h1>Reading Passages</h1>
     <p class="subtitle">
       The 200–500 word texts shown on the reading section. Each passage usually has 5 reading-comprehension questions linked to it.
@@ -26,7 +26,7 @@
   <!-- Filters + actions -->
   <div class="toolbar">
     <select [ngModel]="filterDifficulty()" (ngModelChange)="setFilter($event)">
-      <option value="">All difficulties</option>
+      <option value="">Difficulty level</option>
       <option value="intermediate">Intermediate</option>
       <option value="expert">Expert</option>
     </select>

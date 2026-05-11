@@ -16,7 +16,7 @@
 <main class="cq-page">
 
   <div class="page-header">
-    <!-- <a routerLink="/dashboard/content" class="back-link">← Back to Content Hub</a> -->
+    <a routerLink="/dashboard" class="back-link">← Back to Dashboard</a>
     <h1>MCQ Questions</h1>
     <p class="subtitle">
       Reading comprehension, grammar, vocabulary, and fill-in-the-blank questions.
@@ -34,7 +34,7 @@
     </select>
 
     <select [ngModel]="filterDifficulty()" (ngModelChange)="filterDifficulty.set($event); onFilterChange()">
-      <option value="">All difficulties</option>
+      <option value="">Difficulty level</option>
       <option value="intermediate">Intermediate</option>
       <option value="expert">Expert</option>
     </select>

@@ -1,7 +1,8 @@
 import { Component, OnInit, inject, signal, computed, Renderer2 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+ 
+import { Router, RouterModule  } from '@angular/router';
 
 import { ApiError } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -27,7 +28,7 @@ import { downloadCsvTemplate, stripSampleRows } from '../../core/utils/csv-templ
 @Component({
   selector: 'app-content-passages',
   standalone: true,
-  imports: [CommonModule, FormsModule, Topnav, Footer, AccountMenu, Sidebar, ViewContentModal],
+  imports: [CommonModule, FormsModule, Topnav, Footer, AccountMenu, Sidebar, ViewContentModal, RouterModule],
   templateUrl: './content-passages.html',
   styleUrl: './content-passages.css',
 })

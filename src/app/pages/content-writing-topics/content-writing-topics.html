@@ -16,7 +16,7 @@
 <main class="cw-page">
 
   <div class="page-header">
-    <!-- <a routerLink="/dashboard/content" class="back-link">← Back to Content Hub</a> -->
+      <a routerLink="/dashboard" class="back-link">← Back to  Dashboard</a> 
     <h1>Writing Topics</h1>
     <p class="subtitle">
       Essay prompts shown in the writing section. Each prompt has a target word count range.
@@ -25,7 +25,7 @@
 
   <div class="toolbar">
     <select [ngModel]="filterDifficulty()" (ngModelChange)="setFilter($event)">
-      <option value="">All difficulties</option>
+      <option value="">Difficulty level</option>
       <option value="intermediate">Intermediate</option>
       <option value="expert">Expert</option>
     </select>
