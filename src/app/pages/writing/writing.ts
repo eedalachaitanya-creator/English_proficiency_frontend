@@ -306,6 +306,11 @@ export class Writing implements OnInit, OnDestroy {
   }
 
   onEssayChange(value: string): void {
+    const limit = this.maxWords();
+    const words = value.trim().split(/\s+/).filter(w => w.length > 0);
+    if (words.length > limit) {
+      value = words.slice(0, limit).join(' ');
+    }
     this.essay.set(value);
     this.store.setWritingEssay(value);
   }
