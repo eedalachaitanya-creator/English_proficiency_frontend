@@ -17,6 +17,7 @@ import { Footer } from '../../shared/components/footer/footer';
 import { AccountMenu } from '../../shared/components/account-menu/account-menu';
 import { formatBackendDate } from '../../core/utils/date';
 import { environment } from '../../../environments/environment';
+import { forkJoin } from 'rxjs';
 
 /**
  * Admin portal — manage HR + admin accounts.
@@ -678,4 +679,187 @@ export class AdminDashboard implements OnInit {
       this.router.navigate(['/login']);
     });
   }
+
+
+  // ============================================================
+// Bulk Delete State
+// ============================================================
+
+/**
+ * IDs of currently selected HR users.
+ *
+ * Uses number because AdminUserSummary.id is numeric throughout this
+ * component (expandedHrId, candidate fetch routes, delete routes, etc.).
+ */
+readonly selectedUserIds = signal<Set<number>>(new Set());
+
+/**
+ * Full user objects for the currently selected HR rows.
+ * Admin rows are never included, even if someone manually mutates
+ * selectedUserIds from the console.
+ */
+readonly selectedUsers = computed(() =>
+  this.users().filter(
+    u => u.role === 'hr' && this.selectedUserIds().has(u.id)
+  )
+);
+
+/**
+ * Bulk delete confirmation modal state.
+ */
+readonly pendingBulkDelete = signal<AdminUserSummary[]>([]);
+readonly bulkDeleteSubmitting = signal(false);
+readonly bulkDeleteError = signal('');
+
+
+// ============================================================
+// Bulk Delete Selection Helpers
+// ============================================================
+
+ 
+toggleUserSelection(user: AdminUserSummary, event: Event): void {
+  event.stopPropagation();
+
+  if (user.role !== 'hr') return;
+
+  const checked = (event.target as HTMLInputElement).checked;
+  const next = new Set(this.selectedUserIds());
+
+  if (checked) {
+    next.add(user.id);
+  } else {
+    next.delete(user.id);
+  }
+
+  this.selectedUserIds.set(next);
+}
+
+/**
+ * Select or deselect all HR rows.
+ */
+toggleSelectAll(event: Event): void {
+  event.stopPropagation();
+
+  const checked = (event.target as HTMLInputElement).checked;
+
+  if (checked) {
+    const allHrIds = this.users()
+      .filter(u => u.role === 'hr')
+      .map(u => u.id);
+
+    this.selectedUserIds.set(new Set(allHrIds));
+  } else {
+    this.selectedUserIds.set(new Set());
+  }
+}
+
+/**
+ * True when every HR row is selected.
+ */
+allHrSelected(): boolean {
+  const hrUsers = this.users().filter(u => u.role === 'hr');
+
+  return (
+    hrUsers.length > 0 &&
+    hrUsers.every(u => this.selectedUserIds().has(u.id))
+  );
+}
+
+/**
+ * True when one or more HR rows are selected.
+ */
+hasSelectedUsers(): boolean {
+  return this.selectedUserIds().size > 0;
+}
+
+
+// ============================================================
+// Bulk Delete Modal
+// ============================================================
+
+/**
+ * Open confirmation modal for all selected HR users.
+ */
+askBulkDelete(): void {
+  const selected = this.selectedUsers();
+
+  if (selected.length === 0) return;
+
+  this.bulkDeleteError.set('');
+  this.bulkDeleteSubmitting.set(false);
+  this.pendingBulkDelete.set(selected);
+}
+
+/**
+ * Close the bulk delete modal.
+ */
+cancelBulkDelete(): void {
+  if (this.bulkDeleteSubmitting()) return;
+
+  this.pendingBulkDelete.set([]);
+  this.bulkDeleteError.set('');
+}
+
+
+confirmBulkDelete(): void {
+  const users = this.pendingBulkDelete();
+
+  if (users.length === 0 || this.bulkDeleteSubmitting()) return;
+
+  this.bulkDeleteSubmitting.set(true);
+  this.bulkDeleteError.set('');
+
+  const deleteRequests = users.map(user =>
+    this.api.delete<void>(`/api/admin/users/${user.id}`)
+  );
+
+  // RxJS forkJoin waits until all delete requests complete.
+  forkJoin(deleteRequests).subscribe({
+    next: () => {
+      // Remove deleted users from selection.
+      const next = new Set(this.selectedUserIds());
+      users.forEach(user => next.delete(user.id));
+      this.selectedUserIds.set(next);
+
+      // Close modal.
+      this.pendingBulkDelete.set([]);
+      this.bulkDeleteSubmitting.set(false);
+
+      // Collapse expanded row if it was deleted.
+      const expandedId = this.expandedHrId();
+      if (
+        expandedId !== null &&
+        users.some(user => user.id === expandedId)
+      ) {
+        this.expandedHrId.set(null);
+      }
+
+      // Refresh the table.
+      this.loadUsers();
+    },
+
+    error: (err: ApiError) => {
+      this.bulkDeleteSubmitting.set(false);
+
+      if (err.status === 401) {
+        this.router.navigate(['/login']);
+        return;
+      }
+
+      // 404 means one of the selected users was already deleted.
+      // Refresh and close modal since the end state is effectively correct.
+      if (err.status === 404) {
+        this.pendingBulkDelete.set([]);
+        this.loadUsers();
+        return;
+      }
+
+      this.bulkDeleteError.set(
+        err.message || 'Could not delete selected HR users.'
+      );
+    }
+  });
+}
+ 
+ 
 }

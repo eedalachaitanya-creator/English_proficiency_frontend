@@ -1,4 +1,4 @@
-<app-topnav title="Admin Portal  —  User Management" variant="hr">
+<app-topnav  variant="hr">
   <app-account-menu
     [name]="adminName()"
     [email]="adminEmail()"
@@ -7,7 +7,7 @@
 </app-topnav>
 
 <div class="admin-dashboard">
-<main class="page" style="max-width: 1100px; margin: 24px auto; padding: 0 16px;">
+<main class="page" style="max-width:100%; margin: 24px auto; padding: 0 16px;">
 
   <div class="flex-row" style="align-items:center; justify-content:space-between; margin-bottom: 16px;">
     <div>
@@ -41,6 +41,25 @@
     </div>
   </div>
 
+  <!-- Bulk delete button above table -->
+<div class="flex-row mb-4" style="justify-content: space-between; align-items: center;">
+  <div>
+    @if (hasSelectedUsers()) {
+      <span class="text-muted">
+        {{ selectedUserIds().size }} selected
+      </span>
+    }
+  </div>
+
+  <button
+    type="button"
+    class="btn btn-danger"
+    [disabled]="!hasSelectedUsers()"
+    (click)="askBulkDelete()">
+    Delete Selected
+  </button>
+</div>
+
   @if (loadError()) {
     <div class="notice">
       <strong>Could not load users.</strong>
@@ -57,6 +76,14 @@
           <th>Candidates</th>
           <th>Created</th>
           <th style="width: 96px;"></th>
+          <th style="width: 40px;">
+  <input
+    type="checkbox"
+    [checked]="allHrSelected()"
+    (click)="$event.stopPropagation()"
+    (change)="toggleSelectAll($event)"
+    aria-label="Select all HR users">
+</th>
         </tr>
       </thead>
       <tbody>
@@ -102,15 +129,8 @@
               </td>
               <td>{{ formatDate(u.created_at) }}</td>
               <td class="text-center">
-                @if (u.role === 'hr') {
-                  <!-- Two icon buttons stacked horizontally: download
-                       this HR's candidates as XLSX, and delete the HR
-                       account. Both stop event propagation so clicking
-                       either doesn't also expand/collapse the row.
-                       The download button uses the shared .pdf-icon-btn
-                       style (defined in admin-dashboard.css) — same
-                       visual language as the candidate-row PDF buttons. -->
-                  <div style="display: inline-flex; gap: 6px; align-items: center;">
+                @if (u.role === 'hr') { 
+                  <div style="display: inline-flex; gap: 6px; align-items: center;"> 
                     <button
                       type="button"
                       class="pdf-icon-btn"
@@ -142,6 +162,17 @@
                   </div>
                 }
               </td>
+              <td class="text-center">
+  @if (u.role === 'hr') {
+    <input
+      type="checkbox"
+      [checked]="selectedUserIds().has(u.id)"
+      (click)="$event.stopPropagation()"
+      (change)="toggleUserSelection(u, $event)"
+      [attr.aria-label]="'Select ' + u.name">
+  }
+</td>
+
             </tr>
 
             <!-- Expanded panel: candidates sub-table for this HR. -->
@@ -212,11 +243,7 @@
                                   <span class="text-muted">pending</span>
                                 }
                               </td>
-                              <td class="col-report">
-                                <!-- Per-candidate PDF download. Hidden
-                                     for unsubmitted invitations because
-                                     a PDF for an in-progress test would
-                                     be empty/misleading. -->
+                              <td class="col-report"> 
                                 @if (r.submitted_at) {
                                   <button
                                     type="button"
@@ -288,7 +315,7 @@
 @if (modalOpen()) {
 
       <!-- Backdrop click intentionally not bound — see change-password modal. -->
-      <div class="modal-backdrop show">
+  <div class="modal-backdrop show">
     <div class="modal">
       <div class="modal-header">
       <h2>{{ newRole() === 'admin' ? 'Create admin account' : 'Create HR account' }}</h2>
@@ -301,7 +328,7 @@
 
 
       @if (lastCreated()) {
-
+      <div class="modal-body">
         <!-- Success state — show outcome + close button. Don't reset
              the form so the admin can review what they just created. -->
         <div class="notice" style="background: var(--green-soft, #e7f6e7); border-left:3px solid var(--green, #2f8d3a);">
@@ -328,7 +355,7 @@
             Done
           </button>
         </div>
-
+      </div>
 
       } @else {
         <!-- Form state -->
@@ -404,20 +431,8 @@
                 <i class="fa" [class.fa-eye]="!showNewPassword()" [class.fa-eye-slash]="showNewPassword()"></i>
               </button>
             </div>
-            <div class="text-muted password-hint">
-              Password requirements:
-              <ul>
-                <li>At least 6 characters in length</li>
-                <li>At least 1 uppercase letter</li>
-                <li>At least 1 lowercase letter</li>
-                <li>At least 1 number</li>
-                <li>At least 1 special character (e.g., <code>@ _ ! # $ % &amp;</code>)</li>
-                <li>No whitespaces or tabs</li>
-              </ul>
             </div>
-          </div>
-
-          <div class="field">
+               <div class="field">
             <label for="newPasswordConfirm">Confirm password <span style="color:red">*</span></label>
             <div class="password-wrap">
               <input
@@ -441,7 +456,22 @@
             }
           </div>
 
-          <div class="flex-row mt-4" style="justify-content:flex-end; gap:12px;">
+            <div class="text-muted password-hint">
+              Password requirements:
+              <ul>
+                <li>At least 6 characters in length</li>
+                <li>At least 1 uppercase letter</li>
+                <li>At least 1 lowercase letter</li>
+                <li>At least 1 number</li>
+                <li>At least 1 special character (e.g., <code>@ _ ! # $ % &amp;</code>)</li>
+                <li>No whitespaces or tabs</li>
+              </ul>
+            </div>
+          </div>
+
+       
+
+          <div class="flex-row mt-2 mb-4" style="justify-content:flex-end; gap:12px;">
             <button
               type="button"
               class="btn btn-secondary"
@@ -459,7 +489,7 @@
                 {{ newRole() === 'admin' ? 'CREATE ADMIN' : 'CREATE HR' }}  →
               }
             </button>
-          </div>
+          
  </div>
         </form>
       }
@@ -527,3 +557,57 @@
     </div>
   </div>
 }
+
+
+<!-- Bulk Delete Confirmation Modal -->
+@if (pendingBulkDelete().length > 0) { 
+   <div class="modal-backdrop show" (click)="cancelBulkDelete()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header" style="background:#7f1d1d;">
+        <h2>Delete {{ pendingBulkDelete().length }} HR user(s)?</h2>
+        <p class="subtitle">
+           This will permanently delete:
+          <a class="close-btn" (click)="cancelBulkDelete()" aria-label="Close">✕</a>
+        </p>
+      </div>
+
+      <div class="modal-body"> 
+ 
+      <ul>
+        @for (u of pendingBulkDelete(); track u.id) {
+          <li>{{ u.name }} ({{ u.email }})</li>
+        }
+      </ul>
+
+      @if (bulkDeleteError()) {
+        <div class="notice notice-error">
+          {{ bulkDeleteError() }}
+        </div>
+      }
+
+      <div class="flex-row mt-4" style="justify-content: flex-end; gap: 12px;">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          [disabled]="bulkDeleteSubmitting()"
+          (click)="cancelBulkDelete()">
+          Cancel
+        </button>
+
+        <button
+          type="button"
+          class="btn btn-danger"
+          [disabled]="bulkDeleteSubmitting()"
+          (click)="confirmBulkDelete()">
+          @if (bulkDeleteSubmitting()) {
+            Deleting...
+          } @else {
+            Delete
+          }
+        </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+

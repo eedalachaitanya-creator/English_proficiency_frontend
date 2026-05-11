@@ -18,9 +18,9 @@
   <div class="page-header">
     <a routerLink="/dashboard" class="back-link">← Back to Dashboard</a>
     <h1>Reading Passages</h1>
-    <p class="subtitle">
+    <!-- <p class="subtitle">
       The 200–500 word texts shown on the reading section. Each passage usually has 5 reading-comprehension questions linked to it.
-    </p>
+    </p> -->
   </div>
 
   <!-- Filters + actions -->
@@ -85,9 +85,9 @@
             <td class="text-mono">{{ p.word_count }}</td>
             <td class="text-muted" style="font-size: 13px;">{{ p.topic ?? '—' }}</td>
             <td>
-              <button class="btn-link" (click)="onView(p)">View</button>
+              <button class="btn-link" (click)="onView(p)"><i class="fa-solid fa-eye"></i></button>
               <span class="action-sep">|</span>
-              <button class="btn-link" (click)="openEditForm(p)">Edit</button>
+              <button class="btn-link" (click)="openEditForm(p)"><i class="fa-solid fa-pencil"></i></button>
               <span class="action-sep">|</span>
               <button
                 type="button"
@@ -101,7 +101,7 @@
                 <span class="toggle-knob"></span>
               </button>
               <span class="action-sep">|</span>
-              <button class="btn-link danger" (click)="onDelete(p)">Delete</button>
+              <button class="btn-link danger" (click)="onDelete(p)"><i class="fa-solid fa-trash"></i></button>
             </td>
           </tr>
         }

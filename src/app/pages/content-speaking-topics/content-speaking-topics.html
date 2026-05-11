@@ -18,9 +18,9 @@
   <div class="page-header">
      <a routerLink="/dashboard" class="back-link">← Back to Dashboard</a> 
     <h1>Speaking Topics</h1>
-    <p class="subtitle">
+    <!-- <p class="subtitle">
       Impromptu prompts shown in the speaking section. Each candidate is randomly assigned 3 of these per test.
-    </p>
+    </p> -->
   </div>
 
   <div class="toolbar">
@@ -78,9 +78,9 @@
             <td>{{ t.difficulty }}</td>
             <td class="text-muted" style="font-size: 13px;">{{ t.category ?? '—' }}</td>
             <td>
-              <button class="btn-link" (click)="onView(t)">View</button>
+              <button class="btn-link" (click)="onView(t)"><i class="fa-solid fa-eye"></i> </button>
               <span class="action-sep">|</span>
-              <button class="btn-link" (click)="openEditForm(t)">Edit</button>
+              <button class="btn-link" (click)="openEditForm(t)"><i class="fa-solid fa-pencil"></i></button>
               <span class="action-sep">|</span>
               <button
                 type="button"
@@ -94,7 +94,7 @@
                 <span class="toggle-knob"></span>
               </button>
               <span class="action-sep">|</span>
-              <button class="btn-link danger" (click)="onDelete(t)">Delete</button>
+              <button class="btn-link danger" (click)="onDelete(t)"><i class="fa-solid fa-trash"></i></button>
             </td>
           </tr>
         }

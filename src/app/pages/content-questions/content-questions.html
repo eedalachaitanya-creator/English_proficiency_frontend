@@ -18,9 +18,9 @@
   <div class="page-header">
     <a routerLink="/dashboard" class="back-link">← Back to Dashboard</a>
     <h1>MCQ Questions</h1>
-    <p class="subtitle">
+    <!-- <p class="subtitle">
       Reading comprehension, grammar, vocabulary, and fill-in-the-blank questions.
-    </p>
+    </p> -->
   </div>
 
   <!-- Filters + actions -->
@@ -102,9 +102,9 @@
             <td class="text-muted" style="font-size: 13px;">{{ passageTitleFor(q.passage_id) }}</td>
             <td><strong>{{ letter(q.correct_answer) }}</strong></td>
             <td>
-              <button class="btn-link" (click)="onView(q);  $event.stopPropagation()" >View</button>
+              <button class="btn-link" (click)="onView(q);  $event.stopPropagation()" ><i class="fa-solid fa-eye"></i> </button>
               <span class="action-sep">|</span>
-              <button class="btn-link" (click)="openEditForm(q); $event.stopPropagation()">Edit</button>
+              <button class="btn-link" (click)="openEditForm(q); $event.stopPropagation()"><i class="fa-solid fa-pencil"></i></button>
               <span class="action-sep">|</span>
               <button
                 type="button"
@@ -118,7 +118,7 @@
                 <span class="toggle-knob"></span>
               </button>
               <span class="action-sep">|</span>
-              <button class="btn-link danger" (click)="onDelete(q)">Delete</button>
+              <button class="btn-link danger" (click)="onDelete(q)"><i class="fa-solid fa-trash"></i></button>
             </td>
           </tr>
         }
@@ -364,6 +364,7 @@
         </div>
         </div>
       } @else {
+        <div class="modal-body"> 
         <div class="csv-result">
           <div class="result-stat success">
             <strong>{{ csvResult()!.created }}</strong> questions created
@@ -382,6 +383,7 @@
         <div class="flex-row mt-4">
           <span class="spacer"></span>
           <button type="button" class="btn btn-primary" (click)="closeCsvModal()">Done</button>
+        </div>
         </div>
       }
     </div>
