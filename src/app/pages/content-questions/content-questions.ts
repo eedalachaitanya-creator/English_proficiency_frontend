@@ -131,7 +131,7 @@ export class ContentQuestions implements OnInit {
     this.contentSvc.listQuestions({}).subscribe({
       next: (q) => {
         this.questions.set(q);
-        this.contentSvc.listPassages().subscribe({
+        this.contentSvc.listPassages({ includeDisabled: false }).subscribe({
           next: (p) => {
             this.passages.set(p);
             this.loading.set(false);

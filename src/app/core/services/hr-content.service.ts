@@ -141,9 +141,18 @@ export class HrContentService {
   private readonly baseUrl = environment.apiUrl;
 
   // ---------- PASSAGES ----------
-  listPassages(difficulty?: string): Observable<PassageOut[]> {
-    const path = difficulty
-      ? `/api/hr/content/passages?difficulty=${encodeURIComponent(difficulty)}`
+  listPassages(opts: { difficulty?: string; includeDisabled?: boolean } = {}): Observable<PassageOut[]> {
+    const params: string[] = [];
+    if (opts.difficulty) {
+      params.push(`difficulty=${encodeURIComponent(opts.difficulty)}`);
+    }
+    // Only send the param when we want non-default behavior. Backend
+    // defaults to true, so omitting it = include all.
+    if (opts.includeDisabled === false) {
+      params.push('include_disabled=false');
+    }
+    const path = params.length > 0
+      ? `/api/hr/content/passages?${params.join('&')}`
       : '/api/hr/content/passages';
     return this.api.get<PassageOut[]>(path);
   }
