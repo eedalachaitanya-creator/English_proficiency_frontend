@@ -17,7 +17,7 @@
               }
               @case ('list') {
                 @if (isArray(valueOf(field.key))) {
-                  <ol class="field-list">
+                  <ol  type="A" class="field-list">
                     @for (item of $any(valueOf(field.key)); track $index) {
                       <li>{{ item }}</li>
                     }

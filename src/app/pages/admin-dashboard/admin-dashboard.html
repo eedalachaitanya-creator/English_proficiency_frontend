@@ -157,7 +157,7 @@
                       title="Edit this HR"
                       aria-label="Edit HR {{ u.name }}"
                       (click)="openEditModal(u, $event)">
-                      ✏️
+                     <i class="fa-solid fa-pencil"></i>
                     </button>
                     <button
                       type="button"
@@ -620,14 +620,17 @@
 }
 <!-- ─────────────────────────  Edit-HR modal  ───────────────────────── -->
 @if (editModalOpen() && editingUser(); as user) {
-  <div class="modal-backdrop show" (click)="closeEditModal()">
-    <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-backdrop show">
+    <div class="modal">
       <div class="modal-header">
-        <h2>Edit HR account</h2>
-        <a class="close-btn" (click)="closeEditModal()" aria-label="Close">✕</a>
-      </div>
-
+        <h2>Edit HR account</h2> 
+        <a class="close-btn" (click)="closeEditModal()" aria-label="Close">
+          ✕
+        </a>
+      </div> 
+ 
       <form (ngSubmit)="submitEdit()" novalidate>
+         <div class="modal-body"> 
         <div class="field">
           <label for="editName">Name <span style="color:red">*</span></label>
           <input
@@ -697,6 +700,7 @@
               SAVE CHANGES
             }
           </button>
+        </div>
         </div>
       </form>
     </div>

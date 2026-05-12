@@ -155,7 +155,7 @@ export class ContentSpeakingTopics implements OnInit {
   }
 
   private validateForm(): string | null {
-    if (!this.formPromptText().trim()) return 'Prompt text is required.';
+    if (!this.formPromptText().trim()) return 'Text is required.';
     return null;
   }
 

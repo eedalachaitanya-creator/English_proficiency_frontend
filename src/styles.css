@@ -21,7 +21,7 @@ h3 { font-size: 16px; color: var(--navy); margin-bottom: 8px; }
 .field { margin-bottom: 18px; }
 .field label { display: block; font-size: 11px; font-weight: bold; color: var(--text-muted); letter-spacing: 0.5px; margin-bottom: 6px; text-transform: uppercase; }
 .field input[type="text"], .field input[type="email"], .field input[type="password"] { width: 100%; padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--radius); font-family: var(--font-body); font-size: 14px; background: var(--white); transition: border-color 0.15s, box-shadow 0.15s; }
-.field input:focus { outline: none; border-color: var(--orange); box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.15); }
+.field input:focus { outline: none; border-color: var(--brand, #2563eb); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15); }
 .field input.mono { font-family: var(--font-mono); letter-spacing: 2px; }
 .field-error { color: var(--red); font-size: 12px; margin-top: 4px; min-height: 16px; }
 .btn { display: inline-block; padding: 12px 24px; border: none; border-radius: var(--radius); font-family: var(--font-body); font-size: 14px; font-weight: bold; letter-spacing: 0.3px; cursor: pointer; transition: background 0.15s, transform 0.05s; text-align: center; white-space: nowrap; flex-shrink: 0; }
@@ -157,7 +157,7 @@ table.results tbody tr:last-child td { border-bottom: none; }
 .password-toggle:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; border-radius: 4px; }
 
 .cp-table td:nth-child(5), .cq-table td:nth-child(2){    text-transform: capitalize;}
-.fa-solid {    font-size: 1.2rem;    padding: 0px 5px;}
+.fa-solid {    font-size: 1.1rem;    padding: 0px 5px;}
 
 
  @media screen and (min-width: 991px) {

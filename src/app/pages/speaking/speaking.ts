@@ -559,30 +559,36 @@ export class Speaking implements OnInit, OnDestroy, AfterViewInit {
    * backwards once Next is clicked, so the last entry is always for the
    * current topic.
    */
-  onDeleteRecording(): void {
-    // Guard: only allow delete when in idle phase WITH a playback recording.
-    // Without this guard, a stale click during phase transitions could
-    // pop the previous topic's recording.
-    if (this.phase() !== 'idle') return;
-    if (this.recordings().length !== this.currentTopicIdx() + 1) return;
+ showDeleteConfirm = signal<boolean>(false);
 
-    // Drop the recording for the current topic
-    this.recordings.update(arr => arr.slice(0, -1));
+// Step 1 — show confirmation
+onDeleteRecording(): void {
+  if (this.phase() !== 'idle') return;
+  if (this.recordings().length !== this.currentTopicIdx() + 1) return;
+  this.showDeleteConfirm.set(true);  // show popup
+}
 
-    // Tear down the playback element and free the blob URL
-    this.hasPlayback.set(false);
-    if (this.playbackUrl()) {
-      URL.revokeObjectURL(this.playbackUrl());
-      this.playbackUrl.set('');
-    }
+// Step 2 — confirmed delete
+confirmDelete(): void {
+  this.showDeleteConfirm.set(false);
 
-    // Reset status messaging
-    this.recStatus.set('Recording deleted. Click START when ready to record again.');
-    this.recStatusKind.set('idle');
+  this.recordings.update(arr => arr.slice(0, -1));
 
-    // Move to "awaiting start" — START button shows, STOP/Delete hidden.
-    this.phase.set('awaiting_start');
+  this.hasPlayback.set(false);
+  if (this.playbackUrl()) {
+    URL.revokeObjectURL(this.playbackUrl());
+    this.playbackUrl.set('');
   }
+
+  this.recStatus.set('Recording deleted. Click START when ready to record again.');
+  this.recStatusKind.set('idle');
+  this.phase.set('awaiting_start');
+}
+
+// Step 3 — cancelled
+cancelDelete(): void {
+  this.showDeleteConfirm.set(false);
+}
 
   /**
    * "START" button handler — only visible in awaiting_start phase.

@@ -151,7 +151,7 @@
   <div class="modal-body"> 
    
       <div class="field">
-        <label for="wprompt">Prompt Text <span style="color:red">*</span></label>
+        <label for="wprompt">Text <span style="color:red">*</span></label>
         <textarea id="wprompt" rows="4"
                   [ngModel]="formPromptText()"
                   (ngModelChange)="formPromptText.set($event)"
@@ -177,18 +177,18 @@
       </div>
 
       <div class="field-row">
-        <div class="field">
-          <label for="wmin">Min Words <span style="color:red">*</span></label>
-          <input type="number" id="wmin" min="50" max="1000"
-                 [ngModel]="formMinWords()"
-                 (ngModelChange)="formMinWords.set(+$event)">
-        </div>
-        <div class="field">
-          <label for="wmax">Max Words <span style="color:red">*</span></label>
-          <input type="number" id="wmax" min="50" max="1000"
-                 [ngModel]="formMaxWords()"
-                 (ngModelChange)="formMaxWords.set(+$event)">
-        </div>
+    <div class="field">
+      <label for="wmin">Min Words <span style="color:red">*</span></label>
+      <input type="number" id="wmin" min="50" max="1000" step="1" inputmode="numeric" pattern="[0-9]*"
+        [ngModel]="formMinWords()" (ngModelChange)="formMinWords.set(toInt($event))" (keydown)="blockDecimal($event)">
+    </div>
+    
+    <div class="field">
+      <label for="wmax">Max Words <span style="color:red">*</span></label>
+      <input type="number" id="wmax" min="50" max="1000" step="1" inputmode="numeric" pattern="[0-9]*"
+        [ngModel]="formMaxWords()" (ngModelChange)="formMaxWords.set(toInt($event))" (keydown)="blockDecimal($event)">
+    </div>
+
       </div>
 
       <div class="field">

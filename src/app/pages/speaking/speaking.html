@@ -128,4 +128,27 @@
   </main>
 }
 
+@if (showDeleteConfirm()) {
+
+   <div class="modal-backdrop show">
+    <div class="modal">
+      <div class="modal-header">
+       <h2>Delete Recording?</h2> 
+       <a class="close-btn" (click)="cancelDelete()" aria-label="Close">
+          ✕
+       </a>
+        </div>
+
+  <div class="modal-body"> 
+<p class="confirm-msg">This recording will be permanently deleted and cannot be undone.</p>
+  
+      <div class="confirm-actions del-audio">
+        <button class="btn btn-secondary" (click)="cancelDelete()">Cancel</button>
+        <button class="btn btn-danger " (click)="confirmDelete()" >Yes, Delete</button>
+      </div>
+    </div>
+  </div>
+  </div>
+}
+
 <app-footer text="© Company HR  •  Privacy  •  Support"></app-footer>

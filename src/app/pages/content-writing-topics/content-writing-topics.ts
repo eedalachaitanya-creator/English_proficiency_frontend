@@ -165,15 +165,15 @@ export class ContentWritingTopics implements OnInit {
     this.formOpen.set(false);
   }
 
-  private validateForm(): string | null {
-    if (!this.formPromptText().trim()) return 'Prompt text is required.';
-    const min = this.formMinWords();
-    const max = this.formMaxWords();
-    if (min < 50) return 'Minimum word count must be at least 50.';
-    if (max > 1000) return 'Maximum word count cannot exceed 1000.';
-    if (min >= max) return 'Minimum word count must be less than maximum.';
-    return null;
-  }
+private validateForm(): string | null {
+  if (!this.formPromptText().trim()) return 'Text is required.';
+  const min = this.formMinWords();
+  const max = this.formMaxWords();
+  if (min < 50)   return 'Minimum word count must be at least 50.';
+  if (max > 1000) return 'Maximum word count cannot exceed 1000.';
+  if (min >= max) return 'Minimum word count must be less than maximum.';
+  return null;
+}
 
   submitForm(): void {
     const err = this.validateForm();
@@ -353,4 +353,17 @@ export class ContentWritingTopics implements OnInit {
   }
 
   trackById = (_: number, t: WritingTopicOut) => t.id;
+
+  // Converts any value to whole integer
+toInt(value: any): number {
+  return Math.floor(Number(value)) || 0;
+}
+
+// Blocks . e E + - keys from being typed
+blockDecimal(event: KeyboardEvent): void {
+  if (['.', 'e', 'E', '+', '-'].includes(event.key)) {
+    event.preventDefault();
+  }
+}
+
 }
