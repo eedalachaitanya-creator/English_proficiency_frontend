@@ -87,6 +87,24 @@ export interface UserCreateByAdminResponse {
   email_status: 'sent' | 'failed' | 'pending';
   email_error: string | null;
 }
+/** PATCH /api/admin/users/{user_id} body — partial update. Send only
+ * the fields the admin is changing; omit (or send null) for fields
+ * that should stay the same. Backend currently allows changing
+ * name/email/password only. Role is NOT editable here. */
+export interface UserUpdateByAdminRequest {
+  name?: string | null;
+  email?: string | null;
+  password?: string | null;
+}
+
+/** PATCH /api/admin/users/{user_id} response — simpler than the
+ * create response since no email is sent on update. */
+export interface UserUpdateByAdminResponse {
+  id: number;
+  name: string;
+  email: string;
+  role: 'hr' | 'admin';
+}
 
 /**
  * One row in GET /api/admin/users — the admin dashboard's top-level

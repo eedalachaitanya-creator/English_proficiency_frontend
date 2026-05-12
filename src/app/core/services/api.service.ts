@@ -97,6 +97,22 @@ setResults(rows: any[]) {
       .pipe(catchError(err => this.handleError(err)));
   }
 
+  /** Standard PATCH with a JSON body. Used for partial updates
+   * (e.g., admin editing an HR's name/email/password). */
+  patch<T>(path: string, body: unknown = null): Observable<T> {
+    if (body instanceof FormData) {
+      // Same FormData passthrough as post() — let the browser set
+      // the multipart Content-Type with boundary automatically.
+      return this.http
+        .patch<T>(this.url(path), body, { withCredentials: true })
+        .pipe(catchError(err => this.handleError(err)));
+    }
+    const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
+    return this.http
+      .patch<T>(this.url(path), body, { headers, withCredentials: true })
+      .pipe(catchError(err => this.handleError(err)));
+  }
+
   // ---------------------------------------------------------------------
   //  Internal helpers
   // ---------------------------------------------------------------------

@@ -9,6 +9,8 @@ import {
   AdminUserSummary,
   UserCreateByAdminRequest,
   UserCreateByAdminResponse,
+  UserUpdateByAdminRequest,
+  UserUpdateByAdminResponse,
   PaginatedScoreSummary,
   ResultRow,
 } from '../../core/models/hr.models';
@@ -128,6 +130,20 @@ export class AdminDashboard implements OnInit {
    * doesn't treat it casually.
    */
   pendingDelete = signal<AdminUserSummary | null>(null);
+  // -------- Edit-HR modal state --------
+  /** The HR being edited. null when the modal is closed. */
+  editingUser = signal<AdminUserSummary | null>(null);
+  /** Modal visibility flag. */
+  editModalOpen = signal(false);
+  /** Form fields — prefilled from editingUser on open, edited by HR. */
+  editName = '';
+  editEmail = '';
+  editPassword = '';
+  editPasswordConfirm = '';
+  /** Inline error shown above the form's submit button. */
+  editError = signal('');
+  /** True while the PATCH request is in flight. Disables form + buttons. */
+  editSubmitting = signal(false);
   deleteSubmitting = signal(false);
   deleteError = signal('');
 
@@ -453,6 +469,121 @@ export class AdminDashboard implements OnInit {
    * scope. The trash button is rendered conditionally in the template,
    * but we re-check here so a future template change can't bypass it.
    */
+
+  /**
+   * Open the Edit HR modal. Prefills the form fields with the user's
+   * current name and email. Password fields stay blank — admin only
+   * fills them in if they want to reset the password. Stops event
+   * propagation so the table row's expand toggle doesn't also fire.
+   */
+  openEditModal(user: AdminUserSummary, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    if (this.editSubmitting()) return;
+    this.editingUser.set(user);
+    this.editName = user.name;
+    this.editEmail = user.email;
+    this.editPassword = '';
+    this.editPasswordConfirm = '';
+    this.editError.set('');
+    this.editModalOpen.set(true);
+  }
+
+  /**
+   * Close the Edit HR modal. Refuses if a submission is in flight
+   * (same protection as the Create modal — don't let the admin
+   * accidentally close while the API call hasn't completed yet).
+   */
+  closeEditModal(): void {
+    if (this.editSubmitting()) return;
+    this.editModalOpen.set(false);
+    this.editingUser.set(null);
+    this.editError.set('');
+  }
+
+  /**
+   * Submit the Edit HR form. Builds a partial-update body containing
+   * ONLY the fields that actually changed from the original values
+   * (so an unchanged email isn't re-validated by the backend, and a
+   * blank password isn't sent at all). Validates that password +
+   * confirm match before submitting. On success, closes the modal
+   * and reloads the user list so the new values appear in the table.
+   */
+  submitEdit(): void {
+    const user = this.editingUser();
+    if (!user || this.editSubmitting()) return;
+
+    this.editError.set('');
+
+    // Trim user-typed fields. Backend will also trim but we want
+    // the comparison-to-original to use the trimmed value, not the
+    // raw input with trailing spaces.
+    const name = this.editName.trim();
+    const email = this.editEmail.trim();
+    const password = this.editPassword;
+    const passwordConfirm = this.editPasswordConfirm;
+
+    if (!name) {
+      this.editError.set('Name is required.');
+      return;
+    }
+    if (!email) {
+      this.editError.set('Email is required.');
+      return;
+    }
+
+    // Password is optional. If admin filled either field, BOTH must
+    // be filled AND match. Empty password skips the password update
+    // entirely (admin chose not to reset it).
+    if (password || passwordConfirm) {
+      if (password !== passwordConfirm) {
+        this.editError.set('Passwords do not match.');
+        return;
+      }
+      if (password.length < 6) {
+        this.editError.set('Password must be at least 6 characters.');
+        return;
+      }
+    }
+
+    // Build partial body — only include fields that changed. Backend
+    // skips null fields entirely. Sending the same email back would
+    // trigger an unnecessary uniqueness check, so we omit when unchanged.
+    const body: UserUpdateByAdminRequest = {};
+    if (name !== user.name) body.name = name;
+    if (email !== user.email) body.email = email;
+    if (password) body.password = password;
+
+    // If admin didn't change anything, skip the network call entirely.
+    if (Object.keys(body).length === 0) {
+      this.closeEditModal();
+      return;
+    }
+
+    this.editSubmitting.set(true);
+    this.api.patch<UserUpdateByAdminResponse>(`/api/admin/users/${user.id}`, body).subscribe({
+      next: () => {
+        this.editSubmitting.set(false);
+        this.editModalOpen.set(false);
+        this.editingUser.set(null);
+        // Refresh the table so the updated values appear.
+        this.loadUsers();
+      },
+      error: (err: ApiError) => {
+        this.editSubmitting.set(false);
+        if (err.status === 401) {
+          this.router.navigate(['/login']);
+          return;
+        }
+        // 409 = email collision. 404 = user gone (race). 422 = validation.
+        // 403 = somehow tried to edit an admin row (shouldn't happen
+        // via UI since we only show pencil on HR rows, but defense in depth).
+        this.editError.set(err.message || 'Could not save changes.');
+      },
+    });
+  }
+
   askDelete(user: AdminUserSummary, event: Event): void {
     // Stop the click from bubbling to the row's toggleExpand handler —
     // otherwise opening the delete modal also expands/collapses the row.
