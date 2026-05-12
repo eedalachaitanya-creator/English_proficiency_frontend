@@ -102,27 +102,116 @@
     </tbody>
   </table>
 
-  @if (!loading() && filteredTopics().length > 0) {
-    @if (totalPages() > 1) {
-      <div class="flex-row mt-4" style="align-items:center; justify-content:center; gap:12px;">
-        <button type="button" class="btn btn-secondary"
-                [disabled]="effectivePage() === 1"
-                (click)="prevPage()">← Previous</button>
-        <span class="text-muted" style="font-size:13px;">
-          Page {{ effectivePage() }} of {{ totalPages() }}
-          <span style="margin: 0 8px;">·</span>
-          {{ filteredTopics().length }} total
-        </span>
-        <button type="button" class="btn btn-secondary"
-                [disabled]="effectivePage() >= totalPages()"
-                (click)="nextPage()">Next →</button>
+ @if (!loading() && filteredTopics().length > 0) {
+  @if (totalPages() > 1) {
+    <div
+      class="flex-row mt-4"
+      style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;"
+    >
+     <!-- Left side: entry count -->
+<div class="text-muted" style="font-size:14px;">
+  Showing {{ ((effectivePage() - 1) * pageSize) + 1 }} to 
+  {{ (effectivePage() * pageSize) > filteredTopics().length ? filteredTopics().length : (effectivePage() * pageSize) }} 
+  of {{ filteredTopics().length }} entries
+</div>
+
+      <!-- Right side: pagination -->
+      <div
+        class="flex-row"
+        style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;"
+      >
+        <!-- Previous -->
+        <button
+          type="button"
+          class="btn btn-secondary"
+          style="padding:6px 12px;"
+          [disabled]="effectivePage() === 1"
+          (click)="prevPage()"
+        >
+          « Previous
+        </button>
+
+        <!-- First page -->
+        <button
+          type="button"
+          class="btn"
+          [class.btn-primary]="effectivePage() === 1"
+          [class.btn-secondary]="effectivePage() !== 1"
+          style="min-width:36px; padding:6px 10px;"
+          (click)="currentPage.set(1)"
+        >
+          1
+        </button>
+
+        <!-- Leading ellipsis -->
+        @if (effectivePage() > 4) {
+          <span class="text-muted" style="padding:0 6px;">...</span>
+        }
+
+        <!-- Middle page numbers -->
+        @for (page of [].constructor(totalPages()); track $index) {
+         @if (
+  ($index + 1) > 1 &&
+  ($index + 1) < totalPages() &&
+  (($index + 1) === effectivePage() || 
+   ($index + 1) === effectivePage() - 1 || 
+   ($index + 1) === effectivePage() + 1)
+) {
+            <button
+              type="button"
+              class="btn"
+              [class.btn-primary]="effectivePage() === ($index + 1)"
+              [class.btn-secondary]="effectivePage() !== ($index + 1)"
+              style="min-width:36px; padding:6px 10px;"
+              (click)="currentPage.set($index + 1)"
+            >
+              {{ $index + 1 }}
+            </button>
+          }
+        }
+
+        <!-- Trailing ellipsis -->
+        @if (effectivePage() < totalPages() - 3) {
+          <span class="text-muted" style="padding:0 6px;">...</span>
+        }
+
+        <!-- Last page -->
+        @if (totalPages() > 1) {
+          <button
+            type="button"
+            class="btn"
+            [class.btn-primary]="effectivePage() === totalPages()"
+            [class.btn-secondary]="effectivePage() !== totalPages()"
+            style="min-width:36px; padding:6px 10px;"
+            (click)="currentPage.set(totalPages())"
+          >
+            {{ totalPages() }}
+          </button>
+        }
+
+        <!-- Next -->
+        <button
+          type="button"
+          class="btn btn-secondary"
+          style="padding:6px 12px;"
+          [disabled]="effectivePage() >= totalPages()"
+          (click)="nextPage()"
+        >
+          Next »
+        </button>
       </div>
-    } @else {
-      <div class="text-muted text-center mt-4" style="font-size: 13px;">
-        Showing {{ filteredTopics().length }} of {{ topics().length }} speaking topics
+    </div>
+  } @else {
+    <div
+      class="flex-row mt-4"
+      style="display:flex; justify-content:space-between; align-items:center;"
+    >
+      <div class="text-muted" style="font-size:14px;">
+        Showing 1 to {{ filteredTopics().length }} of {{ filteredTopics().length }} entries
       </div>
-    }
+    </div>
   }
+}
 
 </main>
 </div>

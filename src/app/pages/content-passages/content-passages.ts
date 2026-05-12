@@ -89,6 +89,21 @@ export class ContentPassages implements OnInit {
     const text = this.formBody().trim();
     return text ? text.split(/\s+/).length : 0;
   });
+  Math = Math; 
+  pageSize = 10;
+
+minVal(a: number, b: number): number {
+    return Math.min(a, b);
+  }
+
+ showingTo = computed(() =>
+    Math.min(this.effectivePage() * this.pageSize, this.filteredPassages().length)
+  );
+
+  showingFrom = computed(() =>
+    (this.effectivePage() - 1) * this.pageSize + 1
+  );
+ 
 
   ngOnInit(): void {
     this.loadPassages();
@@ -119,11 +134,9 @@ export class ContentPassages implements OnInit {
     return d ? all.filter(p => p.difficulty === d) : all;
   });
 
-  // ---- Pagination state ----
-  /** 1-indexed current page. Renders clamp via effectivePage so the
-   * signal can drift past totalPages without breaking the UI. */
+ 
   currentPage = signal(1);
-  readonly pageSize = 10;
+  //readonly pageSize = 10;
 
   totalPages = computed(() =>
     Math.max(1, Math.ceil(this.filteredPassages().length / this.pageSize))
@@ -374,4 +387,7 @@ export class ContentPassages implements OnInit {
   }
 
   trackById = (_: number, p: PassageOut) => p.id;
+
+
+ 
 }

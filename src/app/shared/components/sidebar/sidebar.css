@@ -29,7 +29,7 @@
   to { opacity: 1; transform: translate(-50%, 0); }
 }
 
-.sidebar { width: 260px; background: #fff; height: 100vh; border-right: 1px solid #eee; padding:  1px 0; overflow-y: auto; transition: transform 0.3s ease; }
+.sidebar { width: 260px; background: #fff; height: 100%; border-right: 1px solid #eee; padding:  1px 0; overflow-y: auto; transition: transform 0.3s ease; }
 .mobile-menu-btn { display: none; position: relative; top: -55px; left: 14px; z-index:1201; width: 42px; height: 42px; border: none; border-radius: 10px; background: #ff6b00; color: #fff; font-size: 22px; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
 @media (max-width: 992px) {
   .mobile-menu-btn { display: flex; align-items: center; justify-content: center; }

@@ -70,6 +70,21 @@ export class ContentSpeakingTopics implements OnInit {
   formSubmitting = signal(false);
   formError = signal('');
 
+      Math = Math; 
+  pageSize = 10;
+
+minVal(a: number, b: number): number {
+    return Math.min(a, b);
+  }
+
+ showingTo = computed(() =>
+    Math.min(this.effectivePage() * this.pageSize, this.filteredTopics().length)
+  );
+
+  showingFrom = computed(() =>
+    (this.effectivePage() - 1) * this.pageSize + 1
+  );
+
   ngOnInit(): void { this.loadTopics(); }
 
   private loadTopics(): void {
@@ -93,7 +108,7 @@ export class ContentSpeakingTopics implements OnInit {
 
   // ---- Pagination state ----
   currentPage = signal(1);
-  readonly pageSize = 10;
+ // readonly pageSize = 10;
 
   totalPages = computed(() =>
     Math.max(1, Math.ceil(this.filteredTopics().length / this.pageSize))

@@ -45,6 +45,20 @@ export class ContentQuestions implements OnInit {
   private router = inject(Router);
   private auth = inject(AuthService);
 
+  protected readonly Math = Math;
+
+  minVal(a: number, b: number): number {
+  return Math.min(a, b);
+}
+
+showingTo = computed(() =>
+  Math.min(this.effectivePage() * this.pageSize, this.filteredQuestions().length)
+);
+
+showingFrom = computed(() =>
+  (this.effectivePage() - 1) * this.pageSize + 1
+);
+
   // Topnav account menu — name/email come from the cached HR session.
   hrEmail = computed(() => this.auth.currentUser()?.email ?? 'Loading…');
   hrName = computed(() => this.auth.currentUser()?.name ?? '');
